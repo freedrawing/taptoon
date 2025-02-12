@@ -1,12 +1,7 @@
 package com.sparta.taptoon.domain.user.entity;
 
 import com.sparta.taptoon.domain.user.enums.UserGrade;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,6 +29,7 @@ public class User {
   @Column(name = "password", nullable = false)
   private String password;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "grade", nullable = false)
   private UserGrade grade;
 

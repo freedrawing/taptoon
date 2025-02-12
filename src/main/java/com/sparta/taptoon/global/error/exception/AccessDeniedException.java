@@ -1,6 +1,6 @@
-package com.sparta.taptoon.global.exception.base;
+package com.sparta.taptoon.global.error.exception;
 
-import com.sparta.taptoon.global.exception.enums.ErrorCode;
+import com.sparta.taptoon.global.error.enums.ErrorCode;
 
 public class AccessDeniedException extends BaseException {
 

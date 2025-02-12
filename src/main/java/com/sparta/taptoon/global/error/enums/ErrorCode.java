@@ -1,4 +1,4 @@
-package com.sparta.taptoon.global.exception.enums;
+package com.sparta.taptoon.global.error.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

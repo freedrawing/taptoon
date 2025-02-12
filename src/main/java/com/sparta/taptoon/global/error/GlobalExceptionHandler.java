@@ -1,6 +1,7 @@
-package com.sparta.taptoon.global.exception.base;
+package com.sparta.taptoon.global.error;
 
 import com.sparta.taptoon.global.common.ApiResponse;
+import com.sparta.taptoon.global.error.exception.BaseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

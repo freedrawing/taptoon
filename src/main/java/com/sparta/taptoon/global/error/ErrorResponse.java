@@ -1,6 +1,6 @@
-package com.sparta.taptoon.global.exception.base;
+package com.sparta.taptoon.global.error;
 
-import com.sparta.taptoon.global.exception.enums.ErrorCode;
+import com.sparta.taptoon.global.error.enums.ErrorCode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
