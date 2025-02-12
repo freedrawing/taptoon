@@ -23,20 +23,20 @@ public class ChatRoom extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user1_id", nullable = false)
-    private User user1Id;
+    private User user1;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user2_id", nullable = false)
-    private User user2Id;
+    private User user2;
 
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
+    private Boolean isDeleted = false;
 
     @Builder
-    public ChatRoom(String name, User user1Id, User user2Id, Boolean isDeleted) {
+    public ChatRoom(String name, User user1, User user2, Boolean isDeleted) {
         this.name = name;
-        this.user1Id = user1Id;
-        this.user2Id = user2Id;
+        this.user1 = user1;
+        this.user2 = user2;
         this.isDeleted = isDeleted;
     }
 }
