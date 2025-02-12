@@ -21,7 +21,7 @@ public class MatchingPost extends BaseEntity {
     private Long id;
 
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User writer;
 
     @Enumerated(value = EnumType.STRING)

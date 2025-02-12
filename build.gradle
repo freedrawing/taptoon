@@ -48,6 +48,7 @@ dependencies {
 
 	// DB
 	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client' // temp for 성욱
 
 	// docker
 //	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
@@ -63,6 +64,11 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	// Faker
+//	testImplementation('com.github.javafaker:javafaker:1.0.2') {
+//		exclude group: 'org.yaml', module: 'snakeyaml'
+//	}
+//	testImplementation 'org.yaml:snakeyaml:2.0'
 
 	// P6Spy
 	implementation 'p6spy:p6spy:3.9.1'
@@ -71,6 +77,7 @@ dependencies {
 	// JWT
 	implementation 'io.jsonwebtoken:jjwt:0.9.1' // Java JWT library
 	implementation 'javax.xml.bind:jaxb-api:2.3.1' // XML document와 Java 객체 간 매핑 자동화
+
 
 }
 

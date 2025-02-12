@@ -17,7 +17,7 @@ public class MatchingPostImage extends BaseEntity {
     private Long id;
 
     @JoinColumn(name = "matching_post_id", nullable = false, updatable = false)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private MatchingPost matchingPost;
 
     @Column(name = "image_url", nullable = false)
