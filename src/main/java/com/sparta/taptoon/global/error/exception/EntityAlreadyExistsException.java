@@ -8,6 +8,10 @@ public class EntityAlreadyExistsException extends BaseException {
         super(errorCode);
     }
 
+    public EntityAlreadyExistsException(String message, ErrorCode errorCode) {
+        super(message, errorCode);
+    }
+
     public EntityAlreadyExistsException() {
         super(ErrorCode.ENTITY_ALREADY_EXISTS);
     }

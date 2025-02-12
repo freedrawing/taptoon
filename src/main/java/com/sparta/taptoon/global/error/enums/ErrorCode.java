@@ -21,7 +21,11 @@ public enum ErrorCode {
   USER_DELETED(HttpStatus.FORBIDDEN, "USER_403", "삭제된 유저입니다."),
   USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER_409", "이미 존재하는 유저입니다."),
 
-  //board
+  // MatchingPost
+  INVALID_ARTIEST_TYPE(HttpStatus.BAD_REQUEST, "MATCHING_POST_400", "잘못된 ArtistType입니다."),
+  INVALID_WORK_TYPE(HttpStatus.BAD_REQUEST, "MATCHING_POST_400", "잘못된 WorkType입니다."),
+  MATCHING_POST_NOT_FOUND(HttpStatus.NOT_FOUND, "MATCHING_POST_404", "존재하지 않는 매칭 포스트입니다."),
+
 
   //comment
 

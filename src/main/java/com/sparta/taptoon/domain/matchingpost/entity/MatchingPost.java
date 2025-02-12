@@ -1,5 +1,6 @@
 package com.sparta.taptoon.domain.matchingpost.entity;
 
+import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
 import com.sparta.taptoon.domain.user.entity.User;
@@ -50,7 +51,7 @@ public class MatchingPost extends BaseEntity {
 
     @Builder
     public MatchingPost(User writer, ArtistType artistType, String title,
-                        WorkType workType, String fileUrl, String description, Long viewCount, Boolean isDeleted) {
+                        WorkType workType, String fileUrl, String description) {
 
         this.writer = writer;
         this.artistType = artistType;
@@ -58,7 +59,26 @@ public class MatchingPost extends BaseEntity {
         this.workType = workType;
         this.fileUrl = fileUrl;
         this.description = description;
-        this.viewCount = viewCount;
-        this.isDeleted = true;
+        this.viewCount = 0L;
+        this.isDeleted = false;
+    }
+
+    // id 비교는 따로 쿼리가 안 날라감
+    public boolean isMyMatchingPost(Long userId) {
+        return writer.getId() == userId;
+    }
+
+    public void removeMe() {
+        isDeleted = true;
+    }
+
+    public void modifyMe(UpdateMatchingPostRequest request) {
+        this.title = request.title();
+        this.workType = WorkType.of(request.workType());
+        this.description = request.description();
+    }
+
+    public void increaseViewCount() {
+        viewCount++;
     }
 }

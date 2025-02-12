@@ -64,13 +64,13 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	// Faker
-//	testImplementation('com.github.javafaker:javafaker:1.0.2') {
-//		exclude group: 'org.yaml', module: 'snakeyaml'
-//	}
-//	testImplementation 'org.yaml:snakeyaml:2.0'
+	// Faker (더미 텍스트 만들어주는 라이브러리)
+	testImplementation('com.github.javafaker:javafaker:1.0.2') {
+		exclude group: 'org.yaml', module: 'snakeyaml'
+	}
+	testImplementation 'org.yaml:snakeyaml:2.0'
 
-	// P6Spy
+	// P6Spy (SQL 로그 예쁘게 출력)
 	implementation 'p6spy:p6spy:3.9.1'
 	implementation 'com.github.gavlyukovskiy:datasource-decorator-spring-boot-autoconfigure:1.9.2'
 
