@@ -38,4 +38,5 @@ out/
 
 ### setting ###
 application-*.yml
+application-*.yaml
 application.properties
