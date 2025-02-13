@@ -38,4 +38,6 @@ public class Portfolio extends BaseEntity {
         this.fileUrl = fileUrl;
         this.isDeleted = isDeleted;
     }
+
+
 }
