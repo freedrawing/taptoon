@@ -1,6 +1,6 @@
 package com.sparta.taptoon.domain.portfolio.entity;
 
-import com.sparta.taptoon.domain.user.entity.User;
+import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -20,7 +20,7 @@ public class Portfolio extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    private User user;
+    private Member member;
 
     @Column(name = "content", nullable = false)
     private String content;
@@ -32,8 +32,8 @@ public class Portfolio extends BaseEntity {
     private boolean isDeleted;
 
     @Builder
-    public Portfolio(User user, String content, String fileUrl, boolean isDeleted) {
-        this.user = user;
+    public Portfolio(Member member, String content, String fileUrl, boolean isDeleted) {
+        this.member = member;
         this.content = content;
         this.fileUrl = fileUrl;
         this.isDeleted = isDeleted;

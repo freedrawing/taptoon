@@ -1,7 +1,7 @@
 package com.sparta.taptoon.domain.comment.entity;
 
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
-import com.sparta.taptoon.domain.user.entity.User;
+import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -21,7 +21,7 @@ public class Comment extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    private User user;
+    private Member member;
 
     @ManyToOne
     @JoinColumn(name = "matching_post_id", nullable = false, updatable = false)
@@ -38,8 +38,8 @@ public class Comment extends BaseEntity {
     private boolean isDeleted;
 
     @Builder
-    public Comment(User user, MatchingPost matchingPost, Comment parent, String content, boolean isDeleted) {
-        this.user = user;
+    public Comment(Member member, MatchingPost matchingPost, Comment parent, String content, boolean isDeleted) {
+        this.member = member;
         this.matchingPost = matchingPost;
         this.parent = parent;
         this.content = content;
