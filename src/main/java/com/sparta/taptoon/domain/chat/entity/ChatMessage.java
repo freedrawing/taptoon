@@ -1,6 +1,6 @@
 package com.sparta.taptoon.domain.chat.entity;
 
-import com.sparta.taptoon.domain.user.entity.User;
+import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -24,7 +24,7 @@ public class ChatMessage extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
-    private User sender;
+    private Member sender;
 
     @Column(name = "message", nullable = false)
     private String message;
@@ -36,7 +36,7 @@ public class ChatMessage extends BaseEntity {
     private Boolean isDeleted = false;
 
     @Builder
-    public ChatMessage(ChatRoom chatRoom, User sender, String message, Boolean isRead,
+    public ChatMessage(ChatRoom chatRoom, Member sender, String message, Boolean isRead,
                        Boolean isDeleted) {
         this.chatRoom = chatRoom;
         this.sender = sender;

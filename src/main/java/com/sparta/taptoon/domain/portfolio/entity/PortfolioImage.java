@@ -1,6 +1,5 @@
 package com.sparta.taptoon.domain.portfolio.entity;
 
-import com.sparta.taptoon.domain.user.entity.User;
 import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
