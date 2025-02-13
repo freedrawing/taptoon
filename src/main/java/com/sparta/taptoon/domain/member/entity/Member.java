@@ -43,8 +43,8 @@ public class Member extends BaseEntity {
         this.name = name;
         this.nickname = nickname;
         this.password = password;
-        this.grade = grade;
-        this.isDeleted = isDeleted;
+        this.grade = MemberGrade.BASIC;
+        this.isDeleted = false;
     }
 
     public void changePassword(String newPassword) {
