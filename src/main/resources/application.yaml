@@ -27,3 +27,6 @@ logging:
     org.springframework.security: warn
     com.freedrawing.springplus: info
     org.hibernate: warn
+
+jwt:
+  secret: your-256-bit-secret-key-should-be-longer-than-this
