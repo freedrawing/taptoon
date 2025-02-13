@@ -19,7 +19,7 @@ public class Portfolio extends BaseEntity {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false, updatable = false)
+    @JoinColumn(name = "member_id", nullable = false, updatable = false)
     private Member member;
 
     @Column(name = "content", nullable = false)
@@ -29,7 +29,7 @@ public class Portfolio extends BaseEntity {
     private String fileUrl;
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted;
+    private boolean isDeleted = false;
 
     @Builder
     public Portfolio(Member member, String content, String fileUrl, boolean isDeleted) {
@@ -38,6 +38,5 @@ public class Portfolio extends BaseEntity {
         this.fileUrl = fileUrl;
         this.isDeleted = isDeleted;
     }
-
 
 }
