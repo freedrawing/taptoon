@@ -4,8 +4,8 @@ import com.sparta.taptoon.domain.chat.dto.request.CreateChatRoomRequest;
 import com.sparta.taptoon.domain.chat.dto.response.ChatRoomResponse;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomRepository;
-import com.sparta.taptoon.domain.user.entity.User;
-import com.sparta.taptoon.domain.user.repository.UserRepository;
+import com.sparta.taptoon.domain.member.entity.Member;
+import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,23 +16,23 @@ import java.util.Optional;
 public class ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
     public ChatRoomResponse createChatRoom(CreateChatRoomRequest request) {
-        User user1 = userRepository.findById(request.userId1())
+        Member member1 = memberRepository.findById(request.memberId1())
                 .orElseThrow(() -> new RuntimeException("User not Found"));
 
-        User user2 = userRepository.findById(request.userId2())
+        Member member2 = memberRepository.findById(request.memberId2())
                 .orElseThrow(() -> new RuntimeException("User not Found"));
 
         // 기존에 같은 채팅방이 있는지 확인
-        Optional<ChatRoom> existingRoom = chatRoomRepository.findByUser1AndUser2(user1, user2);
+        Optional<ChatRoom> existingRoom = chatRoomRepository.findByMember1AndMember2(member1, member2);
         if (existingRoom.isPresent()) {
             return ChatRoomResponse.from(existingRoom.get());
         }
 
         // 채팅방 생성
-        ChatRoom chatRoom = chatRoomRepository.save(request.toEntity(user1, user2));
+        ChatRoom chatRoom = chatRoomRepository.save(request.toEntity(member1, member2));
         return ChatRoomResponse.from(chatRoom);
     }
 }
