@@ -2,7 +2,7 @@ package com.sparta.taptoon.domain.matchingpost.entity;
 
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
-import com.sparta.taptoon.domain.user.entity.User;
+import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -22,7 +22,7 @@ public class MatchingPost extends BaseEntity {
 
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private User writer;
+    private Member writer;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "artist_type")
@@ -49,7 +49,7 @@ public class MatchingPost extends BaseEntity {
 
 
     @Builder
-    public MatchingPost(User writer, ArtistType artistType, String title,
+    public MatchingPost(Member writer, ArtistType artistType, String title,
                         WorkType workType, String fileUrl, String description, Long viewCount, Boolean isDeleted) {
 
         this.writer = writer;
