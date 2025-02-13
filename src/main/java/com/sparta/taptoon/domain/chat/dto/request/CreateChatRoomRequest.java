@@ -1,13 +1,14 @@
 package com.sparta.taptoon.domain.chat.dto.request;
 
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
-import com.sparta.taptoon.domain.user.entity.User;
+import com.sparta.taptoon.domain.member.entity.Member;
 
-public record CreateChatRoomRequest(Long userId1, Long userId2) {
-    public ChatRoom toEntity(User user1, User user2){
+public record CreateChatRoomRequest(Long memberId1, Long memberId2) {
+    public ChatRoom toEntity(Member member1, Member member2) {
         return ChatRoom.builder()
-                .user1(user1)
-                .user2(user2)
+                .member1(member1)
+                .member2(member2)
+                .isDeleted(false)
                 .build();
     }
 }
