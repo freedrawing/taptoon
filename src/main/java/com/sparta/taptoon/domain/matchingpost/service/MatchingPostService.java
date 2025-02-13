@@ -5,8 +5,8 @@ import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequ
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
-import com.sparta.taptoon.domain.user.entity.User;
-import com.sparta.taptoon.domain.user.repository.UserRepository;
+import com.sparta.taptoon.domain.member.entity.Member;
+import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +23,12 @@ import static com.sparta.taptoon.global.error.enums.ErrorCode.USER_NOT_FOUND;
 public class MatchingPostService {
 
     private final MatchingPostRepository matchingPostRepository;
-    private final UserRepository userRepository; // 나중에 서비스로 바꿔야 함.
+    private final MemberRepository memberRepository; // 나중에 서비스로 바꿔야 함.
 
     @Transactional
     public MatchingPostResponse makeNewMatchingPost(Long userId, AddMatchingPostRequest request) {
-        User findUser = findUserById(userId);
-        MatchingPost savedMatchingPost = matchingPostRepository.save(request.toEntity(findUser));
+        Member findMember = findMemberById(userId);
+        MatchingPost savedMatchingPost = matchingPostRepository.save(request.toEntity(findMember));
 
         return MatchingPostResponse.from(savedMatchingPost);
     }
@@ -77,8 +77,8 @@ public class MatchingPostService {
     }
 
     // 임시 메서드 (나중에 교체)
-    private User findUserById(Long userId) {
-        return userRepository.findById(userId)
+    private Member findMemberById(Long userId) {
+        return memberRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
     }
 

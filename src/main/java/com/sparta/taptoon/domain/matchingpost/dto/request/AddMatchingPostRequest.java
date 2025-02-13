@@ -3,7 +3,7 @@ package com.sparta.taptoon.domain.matchingpost.dto.request;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
-import com.sparta.taptoon.domain.user.entity.User;
+import com.sparta.taptoon.domain.member.entity.Member;
 import jakarta.validation.constraints.NotBlank;
 
 public record AddMatchingPostRequest(
@@ -20,9 +20,9 @@ public record AddMatchingPostRequest(
         String description
 ) {
 
-    public MatchingPost toEntity(User user) {
+    public MatchingPost toEntity(Member member) {
         return MatchingPost.builder()
-                .writer(user)
+                .writer(member)
                 .artistType(ArtistType.of(artistType))
                 .title(title)
                 .workType(WorkType.of(workType))
