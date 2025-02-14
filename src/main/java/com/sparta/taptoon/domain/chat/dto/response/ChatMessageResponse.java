@@ -1,7 +1,9 @@
 package com.sparta.taptoon.domain.chat.dto.response;
 
 import com.sparta.taptoon.domain.chat.entity.ChatMessage;
+import lombok.Builder;
 
+@Builder
 public record ChatMessageResponse(
         Long id,
         Long chatRoomId,
@@ -9,13 +11,13 @@ public record ChatMessageResponse(
         String message,
         Boolean isRead
 ) {
-    public static ChatMessageResponse from(ChatMessage entity) {
-        return new ChatMessageResponse(
-                entity.getId(),
-                entity.getChatRoom().getId(),
-                entity.getSender().getId(),
-                entity.getMessage(),
-                entity.getIsRead()
-        );
+    public static ChatMessageResponse from(ChatMessage chatMessage) {
+        return ChatMessageResponse.builder()
+                .id(chatMessage.getId())
+                .chatRoomId(chatMessage.getChatRoom().getId())
+                .senderId(chatMessage.getSender().getId())
+                .message(chatMessage.getMessage())
+                .isRead(chatMessage.getIsRead())
+                .build();
     }
 }
