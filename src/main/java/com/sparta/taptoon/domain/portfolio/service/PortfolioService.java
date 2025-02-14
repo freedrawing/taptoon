@@ -29,6 +29,14 @@ public class PortfolioService {
         Member member = memberRepository.findById(memberId)
                         .orElseThrow(()-> new RuntimeException("유저 정보를 찾을 수 없습니다."));
 
+        // 포트폴리오 몇개 만들었는지 보기
+        int countPortfolio = portfolioRepository.countByMember(member);
+
+        //포트폴리오는 최대 5개까지 생성 가능
+        if (countPortfolio > 5) {
+            throw new IllegalArgumentException("포트폴리오는 5개까지만 만들 수 있습니다.");
+        }
+
         Portfolio portfolio = createPortfolioRequest.toEntity(member);
 
         Portfolio savedPortfolio = portfolioRepository.save(portfolio);
