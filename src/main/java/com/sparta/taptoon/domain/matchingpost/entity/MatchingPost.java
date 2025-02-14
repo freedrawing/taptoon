@@ -5,10 +5,14 @@ import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.global.common.BaseEntity;
+import com.sparta.taptoon.global.error.enums.ErrorCode;
+import com.sparta.taptoon.global.error.exception.NotFoundException;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import static com.sparta.taptoon.global.error.enums.ErrorCode.*;
 
 @Getter
 @Entity
@@ -80,5 +84,11 @@ public class MatchingPost extends BaseEntity {
 
     public void increaseViewCount() {
         viewCount++;
+    }
+
+    public void validateIsDeleted() {
+        if (isDeleted) {
+            throw new NotFoundException(MATCHING_POST_NOT_FOUND);
+        }
     }
 }

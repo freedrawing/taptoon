@@ -45,7 +45,7 @@ public class MatchingPostController {
     @DeleteMapping("/matching-posts/{matchingPostId}")
     public ResponseEntity<ApiResponse<Void>> deleteMatchingPost(@PathVariable Long matchingPostId) {
         matchingPostService.removeMatchingPost(1L, matchingPostId);
-        return ApiResponse.noContent();
+        return ApiResponse.success(null);
     }
 
     // 매칭 포스트 다건 조회 (검색)
