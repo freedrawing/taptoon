@@ -1,5 +1,6 @@
 package com.sparta.taptoon.global.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -8,17 +9,14 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 @Configuration
 @EnableWebSocket
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    private final WebSocketHandler webSocketHandler;
-
-    public WebSocketConfig(WebSocketHandler webSocketHandler) {
-        this.webSocketHandler = webSocketHandler;
-    }
+    private final WebSocketHandler WebSocketHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketHandler, "/ws/chat/{roomId}")
-                .setAllowedOrigins("*"); // 모든 도메인에서 WebSocket 허용
+        registry.addHandler(WebSocketHandler, "/ws/chat/{roomId}")
+                .setAllowedOrigins("*"); // CORS 문제 해결
     }
 }
