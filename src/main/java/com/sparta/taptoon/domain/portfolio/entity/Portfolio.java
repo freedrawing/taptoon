@@ -22,6 +22,9 @@ public class Portfolio extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false, updatable = false)
     private Member member;
 
+    @Column(name = "title", nullable = false)
+    private String title;
+
     @Column(name = "content", nullable = false)
     private String content;
 
@@ -32,8 +35,9 @@ public class Portfolio extends BaseEntity {
     private boolean isDeleted = false;
 
     @Builder
-    public Portfolio(Member member, String content, String fileUrl, boolean isDeleted) {
+    public Portfolio(Member member, String title, String content, String fileUrl, boolean isDeleted) {
         this.member = member;
+        this.title = title;
         this.content = content;
         this.fileUrl = fileUrl;
         this.isDeleted = isDeleted;
