@@ -4,6 +4,8 @@ import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
+import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
+import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
@@ -13,6 +15,7 @@ import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,9 +66,13 @@ public class MatchingPostService {
     }
 
     // 매칭 포스트 필터링 다건 검색
-    public Page<MatchingPostResponse> findFilteredMatchingPosts(String artistType, String workType, String keyword) {
-        // TODO: 필터링 로직 구현 (인덱스 비교한 후 실행)
-        return Page.empty();
+    public Page<MatchingPostResponse> findFilteredMatchingPosts(String artistType, String workType, String keyword, Pageable pageable) {
+        return matchingPostRepository.searchMatchingPostsFromCondition(
+                ArtistType.fromString(artistType),
+                WorkType.fromString(workType),
+                keyword,
+                pageable
+        );
     }
 
     // 매칭 포스트 단건 조회 + 조회수 증가 (update 로직을 분리하고 싶은데, AOP라서 분리하기가 다소 번거롭다)

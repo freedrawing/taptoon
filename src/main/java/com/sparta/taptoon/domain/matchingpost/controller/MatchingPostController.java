@@ -8,6 +8,8 @@ import com.sparta.taptoon.global.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,9 +55,10 @@ public class MatchingPostController {
     public ResponseEntity<ApiResponse<Page<MatchingPostResponse>>> getFilteredMatchingPosts(
             @RequestParam(required = false) String artistType,
             @RequestParam(required = false) String workType,
-            @RequestParam(required = false) String keyword
+            @RequestParam(required = false) String keyword,
+            @PageableDefault Pageable pageable
     ) {
-        Page<MatchingPostResponse> response = matchingPostService.findFilteredMatchingPosts(artistType, workType, keyword);
+        Page<MatchingPostResponse> response = matchingPostService.findFilteredMatchingPosts(artistType, workType, keyword, pageable);
         return ApiResponse.success(response);
     }
 
