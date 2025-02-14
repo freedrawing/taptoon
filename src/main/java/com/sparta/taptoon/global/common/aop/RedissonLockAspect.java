@@ -49,9 +49,12 @@ public class RedissonLockAspect {
 
             log.info("Lock 획득");
             return joinPoint.proceed();
-
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
             throw new TooManyRequestsException();
+        } catch (Exception e) {
+            log.info("exception={}", e);
+            throw e;
         } finally {
             /** Tip)
              * 현재 스레드가 락을 획득한 상태인지 확인한 후 맞으면 unlock
