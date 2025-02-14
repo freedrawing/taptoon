@@ -1,5 +1,6 @@
 package com.sparta.taptoon.domain.member.service;
 
+import com.sparta.taptoon.domain.auth.service.AuthService;
 import com.sparta.taptoon.domain.member.dto.response.MemberResponse;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.enums.MemberGrade;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final AuthService authService;
 
     @Transactional
     public void changeUserPassword(Long memberId, String newPassword) {
@@ -23,6 +25,7 @@ public class MemberService {
             throw new InvalidRequestException();
         }
         member.changePassword(newPassword);
+        authService.logoutAllDevice(member.getId());
     }
 
     @Transactional

@@ -1,5 +1,6 @@
 package com.sparta.taptoon.global.util;
 
+import com.sparta.taptoon.domain.auth.dto.response.TokenInfo;
 import com.sparta.taptoon.domain.member.entity.MemberDetail;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.security.Key;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 
@@ -34,26 +36,29 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(bytes);
     }
 
-    public String generateAccessToken(Authentication authentication) {
+    public TokenInfo generateAccessToken(Authentication authentication) {
         return generateToken(ACCESS_TOKEN_EXPIRE_TIME,authentication);
     }
 
-    public String generateRefreshToken(Authentication authentication) {
+    public TokenInfo generateRefreshToken(Authentication authentication) {
         return generateToken(REFRESH_TOKEN_EXPIRE_TIME,authentication);
     }
 
     // 토큰 생성
-    private String generateToken(long expireTime, Authentication authentication) {
+    private TokenInfo generateToken(long expireTime, Authentication authentication) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expireTime);
         MemberDetail memberDetail = (MemberDetail) authentication.getPrincipal();
 
-        return BEARER_PREFIX + Jwts.builder()
+        String token = Jwts.builder()
                 .setSubject(String.valueOf(memberDetail.getId()))
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .signWith(key, signatureAlgorithm)
                 .compact();
+        String tokenAddedBearerPrefix = expireTime == ACCESS_TOKEN_EXPIRE_TIME ?
+                BEARER_PREFIX + token : token;
+        return new TokenInfo(tokenAddedBearerPrefix, expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
     }
 
     public String substringToken(String tokenValue) {
