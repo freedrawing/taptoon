@@ -22,23 +22,23 @@ public class MemberController {
 
     @Operation(summary = "비밀번호 변경")
     @PatchMapping("/password")
-    public void updatePassword(@AuthenticationPrincipal MemberDetail memberDetail, @RequestBody String password) {
+    public ResponseEntity<ApiResponse<Void>> updatePassword(@AuthenticationPrincipal MemberDetail memberDetail, @RequestBody String password) {
         memberService.changeUserPassword(memberDetail.getId(), password);
-        ApiResponse.noContent();
+        return ApiResponse.noContent();
     }
 
     @Operation(summary = "닉네임 변경")
     @PatchMapping("/nickname")
-    public void updateNickname(@AuthenticationPrincipal MemberDetail memberDetail, @RequestParam String nickname) {
+    public ResponseEntity<ApiResponse<Void>> updateNickname(@AuthenticationPrincipal MemberDetail memberDetail, @RequestParam String nickname) {
         memberService.changeUserNickname(memberDetail.getId(), nickname);
-        ApiResponse.noContent();
+        return ApiResponse.noContent();
     }
 
     @Operation(summary = "등급 변경")
     @PatchMapping("/grade")
-    public void updateGrade(@AuthenticationPrincipal MemberDetail memberDetail, @RequestParam MemberGrade grade) {
+    public ResponseEntity<ApiResponse<Void>> updateGrade(@AuthenticationPrincipal MemberDetail memberDetail, @RequestParam MemberGrade grade) {
         memberService.changeUserGrade(memberDetail.getId(), grade);
-        ApiResponse.noContent();
+        return ApiResponse.noContent();
     }
 
     @Operation(summary = "멤버 정보 조회")
