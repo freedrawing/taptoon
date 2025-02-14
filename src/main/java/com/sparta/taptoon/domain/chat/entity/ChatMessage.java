@@ -18,7 +18,7 @@ public class ChatMessage extends BaseEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "room_id", nullable = false)
     private ChatRoom chatRoom;
 
@@ -30,10 +30,10 @@ public class ChatMessage extends BaseEntity {
     private String message;
 
     @Column(name = "is_read", nullable = false)
-    private Boolean isRead;
+    private Boolean isRead = false;
 
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
+    private Boolean isDeleted = false;
 
     @Builder
     public ChatMessage(ChatRoom chatRoom, Member sender, String message, Boolean isRead,
