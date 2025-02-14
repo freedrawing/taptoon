@@ -22,6 +22,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -81,11 +82,13 @@ public class AuthService {
         return jwtUtil.generateAccessToken(authentication);
     }
 
+    @Transactional
     public void logout(Long memberId, HttpServletRequest httpServletRequest) {
         String deviceInfo = getMemberDeviceInfo(httpServletRequest);
         refreshTokenRepository.deleteByMemberIdAndDeviceInfo(memberId, deviceInfo);
     }
 
+    @Transactional
     public void logoutAllDevice(Long memberId) {
         refreshTokenRepository.deleteAllByMemberId(memberId);
     }
