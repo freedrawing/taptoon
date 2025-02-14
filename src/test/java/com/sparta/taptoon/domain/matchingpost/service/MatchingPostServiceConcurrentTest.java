@@ -34,21 +34,25 @@ class MatchingPostServiceConcurrentTest {
     MatchingPostRepository matchingPostRepository;
 
     @Autowired
-    MatchingPostTestService matchingPostTestService;
+    DeprecatedMatchingPostService deprecatedMatchingPostService;
 
     private final int THREAD_COUNT = 10;
     private final int NUMBER_OF_REQUESTS = 100;
 
+//    @Test
+//    void 조회수_동시성_문제_테스트_실패() throws InterruptedException {
+//        executeConcurrentTest(matchingPostService::findMatchingPostAndUpdateViewsV2, THREAD_COUNT, NUMBER_OF_REQUESTS);
+//    }
 
     // 락에 대한 범위 때문에 속도
     @Test
     void 조회수_동시성_문제_테스트_With_Pessimistic_LOCK() throws InterruptedException {
-        executeConcurrentTest(matchingPostTestService::findMatchingPostV1WithLock, THREAD_COUNT, NUMBER_OF_REQUESTS);
+        executeConcurrentTest(deprecatedMatchingPostService::findMatchingPostV1WithLock, THREAD_COUNT, NUMBER_OF_REQUESTS);
     }
 
     @Test
     void 조회수_동시성_문제_테스트_With_Redisson() throws InterruptedException {
-        executeConcurrentTest(matchingPostTestService::findMatchingPostV2UsingRedisson, THREAD_COUNT, NUMBER_OF_REQUESTS);
+        executeConcurrentTest(deprecatedMatchingPostService::findMatchingPostV2UsingRedisson, THREAD_COUNT, NUMBER_OF_REQUESTS);
     }
 
     @Test

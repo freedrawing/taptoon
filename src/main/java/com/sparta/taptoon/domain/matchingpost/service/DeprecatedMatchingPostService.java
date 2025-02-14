@@ -19,7 +19,7 @@ import static com.sparta.taptoon.global.error.enums.ErrorCode.MATCHING_POST_NOT_
 @Deprecated
 @Service
 @RequiredArgsConstructor
-public class MatchingPostTestService {
+public class DeprecatedMatchingPostService {
 
     private final MatchingPostService matchingPostService;
     private final MatchingPostRepository matchingPostRepository;
@@ -55,7 +55,7 @@ public class MatchingPostTestService {
                 throw new TooManyRequestsException();
             }
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+//            Thread.currentThread().interrupt();
             throw new TooManyRequestsException();
         } finally {
             if (locked && lock.isHeldByCurrentThread()) {

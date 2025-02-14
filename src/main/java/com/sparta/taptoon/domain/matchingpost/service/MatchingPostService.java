@@ -26,7 +26,6 @@ public class MatchingPostService {
 
     private final MatchingPostRepository matchingPostRepository;
     private final MemberRepository memberRepository; // 나중에 서비스로 바꿔야 함.
-    private final RedissonClient redissonClient;
 
     // 매칭포스트 생성
     @Transactional
@@ -64,7 +63,7 @@ public class MatchingPostService {
     }
 
     // 매칭 포스트 필터링 다건 검색
-    public Page<MatchingPostResponse> findFilteredMatchingPostResponse() {
+    public Page<MatchingPostResponse> findFilteredMatchingPosts() {
         // TODO: 필터링 로직 구현 (인덱스 비교한 후 실행)
         return Page.empty();
     }
@@ -81,6 +80,8 @@ public class MatchingPostService {
         return MatchingPostResponse.from(findMatchingPost);
     }
 
+    // Redisson V2 Lock을 위한 테스트용 (트랜잭션 범위 안 맞아서..)
+    @Deprecated
     @Transactional
     public MatchingPostResponse findMatchingPostAndUpdateViewsV2(Long matchingPostId) {
         MatchingPost findMatchingPost = matchingPostRepository.findById(matchingPostId)

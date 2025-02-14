@@ -17,13 +17,14 @@ public class MatchingPostController {
 
     private final MatchingPostService matchingPostService;
 
+    // 매칭 포스트 등록
     @PostMapping("/matching-posts")
     public ResponseEntity<ApiResponse<MatchingPostResponse>> createMatchingPost(@Valid @RequestBody AddMatchingPostRequest request) {
         MatchingPostResponse response = matchingPostService.makeNewMatchingPost(1L, request);
         return ApiResponse.created(response);
     }
 
-    // 동시성 처리해야 함
+    // 매칭 포스트 단건 조회
     @GetMapping("/matching-posts/{matchingPostId}")
     public ResponseEntity<ApiResponse<MatchingPostResponse>> getMatchingPost(@PathVariable Long matchingPostId) {
         MatchingPostResponse response = matchingPostService.findMatchingPostAndUpdateViewsV3(matchingPostId);
@@ -31,6 +32,7 @@ public class MatchingPostController {
         return ApiResponse.success(response);
     }
 
+    // 매칭 포스트 수정 (일괄 수정)
     @PutMapping("/matching-posts/{matchingPostId}")
     public ResponseEntity<ApiResponse<MatchingPostResponse>> updateMatchingPost(
             @PathVariable Long matchingPostId,
@@ -40,13 +42,14 @@ public class MatchingPostController {
         return ApiResponse.success(response);
     }
 
+    // 매칭 포스트 삭제 (soft deletion)
     @DeleteMapping("/matching-posts/{matchingPostId}")
     public ResponseEntity<ApiResponse<Void>> deleteMatchingPost(@PathVariable Long matchingPostId) {
         matchingPostService.removeMatchingPost(1L, matchingPostId);
         return ApiResponse.noContent();
     }
 
-    // 검색용
+    // 매칭 포스트 다건 조회 (검색)
     @GetMapping("/matching-posts")
     public ResponseEntity<ApiResponse<Page<MatchingPostResponse>>> getFilteredMatchingPosts(
             @RequestParam(required = false) String artistType,
