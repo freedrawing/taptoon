@@ -30,7 +30,7 @@ public class ChatMessage extends BaseEntity {
     private String message;
 
     @Column(name = "is_read", nullable = false)
-    private Boolean isRead;
+    private Boolean isRead = false;
 
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
