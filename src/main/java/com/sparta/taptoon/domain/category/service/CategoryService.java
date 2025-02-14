@@ -8,6 +8,7 @@ import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class CategoryService {
         return categoryRepository.findAllByMemberId(memberId);
     }
 
+    @Transactional
     public void removeMemberCategory(Long memberId, Genre genre) {
         categoryRepository.deleteByMemberIdAndGenre(memberId,genre);
     }
