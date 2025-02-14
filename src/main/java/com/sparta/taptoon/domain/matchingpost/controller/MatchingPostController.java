@@ -26,7 +26,8 @@ public class MatchingPostController {
     // 동시성 처리해야 함
     @GetMapping("/matching-posts/{matchingPostId}")
     public ResponseEntity<ApiResponse<MatchingPostResponse>> getMatchingPost(@PathVariable Long matchingPostId) {
-        MatchingPostResponse response = matchingPostService.findMatchingPostAndIncreaseViewCount(matchingPostId);
+        MatchingPostResponse response = matchingPostService.findMatchingPostAndUpdateViewsV3(matchingPostId);
+//        MatchingPostResponse response = matchingPostService.findMatchingPostWithRedisson(matchingPostId);
         return ApiResponse.success(response);
     }
 

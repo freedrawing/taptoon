@@ -15,6 +15,7 @@ public enum ErrorCode {
   NOT_FOUND(HttpStatus.NOT_FOUND, "GENERAL_404", "존재하지 않는 엔티티입니다."),
   ENTITY_ALREADY_EXISTS(HttpStatus.CONFLICT, "GENERAL_409", "이미 존재하는 엔티티입니다."),
   ACCESS_DENIED(HttpStatus.FORBIDDEN, "GENERAL_403", "접근 권한이 없습니다."),
+  TOO_MANY_REQUEST(HttpStatus.TOO_MANY_REQUESTS, "GENERAL_429", "현재 요청이 많아 처리할 수 없습니다. 잠시 후 다시 시도해주세요."),
 
   //member
   USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_404", "존재하지 않는 유저입니다."),

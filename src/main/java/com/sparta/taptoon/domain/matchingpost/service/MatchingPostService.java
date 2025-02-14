@@ -7,9 +7,11 @@ import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
+import com.sparta.taptoon.global.common.annotation.DistributedLock;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +26,9 @@ public class MatchingPostService {
 
     private final MatchingPostRepository matchingPostRepository;
     private final MemberRepository memberRepository; // 나중에 서비스로 바꿔야 함.
+    private final RedissonClient redissonClient;
 
+    // 매칭포스트 생성
     @Transactional
     public MatchingPostResponse makeNewMatchingPost(Long userId, AddMatchingPostRequest request) {
         Member findMember = findMemberById(userId);
@@ -33,6 +37,7 @@ public class MatchingPostService {
         return MatchingPostResponse.from(savedMatchingPost);
     }
 
+    // 매칭포스트 삭제 (soft deletion) 단, 사진이나 텍스트 파일을 어떻게 처리해야 할지 고려해야 함
     @Transactional
     public void removeMatchingPost(Long userId, Long matchingPostId) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
@@ -44,6 +49,7 @@ public class MatchingPostService {
         findMatchingPost.removeMe();
     }
 
+    // 매칭 포스트 수정(일괄 수정)
     @Transactional
     public MatchingPostResponse modifyMatchingPost(Long userId, Long matchingPostId, UpdateMatchingPostRequest request) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
@@ -57,20 +63,35 @@ public class MatchingPostService {
         return MatchingPostResponse.from(findMatchingPost);
     }
 
+    // 매칭 포스트 필터링 다건 검색
     public Page<MatchingPostResponse> findFilteredMatchingPostResponse() {
-        return null;
+        // TODO: 필터링 로직 구현 (인덱스 비교한 후 실행)
+        return Page.empty();
     }
 
-    // 특정 매칭 게시글 조회 + 조회수 1증가 (동시성 처리해야 함)
+    // 매칭 포스트 단건 조회 + 조회수 증가 (update 로직을 분리하고 싶은데, AOP라서 분리하기가 다소 번거롭다)
+    @DistributedLock(key = "#matchingPostId", waitTime = 10, leaseTime = 2)
     @Transactional
-    public MatchingPostResponse findMatchingPostAndIncreaseViewCount(Long matchingPostId) {
-        MatchingPost findMatching = matchingPostRepository.findByIdWithLock(matchingPostId)
+    public MatchingPostResponse findMatchingPostAndUpdateViewsV3(Long matchingPostId) {
+        MatchingPost findMatchingPost = matchingPostRepository.findById(matchingPostId)
                 .orElseThrow(() -> new NotFoundException(MATCHING_POST_NOT_FOUND));
-        findMatching.increaseViewCount();
 
-        return MatchingPostResponse.from(findMatching);
+        findMatchingPost.increaseViewCount();
+
+        return MatchingPostResponse.from(findMatchingPost);
     }
 
+    @Transactional
+    public MatchingPostResponse findMatchingPostAndUpdateViewsV2(Long matchingPostId) {
+        MatchingPost findMatchingPost = matchingPostRepository.findById(matchingPostId)
+                .orElseThrow(() -> new NotFoundException(MATCHING_POST_NOT_FOUND));
+
+        findMatchingPost.increaseViewCount();
+
+        return MatchingPostResponse.from(findMatchingPost);
+    }
+
+    // Private helper method
     private MatchingPost findMatchingPostById(Long matchingPostId) {
         return matchingPostRepository.findById(matchingPostId)
                 .orElseThrow(() -> new NotFoundException(MATCHING_POST_NOT_FOUND));
