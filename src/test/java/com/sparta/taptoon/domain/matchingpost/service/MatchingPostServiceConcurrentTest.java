@@ -36,26 +36,24 @@ class MatchingPostServiceConcurrentTest {
     @Autowired
     MatchingPostTestService matchingPostTestService;
 
-//    @AfterEach
-//    void afterEach() {
-//        matchingPostRepository.deleteAllInBatch();
-//        memberRepository.deleteAllInBatch();
-//    }
+    private final int THREAD_COUNT = 10;
+    private final int NUMBER_OF_REQUESTS = 100;
+
 
     // 락에 대한 범위 때문에 속도
     @Test
     void 조회수_동시성_문제_테스트_With_Pessimistic_LOCK() throws InterruptedException {
-        executeConcurrentTest(matchingPostTestService::findMatchingPostV1WithLock, 10, 1_000);
+        executeConcurrentTest(matchingPostTestService::findMatchingPostV1WithLock, THREAD_COUNT, NUMBER_OF_REQUESTS);
     }
 
-//    @Test
+    @Test
     void 조회수_동시성_문제_테스트_With_Redisson() throws InterruptedException {
-        executeConcurrentTest(matchingPostTestService::findMatchingPostV2UsingRedisson, 3, 1_000);
+        executeConcurrentTest(matchingPostTestService::findMatchingPostV2UsingRedisson, THREAD_COUNT, NUMBER_OF_REQUESTS);
     }
 
     @Test
     void 조회수_동시성_문제_테스트_With_Redisson_Annotation() throws InterruptedException {
-        executeConcurrentTest(matchingPostService::findMatchingPostAndUpdateViewsV3, 10, 1_000);
+        executeConcurrentTest(matchingPostService::findMatchingPostAndUpdateViewsV3, THREAD_COUNT, NUMBER_OF_REQUESTS);
     }
 
     // 동시성 테스트 실행 메서드 (공통 로직)
