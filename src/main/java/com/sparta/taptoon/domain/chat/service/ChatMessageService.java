@@ -1,5 +1,6 @@
 package com.sparta.taptoon.domain.chat.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.taptoon.domain.chat.dto.request.SendChatMessageRequest;
 import com.sparta.taptoon.domain.chat.dto.response.ChatMessageResponse;
 import com.sparta.taptoon.domain.chat.entity.ChatMessage;
@@ -8,43 +9,40 @@ import com.sparta.taptoon.domain.chat.repository.ChatMessageRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
+import com.sparta.taptoon.global.redis.RedisPublisher;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ChatMessageService {
+
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final MemberRepository memberRepository;
+    private final RedisPublisher redisPublisher;
+    private final ObjectMapper objectMapper;
 
-    public ChatMessageResponse sendMessage(SendChatMessageRequest request){
+    @Transactional
+    public ChatMessageResponse saveAndPublishMessage(SendChatMessageRequest request) {
         ChatRoom chatRoom = chatRoomRepository.findById(request.chatRoomId())
-                .orElseThrow(()-> new IllegalArgumentException("채팅방을 찾을 수 없습니다"));
-        Member sender = memberRepository.findById(request.senderId())
-                .orElseThrow(()-> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
-
-        ChatMessage chatMessage = request.toEntity(chatRoom, sender);
-        chatMessageRepository.save(chatMessage);
-
-        return ChatMessageResponse.from(chatMessage);
-    }
-
-    @Transactional(readOnly = true)
-    public List<ChatMessageResponse> getMessagesByChatRoom(Long chatRoomId) {
-        // chatRoomId를 기반으로 ChatRoom 객체를 먼저 조회
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+        Member sender = memberRepository.findById(request.senderId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
 
-        // chatRoom 객체를 이용하여 메시지 조회
-        List<ChatMessage> messages = chatMessageRepository.findByChatRoomOrderByCreatedAtAsc(chatRoom);
+        ChatMessage chatMessage = chatMessageRepository.save(request.toEntity(chatRoom, sender));
+        ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
 
-        return messages.stream().map(ChatMessageResponse::from).collect(Collectors.toList());
+        try {
+            // 메시지 저장 후 Redis로 발행
+            redisPublisher.publish(chatRoom.getId(), objectMapper.writeValueAsString(response));
+        } catch (Exception e) {
+            log.error("Redis 메시지 발행 중 오류 발생", e);
+        }
+
+        return response;
     }
-
 }
