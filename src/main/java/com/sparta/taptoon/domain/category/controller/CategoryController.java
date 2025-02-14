@@ -2,7 +2,9 @@ package com.sparta.taptoon.domain.category.controller;
 
 import com.sparta.taptoon.domain.category.enums.Genre;
 import com.sparta.taptoon.domain.category.service.CategoryService;
+import com.sparta.taptoon.domain.member.entity.MemberDetail;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,19 +14,19 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @PostMapping("/{id}")
-    public void addMemberCategory(@PathVariable Long id, @RequestParam Genre genre) {
-        categoryService.addMemberCategory(id,genre);
+    @PostMapping
+    public void addMemberCategory(@AuthenticationPrincipal MemberDetail memberDetail, @RequestParam Genre genre) {
+        categoryService.addMemberCategory(memberDetail.getId(), genre);
     }
 
     @GetMapping
-    public void findMemberCategory(Long memberId) {
-        categoryService.findMemberCategory(memberId);
+    public void findMemberCategory(@AuthenticationPrincipal MemberDetail memberDetail) {
+        categoryService.findMemberCategory(memberDetail.getId());
     }
 
     @DeleteMapping
-    public void deleteMemberCategory(Long memberId, Genre genre) {
-        categoryService.removeMemberCategory(memberId,genre);
+    public void deleteMemberCategory(@AuthenticationPrincipal MemberDetail memberDetail, Genre genre) {
+        categoryService.removeMemberCategory(memberDetail.getId(), genre);
     }
 
 }
