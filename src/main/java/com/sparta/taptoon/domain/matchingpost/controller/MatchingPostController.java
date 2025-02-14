@@ -55,8 +55,8 @@ public class MatchingPostController {
             @RequestParam(required = false) String workType,
             @RequestParam(required = false) String keyword
     ) {
-
-        return null;
+        Page<MatchingPostResponse> response = matchingPostService.findFilteredMatchingPosts(artistType, workType, keyword);
+        return ApiResponse.success(response);
     }
 
     // 이미지랑 텍스트 업데이트 하는 API 추가로 만들어야 함

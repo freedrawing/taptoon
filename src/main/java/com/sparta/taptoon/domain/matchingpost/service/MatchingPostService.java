@@ -40,7 +40,7 @@ public class MatchingPostService {
     @Transactional
     public void removeMatchingPost(Long userId, Long matchingPostId) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
-        if (findMatchingPost.isMyMatchingPost(userId)) {
+        if (findMatchingPost.isMyMatchingPost(userId) == false) {
             throw new AccessDeniedException("매칭 게시글에 접근할 권한이 없습니다");
         }
 
@@ -52,7 +52,7 @@ public class MatchingPostService {
     @Transactional
     public MatchingPostResponse modifyMatchingPost(Long userId, Long matchingPostId, UpdateMatchingPostRequest request) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
-        if (findMatchingPost.isMyMatchingPost(userId)) {
+        if (findMatchingPost.isMyMatchingPost(userId) == false) {
             throw new AccessDeniedException("매칭 게시글에 접근할 권한이 없습니다.");
         }
 
@@ -63,7 +63,7 @@ public class MatchingPostService {
     }
 
     // 매칭 포스트 필터링 다건 검색
-    public Page<MatchingPostResponse> findFilteredMatchingPosts() {
+    public Page<MatchingPostResponse> findFilteredMatchingPosts(String artistType, String workType, String keyword) {
         // TODO: 필터링 로직 구현 (인덱스 비교한 후 실행)
         return Page.empty();
     }
