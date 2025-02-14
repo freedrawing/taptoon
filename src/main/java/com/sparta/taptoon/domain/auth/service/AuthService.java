@@ -65,6 +65,7 @@ public class AuthService {
         }
     }
 
+    @Transactional
     public TokenInfo issueAccessTokenByRefreshToken(String refreshTokenInfo) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenInfo)
                 .orElseThrow(NotFoundException::new);//exception 처리 필요
