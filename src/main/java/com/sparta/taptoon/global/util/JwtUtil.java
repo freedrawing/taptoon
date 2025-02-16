@@ -1,7 +1,8 @@
 package com.sparta.taptoon.global.util;
 
 import com.sparta.taptoon.domain.auth.dto.response.TokenInfo;
-import com.sparta.taptoon.domain.member.entity.MemberDetail;
+import com.sparta.taptoon.domain.member.dto.MemberDetail;
+import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import io.jsonwebtoken.Claims;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
@@ -56,9 +58,9 @@ public class JwtUtil {
                 .setExpiration(expiration)
                 .signWith(key, signatureAlgorithm)
                 .compact();
-        String tokenAddedBearerPrefix = expireTime == ACCESS_TOKEN_EXPIRE_TIME ?
+        String tokenInfo = expireTime == ACCESS_TOKEN_EXPIRE_TIME ?
                 BEARER_PREFIX + token : token;
-        return new TokenInfo(tokenAddedBearerPrefix, expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        return new TokenInfo(tokenInfo, expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
     }
 
     public String substringToken(String tokenValue) {
@@ -68,21 +70,19 @@ public class JwtUtil {
         throw new NotFoundException();//exception 처리필요
     }
 
-    // 토큰 유효성 검증
-    public void validateToken(String token) {
+    public Claims validateTokenAndGetClaims(String token) {
         try {
-            Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(token);
+                    .parseClaimsJws(token)
+                    .getBody();
+            if(claims.getExpiration().before(new Date())) {
+                throw new AccessDeniedException();
+            }
+            return claims;
         } catch (Exception e) {
             throw new InvalidRequestException(); //exception 처리필요
         }
-    }
-    public Claims getClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(key)
-                .parseClaimsJws(token)
-                .getBody();
     }
 }
