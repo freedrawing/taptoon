@@ -1,7 +1,7 @@
 package com.sparta.taptoon.domain.member.controller;
 
 import com.sparta.taptoon.domain.member.dto.response.MemberResponse;
-import com.sparta.taptoon.domain.member.entity.MemberDetail;
+import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.domain.member.enums.MemberGrade;
 import com.sparta.taptoon.domain.member.service.MemberService;
 import com.sparta.taptoon.global.common.ApiResponse;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Member", description = "사용자 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@RequestMapping("/members")
 public class MemberController {
 
     private final MemberService memberService;

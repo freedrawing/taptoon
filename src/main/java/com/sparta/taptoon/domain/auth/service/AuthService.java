@@ -8,7 +8,7 @@ import com.sparta.taptoon.domain.auth.entity.RefreshToken;
 import com.sparta.taptoon.domain.auth.repository.RefreshTokenRepository;
 import com.sparta.taptoon.domain.member.dto.response.MemberResponse;
 import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.domain.member.entity.MemberDetail;
+import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
