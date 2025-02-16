@@ -11,6 +11,7 @@ import lombok.experimental.UtilityClass;
 import java.text.MessageFormat;
 
 import static com.sparta.taptoon.domain.util.FakerUtil.faker;
+import static com.sparta.taptoon.domain.util.FakerUtil.koreanFaker;
 
 @UtilityClass
 public class EntityCreatorUtil {
@@ -18,8 +19,8 @@ public class EntityCreatorUtil {
     public static Member createMember() {
         return Member.builder()
                 .email(faker.internet().emailAddress())
-                .name(faker.name().firstName())
-                .nickname(faker.name().nameWithMiddle())
+                .name(koreanFaker.name().firstName())
+                .nickname(koreanFaker.name().nameWithMiddle())
                 .password(faker.internet().password())
                 .grade(MemberGrade.BASIC)
                 .isDeleted(false)
@@ -30,9 +31,9 @@ public class EntityCreatorUtil {
         return MatchingPost.builder()
                 .writer(member)
                 .artistType(ArtistType.random())
-                .title(faker.lorem().word())
+                .title(koreanFaker.lorem().word())
                 .workType(WorkType.random())
-                .description(faker.lorem().sentence())
+                .description(koreanFaker.lorem().sentence())
                 .build();
     }
 

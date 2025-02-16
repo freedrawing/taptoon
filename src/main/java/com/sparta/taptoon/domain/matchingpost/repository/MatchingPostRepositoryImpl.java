@@ -2,6 +2,9 @@ package com.sparta.taptoon.domain.matchingpost.repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.BooleanTemplate;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberTemplate;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
@@ -11,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -78,11 +82,23 @@ public class MatchingPostRepositoryImpl implements MatchingPostRepositoryCustom 
     }
 
     private BooleanExpression containsKeyword(String keyword) {
-        return keyword != null ?
+        return StringUtils.hasText(keyword) ?
                 matchingPost.title.containsIgnoreCase(keyword)
                         .or(matchingPost.description.containsIgnoreCase(keyword))
                 : null;
+
+//        NumberTemplate<Double> scoreBoolean = Expressions.numberTemplate(
+//                Double.class,
+//                "function('match_against_boolean', {0}, {1}, {2})",
+////                "function('match_against_nl', {0}, {1}, {2})",
+//                matchingPost.title, // ?1
+//                matchingPost.description,
+//                keyword
+//        );
+//        return scoreBoolean.gt(0.0);
+
     }
+
 
 
 }
