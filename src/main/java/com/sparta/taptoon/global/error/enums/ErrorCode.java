@@ -28,7 +28,7 @@ public enum ErrorCode {
   NOT_CORRECT_TOKEN_TYPE(HttpStatus.BAD_REQUEST, "Token_400", "올바르지 않은 토큰 타입입니다."),
   EXPIRED_TOKEN(HttpStatus.NOT_ACCEPTABLE,"Token_406", "토큰이 만료되었습니다."),
   INVALID_TOKEN(HttpStatus.BAD_REQUEST,"Token_400", "유효하지 않은 토큰입니다."),
-  NOT_FOUND_TOKEN(HttpStatus.NOT_FOUND,"Token_404","존재하지 않는 토큰입니다.")
+  NOT_FOUND_TOKEN(HttpStatus.NOT_FOUND,"Token_404","존재하지 않는 토큰입니다."),
   //board
   // MatchingPost
   INVALID_ARTIEST_TYPE(HttpStatus.BAD_REQUEST, "MATCHING_POST_400", "잘못된 ArtistType입니다."),
