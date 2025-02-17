@@ -21,7 +21,17 @@ spring:
         # ↓ 커넥션을 뷰 렌더링 단계까지 물고 있으므로 서버 자원 많이 사용, HTTP 요청이 완료될 때까지 영속성 컨텍스트 살아있음. 즉 뷰 템플릿에서 지연 로딩이 발생하면 DB 쿼리가 추가 실행
     open-in-view: false
     defer-datasource-initialization: false # DB 초기화(data.sql, schema.sql) 를 Hibernate의 테이블 생성 이후로 지연.
-
+  security:
+    oauth2:
+      client:
+        registration:
+          naver:
+            client-id: _am67XZHPmRi0WT1rCKcNC
+            client-secret: o1pasSw0rDzI
+            redirect-uri: http://localhost:8080/auth/naver/callback
+            authorization-grant-type: authorization_code
+            scope: name
+            client-name: Naver
 logging:
   level:
     org.springframework.security: warn
