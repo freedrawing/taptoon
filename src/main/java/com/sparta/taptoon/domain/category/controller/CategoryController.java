@@ -3,7 +3,7 @@ package com.sparta.taptoon.domain.category.controller;
 import com.sparta.taptoon.domain.category.entity.Category;
 import com.sparta.taptoon.domain.category.enums.Genre;
 import com.sparta.taptoon.domain.category.service.CategoryService;
-import com.sparta.taptoon.domain.member.entity.MemberDetail;
+import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

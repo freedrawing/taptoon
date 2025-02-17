@@ -6,7 +6,7 @@ import com.sparta.taptoon.domain.auth.dto.response.LoginMemberResponse;
 import com.sparta.taptoon.domain.auth.dto.response.TokenInfo;
 import com.sparta.taptoon.domain.auth.service.AuthService;
 import com.sparta.taptoon.domain.member.dto.response.MemberResponse;
-import com.sparta.taptoon.domain.member.entity.MemberDetail;
+import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

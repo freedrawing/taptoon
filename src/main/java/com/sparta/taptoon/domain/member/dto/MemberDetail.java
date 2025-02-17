@@ -1,5 +1,6 @@
-package com.sparta.taptoon.domain.member.entity;
+package com.sparta.taptoon.domain.member.dto;
 
+import com.sparta.taptoon.domain.member.entity.Member;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

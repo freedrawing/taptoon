@@ -1,7 +1,7 @@
 package com.sparta.taptoon.domain.member.service;
 
 import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.domain.member.entity.MemberDetail;
+import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
