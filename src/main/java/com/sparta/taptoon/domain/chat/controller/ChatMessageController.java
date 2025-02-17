@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/chats")
 @RequiredArgsConstructor
@@ -27,5 +29,14 @@ public class ChatMessageController {
 
         ChatMessageResponse response = chatMessageService.sendMessage(memberDetail.getId(), request);
         return ApiResponse.success(response);
+    }
+
+    @GetMapping("/{chatRoomId}/messages")
+    public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getChatMessages(
+            @AuthenticationPrincipal MemberDetail memberDetail,
+            @PathVariable Long chatRoomId){
+
+        List<ChatMessageResponse> messages = chatMessageService.getChatMessages(memberDetail.getId(), chatRoomId);
+        return ApiResponse.success(messages);
     }
 }

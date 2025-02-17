@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -46,5 +48,26 @@ public class ChatMessageService {
         }
 
         return response;
+    }
+
+    @Transactional
+    public List<ChatMessageResponse> getChatMessages(Long memberId, Long chatRoomId){
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(()-> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+
+        // 안읽은 메시지 조회
+        List<ChatMessage> unreadMessages = chatMessageRepository.findByChatRoomAndIsReadFalseAndSenderNot(
+                chatRoom, memberRepository.getReferenceById(memberId));
+
+        // ✅ 읽음 처리
+        unreadMessages.forEach(ChatMessage::markAsRead);
+        chatMessageRepository.saveAll(unreadMessages); // 한 번에 일괄 업데이트
+
+        // 전체 메시지 조회
+        List<ChatMessage> messages = chatMessageRepository.findByChatRoomOrderByCreatedAtAsc(chatRoom);
+
+        return messages.stream()
+                .map(ChatMessageResponse::from)
+                .toList();
     }
 }

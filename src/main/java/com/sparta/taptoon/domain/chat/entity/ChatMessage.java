@@ -43,4 +43,8 @@ public class ChatMessage extends BaseEntity {
         this.isRead = false;
         this.isDeleted = false;
     }
+
+    public void markAsRead(){
+        this.isRead = true;
+    }
 }
