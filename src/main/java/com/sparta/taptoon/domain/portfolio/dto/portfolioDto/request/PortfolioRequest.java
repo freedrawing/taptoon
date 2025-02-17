@@ -1,4 +1,4 @@
-package com.sparta.taptoon.domain.portfolio.dto.request;
+package com.sparta.taptoon.domain.portfolio.dto.portfolioDto.request;
 
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.portfolio.entity.Portfolio;

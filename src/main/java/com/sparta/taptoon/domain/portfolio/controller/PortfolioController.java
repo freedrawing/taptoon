@@ -1,10 +1,10 @@
 package com.sparta.taptoon.domain.portfolio.controller;
 
-import com.sparta.taptoon.domain.portfolio.dto.request.PortfolioRequest;
-import com.sparta.taptoon.domain.portfolio.dto.response.CreatePortfolioResponse;
-import com.sparta.taptoon.domain.portfolio.dto.response.GetAllPortfolioResponse;
-import com.sparta.taptoon.domain.portfolio.dto.response.GetPortfolioResponse;
-import com.sparta.taptoon.domain.portfolio.dto.response.UpdatePortfolioResponse;
+import com.sparta.taptoon.domain.portfolio.dto.portfolioDto.request.PortfolioRequest;
+import com.sparta.taptoon.domain.portfolio.dto.portfolioDto.response.CreatePortfolioResponse;
+import com.sparta.taptoon.domain.portfolio.dto.portfolioDto.response.GetAllPortfolioResponse;
+import com.sparta.taptoon.domain.portfolio.dto.portfolioDto.response.GetPortfolioResponse;
+import com.sparta.taptoon.domain.portfolio.dto.portfolioDto.response.UpdatePortfolioResponse;
 import com.sparta.taptoon.domain.portfolio.service.PortfolioService;
 import com.sparta.taptoon.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +46,12 @@ public class PortfolioController {
     public ResponseEntity<ApiResponse<UpdatePortfolioResponse>> updatePortfolio(@RequestBody PortfolioRequest portfolioRequest, Long portfolioId, Long memberId) {
         UpdatePortfolioResponse updatePortfolioResponse = portfolioService.editPortfolio(portfolioRequest, portfolioId, memberId);
         return ApiResponse.success(updatePortfolioResponse);
+    }
+
+    // 포트폴리오 삭제
+    @DeleteMapping("/{portfolioId}")
+    public ResponseEntity<ApiResponse<Void>> deletePortfolio(@PathVariable Long portfolioId, Long memberId) {
+        portfolioService.removePortfolio(portfolioId,memberId);
+        return ApiResponse.success(null);
     }
 }

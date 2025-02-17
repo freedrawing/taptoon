@@ -1,4 +1,4 @@
-package com.sparta.taptoon.domain.portfolio.dto.response;
+package com.sparta.taptoon.domain.portfolio.dto.portfolioDto.response;
 
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.portfolio.entity.Portfolio;

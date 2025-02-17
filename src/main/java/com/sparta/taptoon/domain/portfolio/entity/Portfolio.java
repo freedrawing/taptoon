@@ -1,7 +1,7 @@
 package com.sparta.taptoon.domain.portfolio.entity;
 
 import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.domain.portfolio.dto.request.PortfolioRequest;
+import com.sparta.taptoon.domain.portfolio.dto.portfolioDto.request.PortfolioRequest;
 import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -50,5 +50,9 @@ public class Portfolio extends BaseEntity {
         this.title = portfolioRequest.title();
         this.content = portfolioRequest.content();
         this.fileUrl = portfolioRequest.fileUrl();
+    }
+
+    public void remove() {
+        this.isDeleted = true;
     }
 }
