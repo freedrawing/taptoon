@@ -2,9 +2,9 @@ package com.sparta.taptoon.global.util;
 
 import com.sparta.taptoon.domain.auth.dto.response.TokenInfo;
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
+import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
-import com.sparta.taptoon.global.error.exception.NotFoundException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.security.Key;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
@@ -67,7 +66,7 @@ public class JwtUtil {
         if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)) {
             return tokenValue.substring(7);
         }
-        throw new NotFoundException();//exception 처리필요
+        throw new InvalidRequestException(ErrorCode.NOT_CORRECT_TOKEN_TYPE);
     }
 
     public Claims validateTokenAndGetClaims(String token) {
@@ -78,11 +77,11 @@ public class JwtUtil {
                     .parseClaimsJws(token)
                     .getBody();
             if(claims.getExpiration().before(new Date())) {
-                throw new AccessDeniedException();
+                throw new AccessDeniedException(ErrorCode.EXPIRED_TOKEN);
             }
             return claims;
         } catch (Exception e) {
-            throw new InvalidRequestException(); //exception 처리필요
+            throw new InvalidRequestException(ErrorCode.INVALID_TOKEN);
         }
     }
 }

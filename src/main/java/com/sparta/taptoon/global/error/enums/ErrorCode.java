@@ -17,10 +17,17 @@ public enum ErrorCode {
   ACCESS_DENIED(HttpStatus.FORBIDDEN, "GENERAL_403", "접근 권한이 없습니다."),
 
   //member
-  USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_404", "존재하지 않는 유저입니다."),
-  USER_DELETED(HttpStatus.FORBIDDEN, "USER_403", "삭제된 유저입니다."),
-  USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER_409", "이미 존재하는 유저입니다."),
+  USER_NOT_FOUND(HttpStatus.NOT_FOUND, "Member_404", "존재하지 않는 유저입니다."),
+  USER_DELETED(HttpStatus.FORBIDDEN, "Member_403", "삭제된 유저입니다."),
+  USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "Member_409", "이미 존재하는 유저입니다."),
 
+  //auth
+  INVALID_CREDENTIALS(HttpStatus.BAD_REQUEST,"Auth_400", "올바르지 않은 회원 정보 요청입니다."),
+  LOGIN_NOT_ACCEPTABLE(HttpStatus.NOT_ACCEPTABLE,"Auth_406","로그인 요청이 거부되었습니다."),
+  NOT_CORRECT_TOKEN_TYPE(HttpStatus.BAD_REQUEST, "Token_400", "올바르지 않은 토큰 타입입니다."),
+  EXPIRED_TOKEN(HttpStatus.NOT_ACCEPTABLE,"Token_406", "토큰이 만료되었습니다."),
+  INVALID_TOKEN(HttpStatus.BAD_REQUEST,"Token_400", "유효하지 않은 토큰입니다."),
+  NOT_FOUND_TOKEN(HttpStatus.NOT_FOUND,"Token_404","존재하지 않는 토큰입니다.")
   //board
 
   //comment

@@ -10,6 +10,7 @@ import com.sparta.taptoon.domain.member.dto.response.MemberResponse;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
+import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
@@ -59,16 +60,16 @@ public class AuthService {
             refreshTokenRepository.save(refreshToken);
             return new LoginMemberResponse(accessToken.token(),refreshTokenInfo.token(),accessToken.expiresAt());
         } catch (BadCredentialsException e) {
-           throw new InvalidRequestException();//exception 처리 필요
+           throw new InvalidRequestException(ErrorCode.INVALID_CREDENTIALS);
         } catch (Exception e) {
-            throw new AccessDeniedException();//exception 처리 필요
+            throw new AccessDeniedException(ErrorCode.LOGIN_NOT_ACCEPTABLE);
         }
     }
 
     @Transactional
     public TokenInfo issueAccessTokenByRefreshToken(String refreshTokenInfo) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenInfo)
-                .orElseThrow(NotFoundException::new);//exception 처리 필요
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND_TOKEN));
         if(refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             refreshTokenRepository.delete(refreshToken);
             throw new AccessDeniedException();
