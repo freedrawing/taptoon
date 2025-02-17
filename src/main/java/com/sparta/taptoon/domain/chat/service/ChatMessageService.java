@@ -15,9 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
@@ -27,20 +27,22 @@ public class ChatMessageService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public ChatMessageResponse saveAndPublishMessage(SendChatMessageRequest request) {
+    public ChatMessageResponse sendMessage(Long senderId, SendChatMessageRequest request) {
         ChatRoom chatRoom = chatRoomRepository.findById(request.chatRoomId())
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
-        Member sender = memberRepository.findById(request.senderId())
+        Member sender = memberRepository.findById(senderId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
 
-        ChatMessage chatMessage = chatMessageRepository.save(request.toEntity(chatRoom, sender));
+        // ✅ 메시지 저장
+        ChatMessage chatMessage = chatMessageRepository.save(request.toEntity(chatRoom, sender, request.message()));
         ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
 
         try {
-            // 메시지 저장 후 Redis로 발행
+            // ✅ Redis로 메시지 발행 (WebSocket에서도 받을 수 있도록)
             redisPublisher.publish(chatRoom.getId(), objectMapper.writeValueAsString(response));
+            log.info("📤 Redis에 메시지 발행 완료: {}", response);
         } catch (Exception e) {
-            log.error("Redis 메시지 발행 중 오류 발생", e);
+            log.error("❌ Redis 메시지 발행 중 오류 발생", e);
         }
 
         return response;
