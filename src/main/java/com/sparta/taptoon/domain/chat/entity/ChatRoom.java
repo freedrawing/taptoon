@@ -27,12 +27,12 @@ public class ChatRoom extends BaseEntity {
     private Member member2;
 
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
+    private Boolean isDeleted;
 
     @Builder
-    public ChatRoom(Member member1, Member member2, Boolean isDeleted) {
+    public ChatRoom(Member member1, Member member2) {
         this.member1 = member1;
         this.member2 = member2;
-        this.isDeleted = isDeleted;
+        this.isDeleted = false;
     }
 }

@@ -30,18 +30,17 @@ public class ChatMessage extends BaseEntity {
     private String message;
 
     @Column(name = "is_read", nullable = false)
-    private Boolean isRead = false;
+    private Boolean isRead;
 
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
+    private Boolean isDeleted;
 
     @Builder
-    public ChatMessage(ChatRoom chatRoom, Member sender, String message, Boolean isRead,
-                       Boolean isDeleted) {
+    public ChatMessage(ChatRoom chatRoom, Member sender, String message) {
         this.chatRoom = chatRoom;
         this.sender = sender;
         this.message = message;
-        this.isRead = isRead;
-        this.isDeleted = isDeleted;
+        this.isRead = false;
+        this.isDeleted = false;
     }
 }

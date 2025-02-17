@@ -25,28 +25,26 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final ChatMessageService chatMessageService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // WebSocket 세션을 저장하는 Map
+    // 채팅방별 WebSocket 세션 관리
     private static final Map<Long, Set<WebSocketSession>> chatRoomSessions = new ConcurrentHashMap<>();
 
     /**
      * WebSocket 연결이 성공하면 실행
-     *
-     * session.getUri().getPath()에서 채팅방 ID를 추출하여 해당 채팅방의 세션 목록에 추가
+     * - 채팅방 ID를 추출하여 세션 목록에 추가
+     * - JWT 인증된 사용자만 연결 유지
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String path = session.getUri().getPath();
-        String[] pathSegments = path.split("/");
+        Long chatRoomId = extractChatRoomId(session);
+        Long senderId = getSenderIdFromSession(session);
 
-        if (pathSegments.length < 4) {
-            log.warn("올바르지 않은 WebSocket URL: {}", path);
+        if (chatRoomId == null || senderId == null) {
             session.close(CloseStatus.BAD_DATA);
             return;
         }
 
-        Long chatRoomId = Long.parseLong(pathSegments[3]);
         chatRoomSessions.computeIfAbsent(chatRoomId, k -> ConcurrentHashMap.newKeySet()).add(session);
-        log.info("채팅방 {} 에 세션 {} 추가 완료", chatRoomId, session.getId());
+        log.info("✅ 채팅방 {} 에 세션 {} 추가 완료 (사용자: {})", chatRoomId, session.getId(), senderId);
     }
 
     /**
@@ -57,7 +55,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
         String payload = message.getPayload();
-        log.info("받은 메시지: {}", payload);
+        log.info("📩 받은 메시지: {}", payload);
 
         try {
             JsonNode jsonNode = objectMapper.readTree(payload);
@@ -65,13 +63,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
             Long senderId = jsonNode.get("senderId").asLong();
             String chatMessage = jsonNode.get("message").asText();
 
-            // ChatMessageService에서 Redis 발행 처리
-            chatMessageService.saveAndPublishMessage(
-                    new SendChatMessageRequest(chatRoomId, senderId, chatMessage)
-            );
+            // ✅ 메시지 저장 및 Redis 발행
+            chatMessageService.sendMessage(senderId, new SendChatMessageRequest(chatRoomId, senderId, chatMessage));
 
         } catch (Exception e) {
-            log.error("WebSocket 메시지 처리 중 오류 발생", e);
+            log.error("❌ WebSocket 메시지 처리 중 오류 발생: {}", payload, e);
+            sendErrorMessage(session, "Server error processing message");
         }
     }
 
@@ -81,14 +78,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         chatRoomSessions.values().forEach(sessions -> sessions.remove(session));
-        log.info("WebSocket 연결 종료: {}", session.getId());
+        log.info(" WebSocket 연결 종료: {}", session.getId());
     }
 
     /**
-     *Redis에서 수신한 메시지를 WebSocket을 통해 해당 채팅방에 있는 모든 클라이언트에게 전송
+     * Redis에서 수신한 메시지를 WebSocket을 통해 해당 채팅방의 모든 클라이언트에게 전송
      */
     public void broadcastMessage(String message) throws Exception {
-        log.info("WebSocket을 통해 메시지 브로드캐스트: {}", message);
+        log.info("📤 WebSocket을 통해 메시지 브로드캐스트: {}", message);
 
         JsonNode jsonNode = objectMapper.readTree(message);
         Long chatRoomId = jsonNode.get("chatRoomId").asLong();
@@ -101,10 +98,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     private void sendMessageToChatRoom(Long chatRoomId, String message) throws Exception {
         Set<WebSocketSession> sessions = chatRoomSessions.getOrDefault(chatRoomId, Collections.emptySet());
+        log.info("📤 채팅방 {} 에 연결된 세션 수: {}", chatRoomId, sessions.size());
+
         for (WebSocketSession session : sessions) {
+            log.info("📤 메시지 전송 중 -> 세션 ID: {}", session.getId());
             session.sendMessage(new TextMessage(message));
         }
-        log.info("채팅방 {} 에 {} 개 세션에 메시지 전송 완료", chatRoomId, sessions.size());
+        log.info("✅ 채팅방 {} 에 {} 개 세션에 메시지 전송 완료", chatRoomId, sessions.size());
     }
 
     /**
@@ -112,13 +112,31 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     private Long extractChatRoomId(WebSocketSession session) {
         try {
-            String path = session.getUri().getPath(); // WebSocket 경로 가져오기
-            return Long.parseLong(path.split("/")[3]); // URL에서 채팅방 ID 추출
+            String path = session.getUri().getPath();
+            return Long.parseLong(path.split("/")[3]);
         } catch (Exception e) {
-            log.warn(" WebSocket URL에서 채팅방 ID 추출 실패: {}", session.getUri().getPath(), e);
+            log.warn("❌ WebSocket URL에서 채팅방 ID 추출 실패: {}", session.getUri().getPath(), e);
             return null;
         }
     }
 
+    /**
+     * JWT 토큰에서 senderId 추출하는 메서드
+     */
+    private Long getSenderIdFromSession(WebSocketSession session) {
+        Object senderId = session.getAttributes().get("senderId");
+        return senderId != null ? (Long) senderId : null;
+    }
+
+    /**
+     * WebSocket 오류 발생 시 클라이언트에 메시지 전송
+     */
+    private void sendErrorMessage(WebSocketSession session, String errorMessage) {
+        try {
+            session.sendMessage(new TextMessage("{\"error\": \"" + errorMessage + "\"}"));
+        } catch (Exception e) {
+            log.error("❌ WebSocket 오류 메시지 전송 실패", e);
+        }
+    }
 }
 
