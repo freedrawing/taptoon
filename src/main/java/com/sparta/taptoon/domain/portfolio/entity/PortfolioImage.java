@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "portfolio_image")
+@Table(name = "portfolio_images")
 public class PortfolioImage extends BaseEntity {
 
     @Id

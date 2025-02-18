@@ -8,10 +8,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "portfolio")
+@Table(name = "portfolios")
 public class Portfolio extends BaseEntity {
 
     @Id
@@ -33,7 +36,7 @@ public class Portfolio extends BaseEntity {
     private String fileUrl;
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted = false;
+    private boolean isDeleted;
 
     @Builder
     public Portfolio(Member member, String title, String content, String fileUrl, boolean isDeleted) {
@@ -41,7 +44,7 @@ public class Portfolio extends BaseEntity {
         this.title = title;
         this.content = content;
         this.fileUrl = fileUrl;
-        this.isDeleted = isDeleted;
+        this.isDeleted = false;
     }
 
     // 포트폴리오 수정 메서드 request 값
@@ -52,6 +55,7 @@ public class Portfolio extends BaseEntity {
         this.fileUrl = portfolioRequest.fileUrl();
     }
 
+    // 포트폴리오 삭제시 isDeleted 값 true 변경해서 소프트 딜리트
     public void remove() {
         this.isDeleted = true;
     }
