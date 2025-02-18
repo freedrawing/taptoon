@@ -20,7 +20,7 @@ public class PortfolioImage extends BaseEntity {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "portfolio_id", nullable = false, updatable = false)
     private Portfolio portfolio;
 

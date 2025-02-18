@@ -23,6 +23,12 @@ public enum ErrorCode {
 
   //board
 
+
+  //portfolio
+  PORTFOLIO_NOT_FOUND(HttpStatus.NOT_FOUND,"PORTFOLIO_404", "존재하지 않는 포트폴리오입니다."),
+  PORTFOLIO_ACCESS_DENIED(HttpStatus.FORBIDDEN, "PORTFOLIO_403", "포트폴리오 접근 권한이 없습니다."),
+  CREATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PORTFOLIO_400", "허용된 개수를 초과하였습니다.")
+
   //comment
 
   //chat
