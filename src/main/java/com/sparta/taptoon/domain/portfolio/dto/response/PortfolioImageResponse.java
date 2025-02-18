@@ -8,7 +8,7 @@ import lombok.Builder;
 public record PortfolioImageResponse(
         Portfolio portfolio,
         Long portfolioImgId,
-        String imgUrl
+        String imageUrl
 ) {
 
     @Builder
@@ -16,7 +16,7 @@ public record PortfolioImageResponse(
         return PortfolioImageResponse.builder()
                 .portfolio(portfolioImage.getPortfolio())
                 .portfolioImgId(portfolioImage.getId())
-                .imgUrl(portfolioImage.getImageUrl())
+                .imageUrl(portfolioImage.getImageUrl())
                 .build();
     }
 }
