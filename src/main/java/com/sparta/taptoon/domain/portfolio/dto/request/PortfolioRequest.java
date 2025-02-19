@@ -5,6 +5,8 @@ import com.sparta.taptoon.domain.portfolio.entity.Portfolio;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
+import java.util.List;
+
 @Builder
 public record PortfolioRequest(
         @NotBlank(message = "제목을 입력해주세요.")
@@ -14,7 +16,10 @@ public record PortfolioRequest(
         String content,
 
         // 파일 첨부는 첨부하지 않아도 허용
-        String fileUrl
+        String fileUrl,
+
+        // 이미지 Url 리스트
+        List<String> imageUrls
 ) {
 
     public Portfolio toEntity(Member member) {
