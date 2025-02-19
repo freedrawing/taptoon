@@ -1,18 +1,18 @@
 package com.sparta.taptoon.domain.matchingpost.service;
 
-import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
 import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
-import com.sparta.taptoon.domain.matchingpost.repository.elasticsearch.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
+import com.sparta.taptoon.domain.matchingpost.repository.elasticsearch.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.common.annotation.DistributedLock;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +23,7 @@ import java.util.List;
 import static com.sparta.taptoon.global.error.enums.ErrorCode.MATCHING_POST_NOT_FOUND;
 import static com.sparta.taptoon.global.error.enums.ErrorCode.USER_NOT_FOUND;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -30,18 +31,18 @@ public class MatchingPostService {
 
     private final MatchingPostRepository matchingPostRepository;
     private final ElasticMatchingPostRepository elasticMatchingPostRepository;
+    private final ElasticMatchingPostManager elasticMatchingPostManager;
     private final MemberRepository memberRepository; // 나중에 서비스로 바꿔야 함.
 
     // 매칭포스트 생성
     @Transactional
-    public MatchingPostResponse makeNewMatchingPost(Long userId, AddMatchingPostRequest request) {
+    public MatchingPostResponse makeNewMatchingPost(Long mermberId, AddMatchingPostRequest request) {
         // Save to DB
-        Member findMember = findMemberById(userId);
+        Member findMember = findMemberById(mermberId);
         MatchingPost savedMatchingPost = matchingPostRepository.save(request.toEntity(findMember));
 
-        // Save to ES
-        MatchingPostDocument matchingPostDocument = MatchingPostDocument.from(savedMatchingPost);
-        elasticMatchingPostRepository.save(matchingPostDocument);
+        // 2. 트랜잭션이 정상적으로 완료된 후 ES에 저장
+        elasticMatchingPostManager.saveToESAfterCommit(savedMatchingPost);
 
         return MatchingPostResponse.from(savedMatchingPost);
     }
@@ -57,6 +58,9 @@ public class MatchingPostService {
         // 파일이랑 기타 정보 모두 수정해야 할 듯
         findMatchingPost.modifyMe(request);
 
+        // Upsert to ES
+        elasticMatchingPostManager.upsertToESAfterCommit(findMatchingPost);
+
         return MatchingPostResponse.from(findMatchingPost);
     }
 
@@ -70,6 +74,9 @@ public class MatchingPostService {
 
         // 삭제처리하면 게시글에 첨부된 이미지나 텍스트 파일을 어떻게 처리하지? 삭제해야 하나? -> 삭제해야 할 듯
         findMatchingPost.removeMe();
+
+        // Delete from ES
+        elasticMatchingPostManager.deleteFromESAfterCommit(matchingPostId);
     }
 
     // 매칭 포스트 필터링 다건 검색
@@ -103,6 +110,7 @@ public class MatchingPostService {
                 .orElseThrow(() -> new NotFoundException(MATCHING_POST_NOT_FOUND));
 
         matchingPost.validateIsDeleted();
+
         return matchingPost;
     }
 

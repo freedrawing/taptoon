@@ -48,7 +48,7 @@ public class MatchingPostRepositoryImpl implements MatchingPostRepositoryCustom 
                         .where(
                                 eqArtistType(artistType),
                                 eqWorkType(workType),
-                                matchingPost.id.in(ids),
+                                matchingPost.id.in(ids), // ES로부터 받아온 값
                                 matchingPost.isDeleted.isFalse()
                         )
                         .offset(pageable.getOffset())

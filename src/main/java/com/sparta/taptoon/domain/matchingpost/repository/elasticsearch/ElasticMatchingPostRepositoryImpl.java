@@ -2,6 +2,7 @@ package com.sparta.taptoon.domain.matchingpost.repository.elasticsearch;
 
 import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHits;
@@ -39,6 +40,7 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
                                         ))
                         ))
                 .withFields("id")
+                .withMaxResults(10_000) // 나중에 바꿔야 함. 이걸 어떻게 할 것인지.... 크흠
                 .build();
 
         SearchHits<MatchingPostDocument> searchHits = elasticsearchOperations.search(

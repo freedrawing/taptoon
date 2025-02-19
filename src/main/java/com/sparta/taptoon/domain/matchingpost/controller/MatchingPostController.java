@@ -4,6 +4,7 @@ import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
+import com.sparta.taptoon.domain.member.entity.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "matching-posts", description = "매칭보드 게시글 API")
@@ -25,7 +27,11 @@ public class MatchingPostController {
 
     @Operation(summary = "매칭보드에 게시글 등록")
     @PostMapping
-    public ResponseEntity<ApiResponse<MatchingPostResponse>> createMatchingPost(@Valid @RequestBody AddMatchingPostRequest request) {
+    public ResponseEntity<ApiResponse<MatchingPostResponse>> createMatchingPost(
+            @AuthenticationPrincipal MemberDetail memberDetail,
+            @Valid @RequestBody AddMatchingPostRequest request) {
+
+//        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(memberDetail.getId(), request);
         MatchingPostResponse response = matchingPostService.makeNewMatchingPost(1L, request);
         return ApiResponse.created(response);
     }
@@ -40,16 +46,22 @@ public class MatchingPostController {
     @Operation(summary = "매칭 게시글 수정 (일괄 수정)")
     @PutMapping("/{matchingPostId}")
     public ResponseEntity<ApiResponse<MatchingPostResponse>> updateMatchingPost(
+            @AuthenticationPrincipal MemberDetail memberDetail,
             @PathVariable Long matchingPostId,
             @Valid @RequestBody UpdateMatchingPostRequest request) {
 
+//        MatchingPostResponse response = matchingPostService.modifyMatchingPost(memberDetail.getId(), matchingPostId, request);
         MatchingPostResponse response = matchingPostService.modifyMatchingPost(1L, matchingPostId, request);
         return ApiResponse.success(response);
     }
 
     @Operation(summary = "매칭 게시글 삭제 (soft deletion)")
     @DeleteMapping("/{matchingPostId}")
-    public ResponseEntity<ApiResponse<Void>> deleteMatchingPost(@PathVariable Long matchingPostId) {
+    public ResponseEntity<ApiResponse<Void>> deleteMatchingPost(
+            @AuthenticationPrincipal MemberDetail memberDetail,
+            @PathVariable Long matchingPostId) {
+
+//        matchingPostService.removeMatchingPost(memberDetail.getId(), matchingPostId);
         matchingPostService.removeMatchingPost(1L, matchingPostId);
         return ApiResponse.success(null);
     }
