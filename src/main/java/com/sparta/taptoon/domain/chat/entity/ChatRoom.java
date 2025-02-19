@@ -38,6 +38,11 @@ public class ChatRoom extends BaseEntity {
                 .build());
     }
 
+    /** 채팅방에 있는 멤버 수 반환 */
+    public int getMemberCount() {
+        return this.members.size();
+    }
+
     public void delete() {
         this.isDeleted = true;
     }

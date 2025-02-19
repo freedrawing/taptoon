@@ -12,6 +12,7 @@ import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.redis.RedisPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class ChatMessageService {
     private final MemberRepository memberRepository;
     private final RedisPublisher redisPublisher;
     private final ObjectMapper objectMapper;
+    private final StringRedisTemplate redisTemplate;
 
     @Transactional
     public ChatMessageResponse sendMessage(Long senderId, SendChatMessageRequest request) {
@@ -35,17 +37,17 @@ public class ChatMessageService {
         Member sender = memberRepository.findById(senderId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
 
-        // ✅ 메시지 저장
-        ChatMessage chatMessage = chatMessageRepository.save(request.toEntity(chatRoom, sender, request.message()));
+        ChatMessage chatMessage = chatMessageRepository.save(request.toEntity(chatRoom, sender));
         ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
 
-        try {
-            // ✅ Redis로 메시지 발행 (WebSocket에서도 받을 수 있도록)
-            redisPublisher.publish(chatRoom.getId(), objectMapper.writeValueAsString(response));
-            log.info("📤 Redis에 메시지 발행 완료: {}", response);
-        } catch (Exception e) {
-            log.error("❌ Redis 메시지 발행 중 오류 발생", e);
-        }
+            try {
+                // Redis로 메시지 발행 (WebSocket 에서도 받을 수 있도록)
+                redisPublisher.publish(chatRoom.getId(), objectMapper.writeValueAsString(response));
+                log.info("📤 Redis에 메시지 발행 완료: {}", response);
+            } catch (Exception e) {
+                log.error("❌ Redis 메시지 발행 중 오류 발생", e);
+            }
+
 
         return response;
     }
@@ -55,13 +57,23 @@ public class ChatMessageService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(()-> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
 
-        // 안읽은 메시지 조회
-        List<ChatMessage> unreadMessages = chatMessageRepository.findByChatRoomAndIsReadFalseAndSenderNot(
-                chatRoom, memberRepository.getReferenceById(memberId));
+        // 사용자가 마지막으로 읽은 메시지 ID 조회 (Redis에서 관리)
+        String lastReadMessageKey = "chat:room:" + chatRoomId + ":user:" + memberId;
+        String lastReadMessageIdStr = redisTemplate.opsForValue().get(lastReadMessageKey);
+        Long lastReadMessageId = (lastReadMessageIdStr != null) ? Long.parseLong(lastReadMessageIdStr) : 0L;
 
-        // ✅ 읽음 처리
-        unreadMessages.forEach(ChatMessage::markAsRead);
-        chatMessageRepository.saveAll(unreadMessages); // 한 번에 일괄 업데이트
+        // 안 읽은 메시지 목록 가져오기 (마지막 읽은 메시지 ID 이후)
+        List<ChatMessage> unreadMessages = chatMessageRepository.findByChatRoomAndIdGreaterThan(chatRoom, lastReadMessageId);
+
+        if (!unreadMessages.isEmpty()) {
+            // unreadCount 감소 처리
+            unreadMessages.forEach(ChatMessage::decrementUnreadCount);
+            chatMessageRepository.saveAll(unreadMessages);
+
+            // 마지막으로 읽은 메시지 ID 업데이트
+            Long latestMessageId = unreadMessages.get(unreadMessages.size() - 1).getId();
+            redisTemplate.opsForValue().set(lastReadMessageKey, String.valueOf(latestMessageId));
+        }
 
         // 전체 메시지 조회
         List<ChatMessage> messages = chatMessageRepository.findByChatRoomOrderByCreatedAtAsc(chatRoom);

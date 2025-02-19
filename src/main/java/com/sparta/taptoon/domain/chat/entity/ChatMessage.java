@@ -29,22 +29,25 @@ public class ChatMessage extends BaseEntity {
     @Column(name = "message", nullable = false)
     private String message;
 
-    @Column(name = "is_read", nullable = false)
-    private Boolean isRead;
+    @Column(name = "unread_count", nullable = false)
+    private int unreadCount;
 
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
 
     @Builder
-    public ChatMessage(ChatRoom chatRoom, Member sender, String message) {
+    public ChatMessage(ChatRoom chatRoom, Member sender, String message, int unreadCount) {
         this.chatRoom = chatRoom;
         this.sender = sender;
         this.message = message;
-        this.isRead = false;
+        this.unreadCount = unreadCount;
         this.isDeleted = false;
     }
 
-    public void markAsRead(){
-        this.isRead = true;
+    /** 특정 사용자가 메시지를 읽었을 때 호출 */
+    public void decrementUnreadCount() {
+        if (this.unreadCount > 0) {
+            this.unreadCount--;
+        }
     }
 }

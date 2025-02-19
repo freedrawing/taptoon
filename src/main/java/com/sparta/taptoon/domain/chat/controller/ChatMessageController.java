@@ -31,6 +31,7 @@ public class ChatMessageController {
         return ApiResponse.success(response);
     }
 
+    @Operation(summary = "채팅 메시지 조회 + 읽음 처리")
     @GetMapping("/{chatRoomId}/messages")
     public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getChatMessages(
             @AuthenticationPrincipal MemberDetail memberDetail,
