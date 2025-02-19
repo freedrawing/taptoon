@@ -10,6 +10,5 @@ import java.util.List;
 
 public interface MatchingPostRepositoryCustom {
 
-    Page<MatchingPostResponse> searchMatchingPostsFromCondition(ArtistType artistType, WorkType workType, String keyword, Pageable pageable);
-    Page<MatchingPostResponse> searchMatchingPostsFromConditionV2(ArtistType artistType, WorkType workType, List<Long> ids, Pageable pageable);
+    Page<MatchingPostResponse> searchMatchingPostsFromCondition(ArtistType artistType, WorkType workType, List<Long> ids, Pageable pageable);
 }

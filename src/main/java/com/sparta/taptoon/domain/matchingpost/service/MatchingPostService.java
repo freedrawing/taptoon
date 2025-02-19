@@ -1,13 +1,10 @@
 package com.sparta.taptoon.domain.matchingpost.service;
 
-import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
 import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
-import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
-import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
 import com.sparta.taptoon.domain.matchingpost.repository.elasticsearch.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
@@ -20,9 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.sparta.taptoon.global.error.enums.ErrorCode.MATCHING_POST_NOT_FOUND;
@@ -80,9 +75,9 @@ public class MatchingPostService {
     // 매칭 포스트 필터링 다건 검색
     public Page<MatchingPostResponse> findFilteredMatchingPosts(String artistType, String workType, String keyword, Pageable pageable) {
 
-        List<Long> matchingIds = elasticMatchingPostRepository.searchIdsByKeywordV2(keyword);
+        List<Long> matchingIds = elasticMatchingPostRepository.searchIdsByKeyword(keyword);
 
-        return matchingPostRepository.searchMatchingPostsFromConditionV2(
+        return matchingPostRepository.searchMatchingPostsFromCondition(
 //                ArtistType.fromString(artistType),
 //                WorkType.fromString(workType),
                 null,
@@ -96,16 +91,6 @@ public class MatchingPostService {
     @DistributedLock(key = "#matchingPostId", waitTime = 10, leaseTime = 2)
     @Transactional
     public MatchingPostResponse findMatchingPostAndUpdateViewsV3(Long matchingPostId) {
-        MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
-        findMatchingPost.increaseViewCount();
-
-        return MatchingPostResponse.from(findMatchingPost);
-    }
-
-    // Redisson V2 Lock을 위한 테스트용 (트랜잭션 범위 안 맞아서..)
-    @Deprecated
-    @Transactional
-    public MatchingPostResponse findMatchingPostAndUpdateViewsV2(Long matchingPostId) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
         findMatchingPost.increaseViewCount();
 

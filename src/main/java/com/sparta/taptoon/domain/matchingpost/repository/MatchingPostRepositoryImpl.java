@@ -26,8 +26,8 @@ public class MatchingPostRepositoryImpl implements MatchingPostRepositoryCustom 
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Page<MatchingPostResponse> searchMatchingPostsFromConditionV2(ArtistType artistType, WorkType workType,
-                                                                         List<Long> ids, Pageable pageable) {
+    public Page<MatchingPostResponse> searchMatchingPostsFromCondition(ArtistType artistType, WorkType workType,
+                                                                       List<Long> ids, Pageable pageable) {
 
         List<MatchingPostResponse> content =
                 jpaQueryFactory.select(
@@ -69,83 +69,12 @@ public class MatchingPostRepositoryImpl implements MatchingPostRepositoryCustom 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
-
-    /*
-     * TODO)
-     * 이미지 혹은 텍스트 파일 여러장 반환될 수 있게 나중에 고쳐야 함
-     * Projections.constructor 대신에 @QueryProjection 용으로 하나 DTO 만들어야 할 듯
-     *
-     */
-    @Deprecated
-    @Override
-    public Page<MatchingPostResponse> searchMatchingPostsFromCondition(ArtistType artistType, WorkType workType,
-                                                                       String keyword, Pageable pageable) {
-
-        List<MatchingPostResponse> content =
-                jpaQueryFactory.select(
-                                Projections.constructor(
-                                        MatchingPostResponse.class,
-                                        matchingPost.id,
-                                        matchingPost.title,
-                                        matchingPost.description,
-                                        matchingPost.artistType.stringValue(),
-                                        matchingPost.workType.stringValue(),
-                                        matchingPost.fileUrl,
-                                        matchingPost.viewCount,
-                                        matchingPost.createdAt,
-                                        matchingPost.updatedAt
-                                )
-                        )
-                        .from(matchingPost)
-                        .where(
-                                eqArtistType(artistType),
-                                eqWorkType(workType),
-                                containsKeyword(keyword),
-                                matchingPost.isDeleted.isFalse()
-                        )
-                        .offset(pageable.getOffset())
-                        .limit(pageable.getPageSize())
-                        .orderBy(matchingPost.viewCount.desc())
-                        .fetch();
-
-        JPAQuery<Long> countQuery = jpaQueryFactory.select(matchingPost.count())
-                .from(matchingPost)
-                .where(
-                        eqArtistType(artistType),
-                        eqWorkType(workType),
-                        containsKeyword(keyword),
-                        matchingPost.isDeleted.isFalse()
-                )
-                .orderBy(matchingPost.viewCount.desc());
-
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
-    }
-
     private BooleanExpression eqArtistType(ArtistType artistType) {
         return artistType != null ? matchingPost.artistType.eq(artistType) : null;
     }
 
     private BooleanExpression eqWorkType(WorkType workType) {
         return workType != null ? matchingPost.workType.eq(workType) : null;
-    }
-
-    @Deprecated
-    private BooleanExpression containsKeyword(String keyword) {
-        return StringUtils.hasText(keyword) ?
-                matchingPost.title.containsIgnoreCase(keyword)
-                        .or(matchingPost.description.containsIgnoreCase(keyword))
-                : null;
-
-//        NumberTemplate<Double> scoreBoolean = Expressions.numberTemplate(
-//                Double.class,
-//                "function('match_against_boolean', {0}, {1}, {2})",
-////                "function('match_against_nl', {0}, {1}, {2})",
-//                matchingPost.title, // ?1
-//                matchingPost.description,
-//                keyword
-//        );
-//        return scoreBoolean.gt(0.0);
-
     }
 
 

@@ -17,7 +17,7 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
     private final ElasticsearchOperations elasticsearchOperations;
 
     @Override
-    public List<Long> searchIdsByKeywordV2(String keyword) {
+    public List<Long> searchIdsByKeyword(String keyword) {
 
         if (StringUtils.hasText(keyword) == false) {
             return Collections.emptyList();
