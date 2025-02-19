@@ -24,6 +24,7 @@ public record PortfolioResponse(
                 .memberId(portfolio.getMember().getId())
                 .title(portfolio.getTitle())
                 .createdAt(portfolio.getCreatedAt())
+                .updatedAt(portfolio.getUpdatedAt())
                 .build();
     }
 
@@ -38,6 +39,7 @@ public record PortfolioResponse(
                 .fileUrl(portfolio.getFileUrl())
                 .portfolioImageResponses(portfolioImageResponses)
                 .createdAt(portfolio.getCreatedAt())
+                .updatedAt(portfolio.getUpdatedAt())
                 .build();
     }
 

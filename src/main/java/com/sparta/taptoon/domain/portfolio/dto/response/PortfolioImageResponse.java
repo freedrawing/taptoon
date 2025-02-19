@@ -5,14 +5,14 @@ import lombok.Builder;
 
 @Builder
 public record PortfolioImageResponse(
-        Long portfolioImgId,
+        Long portfolioImageId,
         String imageUrl
 ) {
 
     @Builder
     public static PortfolioImageResponse from(PortfolioImage portfolioImage) {
         return PortfolioImageResponse.builder()
-                .portfolioImgId(portfolioImage.getId())
+                .portfolioImageId(portfolioImage.getId())
                 .imageUrl(portfolioImage.getImageUrl())
                 .build();
     }

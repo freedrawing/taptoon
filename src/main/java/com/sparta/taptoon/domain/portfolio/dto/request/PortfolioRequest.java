@@ -18,7 +18,7 @@ public record PortfolioRequest(
         // 파일 첨부는 첨부하지 않아도 허용
         String fileUrl,
 
-        // 이미지 Url 리스트
+        // s3로 부터 이미지 Url 리스트를 requestDto로 옮기기
         List<String> imageUrls
 ) {
 
