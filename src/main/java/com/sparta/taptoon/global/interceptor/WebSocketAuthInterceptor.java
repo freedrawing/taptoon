@@ -1,12 +1,11 @@
 package com.sparta.taptoon.global.interceptor;
 
+import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.domain.member.entity.MemberDetail;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import com.sparta.taptoon.global.util.JwtUtil;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,9 +46,8 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
                 token = token.substring(7);
 
                 // JWT 검증
-                jwtUtil.validateToken(token);
-                Claims claims = jwtUtil.getClaims(token);
-                Long senderId = Long.parseLong(claims.getSubject());
+                jwtUtil.validateTokenAndGetClaims(token);
+                Long senderId = Long.parseLong(jwtUtil.validateTokenAndGetClaims(token).getSubject());
 
                 // Member 정보 조회
                 Member member = memberRepository.findById(senderId)

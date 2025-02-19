@@ -3,7 +3,7 @@ package com.sparta.taptoon.domain.chat.controller;
 import com.sparta.taptoon.domain.chat.dto.request.SendChatMessageRequest;
 import com.sparta.taptoon.domain.chat.dto.response.ChatMessageResponse;
 import com.sparta.taptoon.domain.chat.service.ChatMessageService;
-import com.sparta.taptoon.domain.member.entity.MemberDetail;
+import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;

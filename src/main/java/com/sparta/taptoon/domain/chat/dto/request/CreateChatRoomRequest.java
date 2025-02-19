@@ -1,13 +1,15 @@
 package com.sparta.taptoon.domain.chat.dto.request;
 
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
-import com.sparta.taptoon.domain.member.entity.Member;
+import lombok.Builder;
 
-public record CreateChatRoomRequest(Long memberId2) {
-    public static ChatRoom toEntity(Member member1, Member member2) {
+import java.util.List;
+
+@Builder
+public record CreateChatRoomRequest(List<Long> memberIds) {
+
+    public static ChatRoom toEntity() {
         return ChatRoom.builder()
-                .member1(member1)
-                .member2(member2)
                 .build();
     }
 }

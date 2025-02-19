@@ -3,7 +3,7 @@ package com.sparta.taptoon.domain.chat.controller;
 import com.sparta.taptoon.domain.chat.dto.request.CreateChatRoomRequest;
 import com.sparta.taptoon.domain.chat.dto.response.ChatRoomResponse;
 import com.sparta.taptoon.domain.chat.service.ChatRoomService;
-import com.sparta.taptoon.domain.member.entity.MemberDetail;
+import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
