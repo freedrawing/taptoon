@@ -25,12 +25,58 @@ public class MatchingPostRepositoryImpl implements MatchingPostRepositoryCustom 
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    @Override
+    public Page<MatchingPostResponse> searchMatchingPostsFromConditionV2(ArtistType artistType, WorkType workType,
+                                                                         List<Long> ids, Pageable pageable) {
+
+        List<MatchingPostResponse> content =
+                jpaQueryFactory.select(
+                                Projections.constructor(
+                                        MatchingPostResponse.class,
+                                        matchingPost.id,
+                                        matchingPost.title,
+                                        matchingPost.description,
+                                        matchingPost.artistType.stringValue(),
+                                        matchingPost.workType.stringValue(),
+                                        matchingPost.fileUrl,
+                                        matchingPost.viewCount,
+                                        matchingPost.createdAt,
+                                        matchingPost.updatedAt
+                                )
+                        )
+                        .from(matchingPost)
+                        .where(
+                                eqArtistType(artistType),
+                                eqWorkType(workType),
+                                matchingPost.id.in(ids),
+                                matchingPost.isDeleted.isFalse()
+                        )
+                        .offset(pageable.getOffset())
+                        .limit(pageable.getPageSize())
+                        .orderBy(matchingPost.viewCount.desc())
+                        .fetch();
+
+        JPAQuery<Long> countQuery = jpaQueryFactory.select(matchingPost.count())
+                .from(matchingPost)
+                .where(
+                        eqArtistType(artistType),
+                        eqWorkType(workType),
+                        matchingPost.id.in(ids),
+                        matchingPost.isDeleted.isFalse()
+                )
+                .orderBy(matchingPost.viewCount.desc());
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+
     /*
      * TODO)
      * 이미지 혹은 텍스트 파일 여러장 반환될 수 있게 나중에 고쳐야 함
      * Projections.constructor 대신에 @QueryProjection 용으로 하나 DTO 만들어야 할 듯
      *
      */
+    @Deprecated
     @Override
     public Page<MatchingPostResponse> searchMatchingPostsFromCondition(ArtistType artistType, WorkType workType,
                                                                        String keyword, Pageable pageable) {
@@ -54,7 +100,8 @@ public class MatchingPostRepositoryImpl implements MatchingPostRepositoryCustom 
                         .where(
                                 eqArtistType(artistType),
                                 eqWorkType(workType),
-                                containsKeyword(keyword)
+                                containsKeyword(keyword),
+                                matchingPost.isDeleted.isFalse()
                         )
                         .offset(pageable.getOffset())
                         .limit(pageable.getPageSize())
@@ -66,7 +113,8 @@ public class MatchingPostRepositoryImpl implements MatchingPostRepositoryCustom 
                 .where(
                         eqArtistType(artistType),
                         eqWorkType(workType),
-                        containsKeyword(keyword)
+                        containsKeyword(keyword),
+                        matchingPost.isDeleted.isFalse()
                 )
                 .orderBy(matchingPost.viewCount.desc());
 
@@ -81,6 +129,7 @@ public class MatchingPostRepositoryImpl implements MatchingPostRepositoryCustom 
         return workType != null ? matchingPost.workType.eq(workType) : null;
     }
 
+    @Deprecated
     private BooleanExpression containsKeyword(String keyword) {
         return StringUtils.hasText(keyword) ?
                 matchingPost.title.containsIgnoreCase(keyword)

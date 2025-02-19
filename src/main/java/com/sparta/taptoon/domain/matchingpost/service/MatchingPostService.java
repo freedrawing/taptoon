@@ -1,11 +1,14 @@
 package com.sparta.taptoon.domain.matchingpost.service;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
+import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
 import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
+import com.sparta.taptoon.domain.matchingpost.repository.elasticsearch.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
@@ -13,11 +16,14 @@ import com.sparta.taptoon.global.common.annotation.DistributedLock;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.sparta.taptoon.global.error.enums.ErrorCode.MATCHING_POST_NOT_FOUND;
 import static com.sparta.taptoon.global.error.enums.ErrorCode.USER_NOT_FOUND;
@@ -28,13 +34,19 @@ import static com.sparta.taptoon.global.error.enums.ErrorCode.USER_NOT_FOUND;
 public class MatchingPostService {
 
     private final MatchingPostRepository matchingPostRepository;
+    private final ElasticMatchingPostRepository elasticMatchingPostRepository;
     private final MemberRepository memberRepository; // 나중에 서비스로 바꿔야 함.
 
     // 매칭포스트 생성
     @Transactional
     public MatchingPostResponse makeNewMatchingPost(Long userId, AddMatchingPostRequest request) {
+        // Save to DB
         Member findMember = findMemberById(userId);
         MatchingPost savedMatchingPost = matchingPostRepository.save(request.toEntity(findMember));
+
+        // Save to ES
+        MatchingPostDocument matchingPostDocument = MatchingPostDocument.from(savedMatchingPost);
+        elasticMatchingPostRepository.save(matchingPostDocument);
 
         return MatchingPostResponse.from(savedMatchingPost);
     }
@@ -67,10 +79,15 @@ public class MatchingPostService {
 
     // 매칭 포스트 필터링 다건 검색
     public Page<MatchingPostResponse> findFilteredMatchingPosts(String artistType, String workType, String keyword, Pageable pageable) {
-        return matchingPostRepository.searchMatchingPostsFromCondition(
-                ArtistType.fromString(artistType),
-                WorkType.fromString(workType),
-                keyword,
+
+        List<Long> matchingIds = elasticMatchingPostRepository.searchIdsByKeywordV2(keyword);
+
+        return matchingPostRepository.searchMatchingPostsFromConditionV2(
+//                ArtistType.fromString(artistType),
+//                WorkType.fromString(workType),
+                null,
+                null,
+                matchingIds,
                 pageable
         );
     }
