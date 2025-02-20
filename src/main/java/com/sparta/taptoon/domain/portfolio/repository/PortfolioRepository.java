@@ -14,5 +14,5 @@ public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
     int countByMember(Member member);
 
     // 전체 포트폴리오 Id값 가져오는 메서드
-    List<Portfolio> findAllByPortfolioId(Long portfolioId);
+    List<Portfolio> findAllByMemberId(Long memberId);
 }

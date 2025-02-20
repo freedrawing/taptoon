@@ -16,6 +16,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,7 +71,7 @@ public class PortfolioService {
     public PortfolioResponse findPortfolio(Long portfolioId) {
 
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.PORTFOLIO_NOT_FOUND));
 
         // 포트폴리오 이미지를 포트폴리오 id로 찾기
         List<PortfolioImage> portfolioImages = portfolioImageRepository.findByPortfolioId(portfolioId);
@@ -83,10 +84,10 @@ public class PortfolioService {
     }
 
     // 포트폴리오 전체 조회
-    public List<PortfolioResponse> findAllPortfolio(Long portfolioId) {
+    public List<PortfolioResponse> findAllPortfolio(Long memberId) {
 
         //포트폴리오 찾기
-        List<Portfolio> portfolios = portfolioRepository.findAllByPortfolioId(portfolioId);
+        List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
 
         // 등록된 모든 포트폴리오 조회
         List<PortfolioResponse> portfolioResponses = portfolios.stream()
