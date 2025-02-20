@@ -21,6 +21,7 @@ public enum ErrorCode {
   MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "Member_404", "존재하지 않는 유저입니다."),
   MEMBER_DELETED(HttpStatus.FORBIDDEN, "Member_403", "삭제된 유저입니다."),
   MEMBER_ALREADY_EXISTS(HttpStatus.CONFLICT, "Member_409", "이미 존재하는 유저입니다."),
+  SAME_VALUE_REQUEST(HttpStatus.CONFLICT, "Member_409","이전에 사용하던 정보를 재사용할 수 없습니다."),
 
   //auth
   INVALID_CREDENTIALS(HttpStatus.BAD_REQUEST,"Auth_400", "올바르지 않은 회원 정보 요청입니다."),

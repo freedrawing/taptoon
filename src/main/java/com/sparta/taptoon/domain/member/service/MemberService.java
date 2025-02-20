@@ -5,6 +5,7 @@ import com.sparta.taptoon.domain.member.dto.response.MemberResponse;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.enums.MemberGrade;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
+import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class MemberService {
     @Transactional
     public void setMemberEmail(Member member, String email) {
         if(member.getEmail()!= null) {
-            throw new InvalidRequestException();//exception 처리 필요
+            throw new InvalidRequestException(ErrorCode.ACCESS_DENIED);
         }
         member.setFirstEmail(email);
     }
@@ -31,7 +32,7 @@ public class MemberService {
     @Transactional
     public void changeUserPassword(Member member, String newPassword) {
         if(member.getPassword() != null && member.getPassword().equals(newPassword)) {
-            throw new InvalidRequestException();//exception 처리 필요
+            throw new InvalidRequestException(ErrorCode.SAME_VALUE_REQUEST);
         }
         String encodedPassword = passwordEncoder.encode(newPassword);
         member.changePassword(encodedPassword);
@@ -41,7 +42,7 @@ public class MemberService {
     @Transactional
     public void changeUserNickname(Member member, String newNickname) {
         if(member.getNickname() != null && member.getNickname().equals(newNickname)) {
-            throw new InvalidRequestException();//exception 처리 필요
+            throw new InvalidRequestException(ErrorCode.SAME_VALUE_REQUEST);
         }
         member.changeNickname(newNickname);
     }

@@ -3,6 +3,7 @@ package com.sparta.taptoon.domain.image.service;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostImageRepository;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +15,10 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class ImageService {
 
+    private static final long EXPIRE_TIME = 1000 * 60 * 5;//5분
+
     private final AmazonS3 amazonS3;
+    private final MatchingPostImageRepository matchingPostImageRepository;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -27,7 +31,7 @@ public class ImageService {
         String directory = folderPath + "original/"+ fileName;
         Date expiration = new Date();
         long expTimeMillis = expiration.getTime();
-        expTimeMillis += 1000 * 60 * 5; // 5분 유효
+        expTimeMillis += EXPIRE_TIME;
         expiration.setTime(expTimeMillis);
 
         GeneratePresignedUrlRequest generatePresignedUrlRequest =
@@ -35,6 +39,11 @@ public class ImageService {
                         .withMethod(HttpMethod.PUT)
                         .withExpiration(expiration)
                         .withContentType(contentType);
+
+        /**
+         * 여기에 각 db에 저장하는 로직을 추가하면 됩니다.
+         */
+
 
         return amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
     }
