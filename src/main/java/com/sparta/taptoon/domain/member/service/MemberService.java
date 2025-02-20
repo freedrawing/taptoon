@@ -21,8 +21,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void setMemberEmail(Long memberId, String email) {
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundException::new);
+    public void setMemberEmail(Member member, String email) {
         if(member.getEmail()!= null) {
             throw new InvalidRequestException();//exception 처리 필요
         }
@@ -30,8 +29,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void changeUserPassword(Long memberId, String newPassword) {
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundException::new);
+    public void changeUserPassword(Member member, String newPassword) {
         if(member.getPassword() != null && member.getPassword().equals(newPassword)) {
             throw new InvalidRequestException();//exception 처리 필요
         }
@@ -41,8 +39,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void changeUserNickname(Long memberId, String newNickname) {
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundException::new);
+    public void changeUserNickname(Member member, String newNickname) {
         if(member.getNickname() != null && member.getNickname().equals(newNickname)) {
             throw new InvalidRequestException();//exception 처리 필요
         }
@@ -50,22 +47,19 @@ public class MemberService {
     }
 
     @Transactional
-    public void changeUserGrade(Long memberId, MemberGrade newGrade) {
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundException::new);
+    public void changeUserGrade(Member member, MemberGrade newGrade) {
         if(member.getGrade().name().equals(newGrade.name())) {
             throw new InvalidRequestException();
         }
         member.changeGrade(newGrade);
     }
 
-    public MemberResponse findMember(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundException::new);
+    public MemberResponse findMember(Member member) {
         return MemberResponse.from(member);
     }
 
     @Transactional
-    public void removeMember(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundException::new);
+    public void removeMember(Member member) {
         member.withdrawMember();
     }
 }
