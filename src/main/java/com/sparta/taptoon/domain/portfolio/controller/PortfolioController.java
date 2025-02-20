@@ -1,6 +1,6 @@
 package com.sparta.taptoon.domain.portfolio.controller;
 
-import com.sparta.taptoon.domain.portfolio.dto.request.PortfolioRequest;
+import com.sparta.taptoon.domain.portfolio.dto.request.CreatePortfolioRequest;
 import com.sparta.taptoon.domain.portfolio.dto.response.PortfolioResponse;
 import com.sparta.taptoon.domain.portfolio.service.PortfolioService;
 import com.sparta.taptoon.global.common.ApiResponse;
@@ -23,7 +23,8 @@ public class PortfolioController {
 
     @Operation(summary = "포트폴리오 생성")
     @PostMapping
-    public ResponseEntity<ApiResponse<PortfolioResponse>> createPortfolio(@Valid @RequestBody PortfolioRequest portfolioRequest, Long memberId) {
+    public ResponseEntity<ApiResponse<PortfolioResponse>> createPortfolio(
+            @Valid @RequestBody CreatePortfolioRequest portfolioRequest, Long memberId) {
         PortfolioResponse portfolio = portfolioService.makePortfolio(portfolioRequest, memberId);
         return ApiResponse.created(portfolio);
     }
@@ -44,15 +45,17 @@ public class PortfolioController {
 
     @Operation(summary = "포트폴리오 수정")
     @PutMapping("/{portfolioId}")
-    public ResponseEntity<ApiResponse<PortfolioResponse>> updatePortfolio(@RequestBody PortfolioRequest portfolioRequest, Long portfolioId, Long memberId) {
-        PortfolioResponse updatePortfolioResponse = portfolioService.editPortfolio(portfolioRequest, portfolioId, memberId);
-        return ApiResponse.success(updatePortfolioResponse);
+    public ResponseEntity<ApiResponse<Void>> updatePortfolio(
+            @Valid @PathVariable Long portfolioId,
+            @RequestBody CreatePortfolioRequest portfolioRequest, Long memberId) {
+        portfolioService.editPortfolio(portfolioRequest, portfolioId, memberId);
+        return ApiResponse.noContentAndSendMessage("성공적으로 수정되었습니다.");
     }
 
     @Operation(summary = "포트폴리오 삭제")
     @DeleteMapping("/{portfolioId}")
     public ResponseEntity<ApiResponse<Void>> deletePortfolio(@PathVariable Long portfolioId, Long memberId) {
         portfolioService.removePortfolio(portfolioId,memberId);
-        return ApiResponse.success(null);
+        return ApiResponse.noContentAndSendMessage("성공적으로 삭제되었습니다.");
     }
 }

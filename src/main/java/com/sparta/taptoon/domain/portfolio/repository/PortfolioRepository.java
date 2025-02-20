@@ -11,7 +11,7 @@ import java.util.List;
 public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 
     // 포트폴리오 생성 개수 세기
-    int countByMember(Member member);
+    int countByMemberId(Long memberId);
 
     // 전체 포트폴리오 Id값 가져오는 메서드
     List<Portfolio> findAllByMemberId(Long memberId);

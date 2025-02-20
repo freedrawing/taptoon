@@ -1,5 +1,6 @@
 package com.sparta.taptoon.domain.portfolio.entity;
 
+import com.sparta.taptoon.domain.portfolio.dto.request.CreatePortfolioRequest;
 import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -23,6 +24,7 @@ public class PortfolioImage extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "portfolio_id", nullable = false, updatable = false)
     private Portfolio portfolio;
+
 
     @Builder
     public PortfolioImage(String imageUrl, Portfolio portfolio) {
