@@ -14,6 +14,12 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @RequiredArgsConstructor
 public class ElasticMatchingPostManager {
 
+    /**
+     * 우선 DB에는 저장이 무조건 되게 하자.
+     * Elasticsearch에는 저장이 실패할 수 있다. 그럴 경우는 어떻게 해야 할까?
+     * 로그는 우선 남기되, 나중에 스케줄러 같은 걸 이용해서 실패한 데이터 갖고 있다가 한 번에 업데이틀 시도해야 할까? 크흠....
+     */
+
     private final ElasticMatchingPostRepository elasticMatchingPostRepository;
 
     // DB에 Commit 된 이후에 ES에 저장

@@ -2,8 +2,10 @@ package com.sparta.taptoon.domain.matchingpost.service;
 
 import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
+import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
+import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.elasticsearch.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
@@ -34,11 +36,13 @@ public class MatchingPostService {
     private final ElasticMatchingPostManager elasticMatchingPostManager;
     private final MemberRepository memberRepository; // 나중에 서비스로 바꿔야 함.
 
+    // Upsert Queue와 delete Queue를 만들어야 함.
+
     // 매칭포스트 생성
     @Transactional
-    public MatchingPostResponse makeNewMatchingPost(Long mermberId, AddMatchingPostRequest request) {
+    public MatchingPostResponse makeNewMatchingPost(Long memberId, AddMatchingPostRequest request) {
         // Save to DB
-        Member findMember = findMemberById(mermberId);
+        Member findMember = findMemberById(memberId);
         MatchingPost savedMatchingPost = matchingPostRepository.save(request.toEntity(findMember));
 
         // 2. 트랜잭션이 정상적으로 완료된 후 ES에 저장
@@ -49,9 +53,9 @@ public class MatchingPostService {
 
     // 매칭 포스트 수정(일괄 수정)
     @Transactional
-    public MatchingPostResponse modifyMatchingPost(Long userId, Long matchingPostId, UpdateMatchingPostRequest request) {
+    public MatchingPostResponse modifyMatchingPost(Long memberId, Long matchingPostId, UpdateMatchingPostRequest request) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
-        if (findMatchingPost.isMyMatchingPost(userId) == false) {
+        if (findMatchingPost.isMyMatchingPost(memberId) == false) {
             throw new AccessDeniedException("매칭 게시글에 접근할 권한이 없습니다.");
         }
 
@@ -66,9 +70,9 @@ public class MatchingPostService {
 
     // 매칭포스트 삭제 (soft deletion) 단, 사진이나 텍스트 파일을 어떻게 처리해야 할지 고려해야 함
     @Transactional
-    public void removeMatchingPost(Long userId, Long matchingPostId) {
+    public void removeMatchingPost(Long memberId, Long matchingPostId) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
-        if (findMatchingPost.isMyMatchingPost(userId) == false) {
+        if (findMatchingPost.isMyMatchingPost(memberId) == false) {
             throw new AccessDeniedException("매칭 게시글에 접근할 권한이 없습니다");
         }
 
@@ -79,27 +83,35 @@ public class MatchingPostService {
         elasticMatchingPostManager.deleteFromESAfterCommit(matchingPostId);
     }
 
-    // 매칭 포스트 필터링 다건 검색
-    public Page<MatchingPostResponse> findFilteredMatchingPosts(String artistType, String workType, String keyword, Pageable pageable) {
+    // 매칭 포스트 필터링 다건 검색 (using Elasticsearch)
+    public MatchingPostCursorResponse findFilteredMatchingPosts(
+            String artistType,
+            String workType,
+            String keyword,
+            Long lastViewCount,
+            Long lastId,
+            int pageSize) {
 
-        List<Long> matchingIds = elasticMatchingPostRepository.searchIdsByKeyword(keyword);
-
-        return matchingPostRepository.searchMatchingPostsFromCondition(
-//                ArtistType.fromString(artistType),
-//                WorkType.fromString(workType),
-                null,
-                null,
-                matchingIds,
-                pageable
+        return elasticMatchingPostRepository.searchFrom(
+                artistType,
+                workType,
+                keyword,
+                lastViewCount,
+                lastId,
+                pageSize
         );
     }
 
+    // 여기서 ES에 있는 값까지 업데이트 해주는 건 다소 비효율적인데 나중에 바꿔야 할 듯
     // 매칭 포스트 단건 조회 + 조회수 증가 (update 로직을 분리하고 싶은데, AOP라서 분리하기가 다소 번거롭다)
     @DistributedLock(key = "#matchingPostId", waitTime = 10, leaseTime = 2)
     @Transactional
     public MatchingPostResponse findMatchingPostAndUpdateViewsV3(Long matchingPostId) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
         findMatchingPost.increaseViewCount();
+
+        // 조회수 업데이트 (다만 이건 다소 비효율적이다)
+        elasticMatchingPostManager.upsertToESAfterCommit(findMatchingPost);
 
         return MatchingPostResponse.from(findMatchingPost);
     }

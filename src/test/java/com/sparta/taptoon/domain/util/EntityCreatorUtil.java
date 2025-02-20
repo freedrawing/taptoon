@@ -11,20 +11,13 @@ import com.sparta.taptoon.domain.member.enums.MemberGrade;
 import lombok.experimental.UtilityClass;
 
 import java.text.MessageFormat;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
+import java.util.Locale;
 
 import static com.sparta.taptoon.domain.util.FakerUtil.englishFaker;
 import static com.sparta.taptoon.domain.util.FakerUtil.koreanFaker;
 
 @UtilityClass
 public class EntityCreatorUtil {
-
-    private String generateRandomSentence(Faker faker) {
-        List<String> words = faker.lorem().words(20);  // 20개의 단어를 랜덤으로 가져옴
-        return words.stream().collect(Collectors.joining(" "));  // 단어들을 공백으로 조합
-    }
 
     public static Member createMember() {
         return Member.builder()
@@ -39,25 +32,29 @@ public class EntityCreatorUtil {
 
     public static AddMatchingPostRequest createKoreanMatchingPostRequest() {
         return new AddMatchingPostRequest(
-                generateRandomSentence(koreanFaker),
+//                generateRandomSentence(koreanFaker),
+                new Faker(new Locale("ko")).commerce().department(),
                 ArtistType.random().name(),
                 WorkType.random().name(),
-                generateRandomSentence(koreanFaker)
+//                generateRandomSentence(koreanFaker)
+                new Faker(new Locale("ko")).lorem().paragraph(2)
         );
     }
 
     public static AddMatchingPostRequest createEnglishMatchingPostRequest() {
         return new AddMatchingPostRequest(
-                generateRandomSentence(englishFaker),
+                new Faker(new Locale("en")).commerce().department(),
+//                generateRandomSentence(englishFaker),
                 ArtistType.random().name(),
                 WorkType.random().name(),
-                generateRandomSentence(englishFaker)
+//                generateRandomSentence(englishFaker)
+                new Faker(new Locale("en")).lorem().paragraph(2)
         );
     }
 
     public static MatchingPost createMatchingPost(Member member) {
         return MatchingPost.builder()
-                .writer(member)
+                .author(member)
                 .artistType(ArtistType.random())
                 .title(koreanFaker.lorem().word())
                 .workType(WorkType.random())

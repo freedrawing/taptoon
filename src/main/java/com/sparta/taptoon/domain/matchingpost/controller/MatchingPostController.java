@@ -2,6 +2,7 @@ package com.sparta.taptoon.domain.matchingpost.controller;
 
 import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
+import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
 import com.sparta.taptoon.domain.member.entity.MemberDetail;
@@ -68,13 +69,21 @@ public class MatchingPostController {
 
     @Operation(summary = "매칭 게시글 다건 조회 (검색)")
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<MatchingPostResponse>>> getFilteredMatchingPosts(
+    public ResponseEntity<ApiResponse<MatchingPostCursorResponse>> getFilteredMatchingPosts(
             @RequestParam(required = false) String artistType,
             @RequestParam(required = false) String workType,
             @RequestParam(required = false) String keyword,
-            @PageableDefault Pageable pageable
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(required = false) Long lastViewCount,
+            @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
-        Page<MatchingPostResponse> response = matchingPostService.findFilteredMatchingPosts(artistType, workType, keyword, pageable);
+        MatchingPostCursorResponse response = matchingPostService.findFilteredMatchingPosts(
+                artistType,
+                workType,
+                keyword,
+                lastViewCount,
+                lastId,
+                pageSize);
         return ApiResponse.success(response);
     }
 

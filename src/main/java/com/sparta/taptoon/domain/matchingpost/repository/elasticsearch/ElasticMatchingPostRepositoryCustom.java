@@ -1,10 +1,15 @@
 package com.sparta.taptoon.domain.matchingpost.repository.elasticsearch;
 
-import org.springframework.data.domain.Pageable;
-
-import java.util.List;
+import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 
 public interface ElasticMatchingPostRepositoryCustom {
 
-    List<Long> searchIdsByKeyword(String keyword);
+    MatchingPostCursorResponse searchFrom(
+            String artistType,
+            String workType,
+            String keyword,
+            Long lastViewCount,
+            Long lastId,
+            Integer pageSize
+    );
 }

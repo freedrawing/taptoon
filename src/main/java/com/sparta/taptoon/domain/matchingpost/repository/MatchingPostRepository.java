@@ -8,9 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface MatchingPostRepository extends JpaRepository<MatchingPost, Long>, MatchingPostRepositoryCustom {
+public interface MatchingPostRepository extends JpaRepository<MatchingPost, Long> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT m FROM MatchingPost m WHERE m.id = :matchingPostId")
-    Optional<MatchingPost> findByIdWithLock(Long matchingPostId);
 }
