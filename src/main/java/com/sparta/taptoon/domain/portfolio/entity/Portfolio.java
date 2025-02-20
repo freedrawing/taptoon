@@ -1,6 +1,8 @@
 package com.sparta.taptoon.domain.portfolio.entity;
 
 import com.sparta.taptoon.domain.member.entity.Member;
+import com.sparta.taptoon.domain.portfolio.dto.request.CreatePortfolioRequest;
+import com.sparta.taptoon.domain.portfolio.dto.request.UpdatePortfolioRequest;
 import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -10,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "portfolio")
+@Table(name = "portfolios")
 public class Portfolio extends BaseEntity {
 
     @Id
@@ -18,11 +20,14 @@ public class Portfolio extends BaseEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false, updatable = false)
     private Member member;
 
-    @Column(name = "content", nullable = false)
+    @Column(name = "title", nullable = false)
+    private String title;
+
+    @Column(name = "content", nullable = false, length = 3000, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "file_url", nullable = false)
@@ -32,10 +37,23 @@ public class Portfolio extends BaseEntity {
     private boolean isDeleted;
 
     @Builder
-    public Portfolio(Member member, String content, String fileUrl, boolean isDeleted) {
+    public Portfolio(Member member, String title, String content, String fileUrl) {
         this.member = member;
+        this.title = title;
         this.content = content;
         this.fileUrl = fileUrl;
-        this.isDeleted = isDeleted;
+        this.isDeleted = false;
+    }
+
+    // 포트폴리오 수정 request 값
+    public void updatePortfolio(UpdatePortfolioRequest updatePortfolioRequest) {
+        this.title = updatePortfolioRequest.title();
+        this.content = updatePortfolioRequest.content();
+        this.fileUrl = updatePortfolioRequest.fileUrl();
+    }
+
+    // 포트폴리오 삭제시 isDeleted 값 true 변경해서 소프트 딜리트
+    public void remove() {
+        this.isDeleted = true;
     }
 }
