@@ -57,13 +57,12 @@ public class MatchingPostDocument {
     @Field(type = FieldType.Keyword, index = false)
     private List<String> fileImageUrlList;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "UTC")
-    @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
-    private Instant createdAt;
+    // 나중에 정렬할 때 속도가 너무 느리면 `epoch_millis`로 바꾸자
+    @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis")
+    private LocalDateTime createdAt;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "UTC")
-    @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
-    private Instant updatedAt;
+    @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis")
+    private LocalDateTime updatedAt;
 
 
     @Builder
@@ -78,9 +77,8 @@ public class MatchingPostDocument {
         this.description = description;
         this.viewCount = viewCount;
         this.fileImageUrlList = fileImageUrlList;
-        this.createdAt = createdAt.atZone(ZoneId.systemDefault()).toInstant();
-        ;
-        this.updatedAt = updatedAt.atZone(ZoneId.systemDefault()).toInstant();
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public static MatchingPostDocument from(MatchingPost matchingPost) {
