@@ -1,6 +1,7 @@
 package com.sparta.taptoon.domain.portfolio.controller;
 
 import com.sparta.taptoon.domain.portfolio.dto.request.CreatePortfolioRequest;
+import com.sparta.taptoon.domain.portfolio.dto.request.UpdatePortfolioRequest;
 import com.sparta.taptoon.domain.portfolio.dto.response.PortfolioResponse;
 import com.sparta.taptoon.domain.portfolio.service.PortfolioService;
 import com.sparta.taptoon.global.common.ApiResponse;
@@ -47,8 +48,9 @@ public class PortfolioController {
     @PutMapping("/{portfolioId}")
     public ResponseEntity<ApiResponse<Void>> updatePortfolio(
             @Valid @PathVariable Long portfolioId,
-            @RequestBody CreatePortfolioRequest portfolioRequest, Long memberId) {
-        portfolioService.editPortfolio(portfolioRequest, portfolioId, memberId);
+            @RequestBody UpdatePortfolioRequest updatePortfolioRequest, Long memberId) {
+        // 수정 필요
+        portfolioService.editPortfolio(updatePortfolioRequest, portfolioId, memberId);
         return ApiResponse.noContentAndSendMessage("성공적으로 수정되었습니다.");
     }
 

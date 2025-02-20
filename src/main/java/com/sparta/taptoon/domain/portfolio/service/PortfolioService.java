@@ -92,7 +92,7 @@ public class PortfolioService {
         //포트폴리오 찾기
         List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
 
-        // 등록된 모든 포트폴리오 조회
+        // 한 유저가 등록한 모든 포트폴리오 조회
         List<PortfolioResponse> portfolioResponses = portfolios.stream()
                 .map(portfolio -> PortfolioResponse.from(portfolio))
                 .collect(Collectors.toList());
@@ -104,7 +104,7 @@ public class PortfolioService {
     // 포트폴리오 수정
     @Transactional
     public PortfolioResponse editPortfolio(
-            UpdatePortfolioRequest updatePortfolioRequest, Long portfolioId, Long memberId, Long portfolioImageId) {
+            UpdatePortfolioRequest updatePortfolioRequest, Long portfolioId, Long memberId) {
 
         // 유저 조회
         Member member = memberRepository.findById(memberId)
