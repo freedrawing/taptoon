@@ -5,10 +5,11 @@ import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
-@NoArgsConstructor
 @Entity
 @Table(name = "chat_room")
 public class ChatRoom extends BaseEntity {
@@ -18,25 +19,31 @@ public class ChatRoom extends BaseEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user1_id", nullable = false)
-    private Member member1Id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user2_id", nullable = false)
-    private Member member2Id;
-
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
 
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoomMember> members = new ArrayList<>();
+
     @Builder
-    public ChatRoom(String name, Member member1Id, Member member2Id, Boolean isDeleted) {
-        this.name = name;
-        this.member1Id = member1Id;
-        this.member2Id = member2Id;
-        this.isDeleted = isDeleted;
+    public ChatRoom() {
+        this.isDeleted = false;
+    }
+
+    // 멤버 추가
+    public void addMember(Member member) {
+        this.members.add(ChatRoomMember.builder()
+                .chatRoom(this)
+                .member(member)
+                .build());
+    }
+
+    /** 채팅방에 있는 멤버 수 반환 */
+    public int getMemberCount() {
+        return this.members.size();
+    }
+
+    public void delete() {
+        this.isDeleted = true;
     }
 }
