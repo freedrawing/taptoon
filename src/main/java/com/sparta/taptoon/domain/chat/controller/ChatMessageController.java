@@ -27,7 +27,7 @@ public class ChatMessageController {
             @PathVariable Long chatRoomId,
             @RequestBody SendChatMessageRequest request) {
 
-        ChatMessageResponse response = chatMessageService.sendMessage(memberDetail.getId(), request);
+        ChatMessageResponse response = chatMessageService.sendMessage(memberDetail.getId(), chatRoomId, request);
         return ApiResponse.success(response);
     }
 

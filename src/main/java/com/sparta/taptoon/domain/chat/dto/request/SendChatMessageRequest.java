@@ -4,7 +4,7 @@ import com.sparta.taptoon.domain.chat.entity.ChatMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
 import com.sparta.taptoon.domain.member.entity.Member;
 
-public record SendChatMessageRequest(Long chatRoomId, String message) {
+public record SendChatMessageRequest(String message) {
 
     public ChatMessage toEntity(ChatRoom chatRoom, Member sender) {
         return ChatMessage.builder()
