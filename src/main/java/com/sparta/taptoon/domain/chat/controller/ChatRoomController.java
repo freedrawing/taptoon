@@ -6,6 +6,7 @@ import com.sparta.taptoon.domain.chat.dto.response.ChatRoomResponse;
 import com.sparta.taptoon.domain.chat.service.ChatRoomService;
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
 
+    @Operation(summary = "채팅방 개설")
     @PostMapping("/chat-room")
     public ResponseEntity<ApiResponse<ChatRoomResponse>> createChatRoom(
             @AuthenticationPrincipal MemberDetail memberDetail, // 요청한 유저
@@ -30,6 +32,7 @@ public class ChatRoomController {
         return ApiResponse.created(response);
     }
 
+    @Operation(summary = "채팅방 목록 조회")
     @GetMapping("/chat-rooms")
     public ResponseEntity<ApiResponse<List<ChatRoomListResponse>>> getChatRooms(
             @AuthenticationPrincipal MemberDetail memberDetail) {
@@ -38,6 +41,7 @@ public class ChatRoomController {
         return ApiResponse.success(chatRooms);
     }
 
+    @Operation(summary = "채팅방 삭제")
     @DeleteMapping("/chat-room/{chatRoomId}")
     public ResponseEntity<ApiResponse<Void>> deleteChatRoom(
             @AuthenticationPrincipal MemberDetail memberDetail,
