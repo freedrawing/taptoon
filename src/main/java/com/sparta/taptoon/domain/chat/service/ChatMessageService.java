@@ -29,10 +29,11 @@ public class ChatMessageService {
     private final RedisPublisher redisPublisher;
     private final ObjectMapper objectMapper;
     private final StringRedisTemplate redisTemplate;
+    private final SlackAlarmService slackAlarmService;
 
     @Transactional
-    public ChatMessageResponse sendMessage(Long senderId, SendChatMessageRequest request) {
-        ChatRoom chatRoom = chatRoomRepository.findById(request.chatRoomId())
+    public ChatMessageResponse sendMessage(Long senderId, Long chatRoomId, SendChatMessageRequest request) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
         Member sender = memberRepository.findById(senderId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
@@ -44,6 +45,10 @@ public class ChatMessageService {
                 // Redis로 메시지 발행 (WebSocket 에서도 받을 수 있도록)
                 redisPublisher.publish(chatRoom.getId(), objectMapper.writeValueAsString(response));
                 log.info("📤 Redis에 메시지 발행 완료: {}", response);
+
+                // Slack 알림 전송
+                String slackMessage = String.format("📢 [채팅방 %d] %s: %s", chatRoom.getId(), sender.getNickname(), request.message());
+                slackAlarmService.sendSlackMessage(slackMessage);
             } catch (Exception e) {
                 log.error("❌ Redis 메시지 발행 중 오류 발생", e);
             }
