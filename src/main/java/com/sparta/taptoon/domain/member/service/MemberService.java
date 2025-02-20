@@ -65,6 +65,7 @@ public class MemberService {
 
     @Transactional
     public void removeMember(Long memberId) {
-        memberRepository.deleteById(memberId);
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundException::new);
+        member.withdrawMember();
     }
 }

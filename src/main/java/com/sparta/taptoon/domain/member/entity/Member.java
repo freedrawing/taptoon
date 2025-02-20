@@ -69,4 +69,6 @@ public class Member extends BaseEntity {
     public void changeGrade(MemberGrade newGrade) {
         this.grade = newGrade;
     }
+
+    public void withdrawMember(){ this.isDeleted = true;}
 }
