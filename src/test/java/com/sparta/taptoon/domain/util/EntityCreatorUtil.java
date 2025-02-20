@@ -21,8 +21,6 @@ public class EntityCreatorUtil {
                 .name(faker.name().firstName())
                 .nickname(faker.name().nameWithMiddle())
                 .password(faker.internet().password())
-                .grade(MemberGrade.BASIC)
-                .isDeleted(false)
                 .build();
     }
 
