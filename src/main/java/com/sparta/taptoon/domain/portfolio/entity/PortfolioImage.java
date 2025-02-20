@@ -1,6 +1,5 @@
 package com.sparta.taptoon.domain.portfolio.entity;
 
-import com.sparta.taptoon.domain.portfolio.dto.request.CreatePortfolioRequest;
 import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -10,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "portfolio_images")
+@Table(name = "portfolio_image")
 public class PortfolioImage extends BaseEntity {
 
     @Id

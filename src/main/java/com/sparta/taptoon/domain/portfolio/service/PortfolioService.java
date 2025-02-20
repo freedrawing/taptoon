@@ -31,13 +31,9 @@ public class PortfolioService {
 
     // 포트폴리오 생성
     @Transactional
-    public PortfolioResponse makePortfolio(CreatePortfolioRequest createPortfolioRequest, Long memberId) {
-
-        Member member = memberRepository.findById(memberId)
-                        .orElseThrow(()-> new NotFoundException(ErrorCode.USER_NOT_FOUND));
-
+    public PortfolioResponse makePortfolio(CreatePortfolioRequest createPortfolioRequest, Member member) {
         // 포트폴리오 몇개 만들었는지 보기
-        int countPortfolio = portfolioRepository.countByMemberId(memberId);
+        int countPortfolio = portfolioRepository.countByMemberId(member.getId());
 
         //포트폴리오는 최대 5개까지 생성 가능
         if (5 <= countPortfolio) {
@@ -71,7 +67,6 @@ public class PortfolioService {
 
     // 포트폴리오 단건 조회
     public PortfolioResponse findPortfolio(Long portfolioId) {
-
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PORTFOLIO_NOT_FOUND));
 
@@ -87,10 +82,9 @@ public class PortfolioService {
 
 
     // 포트폴리오 전체 조회
-    public List<PortfolioResponse> findAllPortfolio(Long memberId) {
-
+    public List<PortfolioResponse> findAllPortfolio(Member member) {
         //포트폴리오 찾기
-        List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
+        List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(member.getId());
 
         // 한 유저가 등록한 모든 포트폴리오 조회
         List<PortfolioResponse> portfolioResponses = portfolios.stream()
@@ -104,18 +98,14 @@ public class PortfolioService {
     // 포트폴리오 수정
     @Transactional
     public PortfolioResponse editPortfolio(
-            UpdatePortfolioRequest updatePortfolioRequest, Long portfolioId, Long memberId) {
-
-        // 유저 조회
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+            UpdatePortfolioRequest updatePortfolioRequest, Long portfolioId, Member member) {
 
         // 수정할 포트폴리오 Id로 찾기
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PORTFOLIO_NOT_FOUND));
 
         // 수정할 포트폴리오가 유저의 포트폴리오인지 검사
-        if(!portfolio.getMember().equals(member)) {
+        if(!portfolio.getMember().getId().equals(member.getId())) {
             throw new NotFoundException(ErrorCode.PORTFOLIO_ACCESS_DENIED);
         }
 
@@ -144,18 +134,14 @@ public class PortfolioService {
 
     // 포트폴리오 삭제
     @Transactional
-    public void removePortfolio(Long portfolioId, Long memberId) {
-
-        // 유저 조회
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+    public void removePortfolio(Long portfolioId, Member member) {
 
         // 삭제할 포트폴리오 Id로 찾기
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PORTFOLIO_NOT_FOUND));
 
         // 삭제할 포트폴리오가 유저의 포트폴리오인지 검사
-        if(!portfolio.getMember().equals(member)) {
+        if(!portfolio.getMember().getId().equals(member.getId())) {
             throw new NotFoundException(ErrorCode.PORTFOLIO_ACCESS_DENIED);
         }
 
