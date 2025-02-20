@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.4.2'
+	id 'org.springframework.boot' version '3.2.2'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -23,6 +23,15 @@ repositories {
 	mavenCentral()
 }
 
+//openFeign
+ext {
+	set('springCloudVersion', "2023.0.0")
+}
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
 dependencies {
 	// Spring basic
 	implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web 애플리케이션 개발에 필요한 기본 의존성 포함.
@@ -31,7 +40,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	// Security
-//	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 
 	// JPA
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -64,24 +73,50 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	// Faker
-//	testImplementation('com.github.javafaker:javafaker:1.0.2') {
-//		exclude group: 'org.yaml', module: 'snakeyaml'
-//	}
-//	testImplementation 'org.yaml:snakeyaml:2.0'
+	// Faker (더미 텍스트 만들어주는 라이브러리)
+	testImplementation('com.github.javafaker:javafaker:1.0.2') {
+		exclude group: 'org.yaml', module: 'snakeyaml'
+	}
+	testImplementation 'org.yaml:snakeyaml:2.0'
 
-	// P6Spy
+	// P6Spy (SQL 로그 예쁘게 출력)
 	implementation 'p6spy:p6spy:3.9.1'
 	implementation 'com.github.gavlyukovskiy:datasource-decorator-spring-boot-autoconfigure:1.9.2'
 
 	// JWT
-	implementation 'io.jsonwebtoken:jjwt:0.9.1' // Java JWT library
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5' // Java JWT library
+	compileOnly group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
+	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
+	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'
 	implementation 'javax.xml.bind:jaxb-api:2.3.1' // XML document와 Java 객체 간 매핑 자동화
+
+	// Redisson
+	implementation 'org.redisson:redisson-spring-boot-starter:3.44.0'
 
 	// Swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
+	// WebFlux
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+	// Spring WebSocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// Elastic Search
+	implementation 'org.springframework.data:spring-data-elasticsearch'
+
+	// OpenFeign
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+	//aws
+	implementation 'software.amazon.awssdk:s3:2.20.68'
+
+	//s3
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+	implementation 'com.amazonaws:aws-java-sdk-s3'
 }
 
 tasks.named('test') {
