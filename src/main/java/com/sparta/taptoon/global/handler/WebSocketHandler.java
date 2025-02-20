@@ -63,8 +63,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
             Long senderId = jsonNode.get("senderId").asLong();
             String chatMessage = jsonNode.get("message").asText();
 
-            // ✅ 메시지 저장 및 Redis 발행
-            chatMessageService.sendMessage(senderId, new SendChatMessageRequest(chatRoomId, senderId, chatMessage));
+            // 메시지 저장 및 Redis 발행
+            chatMessageService.sendMessage(senderId, chatRoomId, new SendChatMessageRequest(chatMessage));
 
         } catch (Exception e) {
             log.error("❌ WebSocket 메시지 처리 중 오류 발생: {}", payload, e);
