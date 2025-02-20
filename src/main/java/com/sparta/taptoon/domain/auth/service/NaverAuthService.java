@@ -18,14 +18,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -62,28 +63,26 @@ public class NaverAuthService {
     }
 
     private String getAccessTokenFromNaver(String code, String state) {
-        String tokenUrl = "https://nid.naver.com/oauth2.0/token";
-
-        Map<String, String> params = new ConcurrentHashMap<>();
-        params.put("grant_type", "authorization_code");
-        params.put("client_id", clientId);
-        params.put("client_secret", clientSecret);
-        params.put("code", code);
-        params.put("state", state);
+        String tokenRequestUrl = "https://nid.naver.com/oauth2.0/token";
+        log.info("code 값: {} state 값: {}",code,state);
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("client_id", clientId);
+        params.add("client_secret", clientSecret);
+        params.add("code", code);
+        params.add("state", state);
 
         WebClient webClient = WebClient.create();
         NaverTokenResponse response = webClient.post()
-                .uri(tokenUrl)
+                .uri(tokenRequestUrl)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .bodyValue(params)
                 .retrieve()
                 .bodyToMono(NaverTokenResponse.class)
                 .block();
-//      두 부분을 비교해서 취사 선택 해보자.
-//        RestTemplate restTemplate = new RestTemplate();
-//        ResponseEntity<String> response = restTemplate.postForEntity(tokenUrl, params, String.class);
 
-        // 에러 체크
         if (response.getError() != null) {
+            log.info("에러메세지: {}",response.getError());
             throw new RuntimeException("네이버에서 access token 획득 실패: " + response.getErrorDescription());
         }
 
@@ -106,7 +105,7 @@ public class NaverAuthService {
                 .retrieve()
                 .bodyToMono(NaverApiResponse.class)
                 .block();
-
+        log.info("네이버 로그인 유저 id: {}, 유저 이름: {} ", response.getResponse().getId(), response.getResponse().getName());
         return NaverMemberInfo.builder()
                 .id(response.getResponse().getId())
                 .name(response.getResponse().getName())

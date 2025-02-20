@@ -20,37 +20,44 @@ public class MemberController {
 
     private final MemberService memberService;
 
+    @Operation(summary = "이메일 설정")
+    @PatchMapping("/email")
+    public ResponseEntity<ApiResponse<Void>> setEmail(@AuthenticationPrincipal MemberDetail memberDetail, @RequestBody String email) {
+        memberService.setMemberEmail(memberDetail.getMember(), email);
+        return ApiResponse.noContent();
+    }
+
     @Operation(summary = "비밀번호 변경")
     @PatchMapping("/password")
     public ResponseEntity<ApiResponse<Void>> updatePassword(@AuthenticationPrincipal MemberDetail memberDetail, @RequestBody String password) {
-        memberService.changeUserPassword(memberDetail.getId(), password);
+        memberService.changeUserPassword(memberDetail.getMember(), password);
         return ApiResponse.noContent();
     }
 
     @Operation(summary = "닉네임 변경")
     @PatchMapping("/nickname")
     public ResponseEntity<ApiResponse<Void>> updateNickname(@AuthenticationPrincipal MemberDetail memberDetail, @RequestParam String nickname) {
-        memberService.changeUserNickname(memberDetail.getId(), nickname);
+        memberService.changeUserNickname(memberDetail.getMember(), nickname);
         return ApiResponse.noContent();
     }
 
     @Operation(summary = "등급 변경")
     @PatchMapping("/grade")
     public ResponseEntity<ApiResponse<Void>> updateGrade(@AuthenticationPrincipal MemberDetail memberDetail, @RequestParam MemberGrade grade) {
-        memberService.changeUserGrade(memberDetail.getId(), grade);
+        memberService.changeUserGrade(memberDetail.getMember(), grade);
         return ApiResponse.noContent();
     }
 
     @Operation(summary = "멤버 정보 조회")
     @GetMapping
     public ResponseEntity<ApiResponse<MemberResponse>> getUserInfo(@AuthenticationPrincipal MemberDetail memberDetail) {
-        MemberResponse memberResponse = memberService.findMember(memberDetail.getId());
+        MemberResponse memberResponse = memberService.findMember(memberDetail.getMember());
         return ApiResponse.success(memberResponse);
     }
 
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping
     public void deleteMember(@AuthenticationPrincipal MemberDetail memberDetail) {
-        memberService.removeMember(memberDetail.getId());
+        memberService.removeMember(memberDetail.getMember());
     }
 }

@@ -16,3 +16,15 @@ logging:
   level:
     p6spy: off
     org.hibernate: off
+
+cloud:
+  aws:
+    credentials:
+      access-key: your_access_key
+      secret-key: your_secret_key
+    region:
+      static: your_region
+    stack:
+      auto: false
+    s3:
+      bucket: your_bucket_name
