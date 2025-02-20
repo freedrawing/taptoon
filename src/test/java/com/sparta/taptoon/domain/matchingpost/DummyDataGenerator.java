@@ -42,7 +42,7 @@ public class DummyDataGenerator {
     @Autowired
     private MatchingPostService matchingPostService;
 
-    @Test
+//    @Test
     void dummy() {
         List<AddMatchingPostRequest> dummyRequests = Arrays.asList(
                 new AddMatchingPostRequest("웹툰 작가를 찾고 있습니다!", "illustrator", "hybrid", "판타지 장르의 웹툰을 준비 중입니다. 함께 성장할 수 있는 분을 찾습니다."),
@@ -132,7 +132,7 @@ public class DummyDataGenerator {
         }
     }
 
-    @Test
+//    @Test
     void addDummyDataUsingService() {
         Member member1 = memberRepository.save(createMember());
         Member member2 = memberRepository.save(createMember());
