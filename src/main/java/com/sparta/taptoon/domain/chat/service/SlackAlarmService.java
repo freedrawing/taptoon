@@ -12,14 +12,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SlackAlarmService {
 
-    @Value("${SLACK_WEBHOOK_URL}")
-    private final String slackWebhookUrk;
+    @Value("${slack.webhook-url}")
+//    private final String slackWebhookUrl = "https://hooks.slack.com/services/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";
+    private final String slackWebhookUrl;
 
     public void sendSlackMessage(String message) {
         RestTemplate restTemplate = new RestTemplate();
         Map<String, String> request = new HashMap<>();
         request.put("text", message);
 
-        restTemplate.postForObject(slackWebhookUrk, request, String.class);
+        restTemplate.postForObject(slackWebhookUrl, request, String.class);
     }
 }

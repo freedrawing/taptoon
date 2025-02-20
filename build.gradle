@@ -96,15 +96,19 @@ dependencies {
 	// Swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
-	//webFlux
+	// WebFlux
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-  // Spring WebSocket
+
+	// Spring WebSocket
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
 	// redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-	//openFeign
+	// Elastic Search
+	implementation 'org.springframework.data:spring-data-elasticsearch'
+
+	// OpenFeign
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
 	//aws

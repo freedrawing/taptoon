@@ -22,7 +22,7 @@ public record AddMatchingPostRequest(
 
     public MatchingPost toEntity(Member member) {
         return MatchingPost.builder()
-                .writer(member)
+                .author(member)
                 .artistType(ArtistType.of(artistType))
                 .title(title)
                 .workType(WorkType.of(workType))

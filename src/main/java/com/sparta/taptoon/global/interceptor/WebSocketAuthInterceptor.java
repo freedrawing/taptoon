@@ -51,7 +51,7 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
                 // Member 정보 조회
                 Member member = memberRepository.findById(senderId)
-                        .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
                 // Authentication 객체 생성 및 SecurityContext에 저장
                 MemberDetail memberDetail = new MemberDetail(member);

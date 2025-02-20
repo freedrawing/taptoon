@@ -29,4 +29,5 @@ public record MatchingPostResponse(
                 matchingPost.getUpdatedAt()
         );
     }
+
 }
