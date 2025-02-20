@@ -8,6 +8,7 @@ import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,22 +18,33 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final AuthService authService;
+    private final PasswordEncoder passwordEncoder;
+
+    @Transactional
+    public void setMemberEmail(Long memberId, String email) {
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundException::new);
+        if(member.getEmail()!= null) {
+            throw new InvalidRequestException();//exception 처리 필요
+        }
+        member.setFirstEmail(email);
+    }
 
     @Transactional
     public void changeUserPassword(Long memberId, String newPassword) {
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundException::new);
-        if(member.getPassword().equals(newPassword)) {
-            throw new InvalidRequestException();
+        if(member.getPassword() != null && member.getPassword().equals(newPassword)) {
+            throw new InvalidRequestException();//exception 처리 필요
         }
-        member.changePassword(newPassword);
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        member.changePassword(encodedPassword);
         authService.logoutAllDevice(member.getId());
     }
 
     @Transactional
     public void changeUserNickname(Long memberId, String newNickname) {
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundException::new);
-        if(member.getNickname().equals(newNickname)) {
-            throw new InvalidRequestException();
+        if(member.getNickname() != null && member.getNickname().equals(newNickname)) {
+            throw new InvalidRequestException();//exception 처리 필요
         }
         member.changeNickname(newNickname);
     }

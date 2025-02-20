@@ -20,6 +20,13 @@ public class MemberController {
 
     private final MemberService memberService;
 
+    @Operation(summary = "이메일 설정")
+    @PatchMapping("/email")
+    public ResponseEntity<ApiResponse<Void>> setEmail(@AuthenticationPrincipal MemberDetail memberDetail, @RequestBody String email) {
+        memberService.setMemberEmail(memberDetail.getId(), email);
+        return ApiResponse.noContent();
+    }
+
     @Operation(summary = "비밀번호 변경")
     @PatchMapping("/password")
     public ResponseEntity<ApiResponse<Void>> updatePassword(@AuthenticationPrincipal MemberDetail memberDetail, @RequestBody String password) {

@@ -56,6 +56,7 @@ public class Member extends BaseEntity {
         this.provider = provider;
         this.isDeleted = false;
     }
+    public void setFirstEmail(String email) {this.email = email;}
 
     public void changePassword(String newPassword) {
         this.password = newPassword;
