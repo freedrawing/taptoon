@@ -5,7 +5,6 @@ import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequ
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
-import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.elasticsearch.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
@@ -15,15 +14,11 @@ import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 import static com.sparta.taptoon.global.error.enums.ErrorCode.MATCHING_POST_NOT_FOUND;
-import static com.sparta.taptoon.global.error.enums.ErrorCode.USER_NOT_FOUND;
+import static com.sparta.taptoon.global.error.enums.ErrorCode.MEMBER_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -129,7 +124,7 @@ public class MatchingPostService {
     // 임시 메서드 (나중에 교체, 삭제된 사용자인지도 사실 검증해야 함)
     private Member findMemberById(Long userId) {
         return memberRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
     }
 
 

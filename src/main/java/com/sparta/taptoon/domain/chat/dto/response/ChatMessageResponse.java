@@ -9,7 +9,7 @@ public record ChatMessageResponse(
         Long chatRoomId,
         Long senderId,
         String message,
-        Boolean isRead
+        Integer unreadCount
 ) {
     public static ChatMessageResponse from(ChatMessage chatMessage) {
         return ChatMessageResponse.builder()
@@ -17,7 +17,7 @@ public record ChatMessageResponse(
                 .chatRoomId(chatMessage.getChatRoom().getId())
                 .senderId(chatMessage.getSender().getId())
                 .message(chatMessage.getMessage())
-                .isRead(chatMessage.getIsRead())
+                .unreadCount(chatMessage.getUnreadCount())
                 .build();
     }
 }

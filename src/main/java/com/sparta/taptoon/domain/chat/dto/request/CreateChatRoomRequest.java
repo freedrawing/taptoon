@@ -1,14 +1,19 @@
 package com.sparta.taptoon.domain.chat.dto.request;
 
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
-import com.sparta.taptoon.domain.member.entity.Member;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 
-public record CreateChatRoomRequest(Long memberId1, Long memberId2) {
-    public ChatRoom toEntity(Member member1, Member member2) {
+import java.util.List;
+
+@Builder
+public record CreateChatRoomRequest(
+        @NotNull(message = "채팅방에 초대할 유저를 한명 이상 입력해주세요")
+        List<Long> memberIds
+) {
+
+    public static ChatRoom toEntity() {
         return ChatRoom.builder()
-                .member1(member1)
-                .member2(member2)
-                .isDeleted(false)
                 .build();
     }
 }

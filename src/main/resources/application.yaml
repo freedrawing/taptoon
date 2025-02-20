@@ -25,7 +25,17 @@ spring:
     uris: https://practice-elasticsearch.es.asia-northeast3.gcp.elastic-cloud.com
     username: elastic
     password: ULqEdjauAOcIaNr4kJmL6rbW
-
+  security:
+    oauth2:
+      client:
+        registration:
+          naver:
+            client-id: _am67XZHPmRi0WT1rCKcNC
+            client-secret: o1pasSw0rDzI
+            redirect-uri: http://localhost:8080/auth/naver/callback
+            authorization-grant-type: authorization_code
+            scope: name
+            client-name: Naver
 logging:
   level:
     org.springframework.security: warn
@@ -34,3 +44,18 @@ logging:
 
 jwt:
   secret: your-256-bit-secret-key-should-be-longer-than-this
+
+cloud:
+  aws:
+    credentials:
+      access-key: YOUR_ACCESS_KEY
+      secret-key: YOUR_SECRET_KEY
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+    s3:
+      bucket: your-bucket-name
+
+slack:
+  webhook-url: https://hooks.slack.com/services/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

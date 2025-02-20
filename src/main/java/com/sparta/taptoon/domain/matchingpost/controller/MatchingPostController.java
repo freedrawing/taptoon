@@ -5,7 +5,7 @@ import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequ
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
-import com.sparta.taptoon.domain.member.entity.MemberDetail;
+import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
