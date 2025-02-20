@@ -61,7 +61,7 @@ public class MatchingPostController {
 
 //        matchingPostService.removeMatchingPost(memberDetail.getId(), matchingPostId);
         matchingPostService.removeMatchingPost(1L, matchingPostId);
-        return ApiResponse.success(null);
+        return ApiResponse.noContent();
     }
 
     @Operation(summary = "매칭 게시글 다건 조회 (검색)")
@@ -83,5 +83,7 @@ public class MatchingPostController {
                 pageSize);
         return ApiResponse.success(response);
     }
+
+    // 자동완성 기능 추가
 
 }
