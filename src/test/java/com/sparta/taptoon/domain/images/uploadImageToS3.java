@@ -7,7 +7,7 @@ import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIf;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.openfeign.support.SpringMvcContract;
@@ -25,7 +25,7 @@ public class uploadImageToS3 {
     @Autowired
     private ImageService imageService;
 
-    @DisabledIf("systemProperty['CI'] == 'true'")
+    @DisabledIfSystemProperty(named = "CI", matches = "true")
     @Test
     void uploadImageUsingFeign() throws IOException {
         // given
