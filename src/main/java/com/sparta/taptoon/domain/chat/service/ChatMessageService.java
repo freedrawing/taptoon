@@ -6,6 +6,7 @@ import com.sparta.taptoon.domain.chat.dto.response.ChatMessageResponse;
 import com.sparta.taptoon.domain.chat.entity.ChatMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
 import com.sparta.taptoon.domain.chat.repository.ChatMessageRepository;
+import com.sparta.taptoon.domain.chat.repository.ChatRoomMemberRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
@@ -25,6 +26,7 @@ public class ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final MemberRepository memberRepository;
     private final RedisPublisher redisPublisher;
     private final ObjectMapper objectMapper;
@@ -37,6 +39,11 @@ public class ChatMessageService {
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
         Member sender = memberRepository.findById(senderId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
+
+        boolean isMember = chatRoomMemberRepository.existsByChatRoomAndMember(chatRoom, sender);
+        if (!isMember) {
+            throw new IllegalArgumentException("이 채팅방에 속해 있지 않은 사용자입니다.");
+        }
 
         ChatMessage chatMessage = chatMessageRepository.save(request.toEntity(chatRoom, sender));
         ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
@@ -61,6 +68,12 @@ public class ChatMessageService {
     public List<ChatMessageResponse> getChatMessages(Long memberId, Long chatRoomId){
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(()-> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
+
+        if (!chatRoomMemberRepository.existsByChatRoomAndMember(chatRoom, member)) {
+            throw new IllegalArgumentException("이 채팅방에 속해 있지 않은 사용자입니다.");
+        }
 
         // 사용자가 마지막으로 읽은 메시지 ID 조회 (Redis에서 관리)
         String lastReadMessageKey = "chat:room:" + chatRoomId + ":user:" + memberId;
