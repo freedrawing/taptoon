@@ -6,8 +6,8 @@ import feign.Client;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.openfeign.support.SpringMvcContract;
@@ -21,11 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Tag("localOnly")
 public class uploadImageToS3 {
     @Autowired
     private ImageService imageService;
 
+    @DisabledIf("systemProperty['CI'] == 'true'")
     @Test
     void uploadImageUsingFeign() throws IOException {
         // given
@@ -50,11 +50,9 @@ public class uploadImageToS3 {
         byte[] imageBytes = FileCopyUtils.copyToByteArray(resource.getInputStream());
 
         // 파일 업로드 - 예외가 발생하지 않으면 성공
-        assertDoesNotThrow(() -> {
-            s3UploadClient.uploadFile(
-                    "image/jpeg",
-                    imageBytes
-            );
-        });
+        assertDoesNotThrow(() -> s3UploadClient.uploadFile(
+                "image/jpeg",
+                imageBytes
+        ));
     }
 }
