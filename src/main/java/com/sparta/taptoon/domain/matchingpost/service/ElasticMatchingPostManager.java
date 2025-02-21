@@ -2,7 +2,7 @@ package com.sparta.taptoon.domain.matchingpost.service;
 
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
-import com.sparta.taptoon.domain.matchingpost.repository.elasticsearch.ElasticMatchingPostRepository;
+import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticMatchingPostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -6,7 +6,7 @@ import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorRes
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
-import com.sparta.taptoon.domain.matchingpost.repository.elasticsearch.ElasticMatchingPostRepository;
+import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.common.annotation.DistributedLock;
