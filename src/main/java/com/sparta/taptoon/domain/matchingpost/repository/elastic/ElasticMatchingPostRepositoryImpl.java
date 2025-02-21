@@ -1,4 +1,4 @@
-package com.sparta.taptoon.domain.matchingpost.repository.elasticsearch;
+package com.sparta.taptoon.domain.matchingpost.repository.elastic;
 
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
@@ -105,7 +105,6 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
      * viewCount가 lastViewCount와 같고 id가 lastId보다 작은 문서들을 가져옴
      * must(): AND 조건 (모든 조건 만족해야 함)
      * should(): OR 조건 (두 가지 경우 중 하나를 만족)
-     *
      */
     private Query createCursorFilter(Long lastViewCount, Long lastId) {
         return Query.of(filter -> filter.bool(boolFilter -> boolFilter
@@ -138,7 +137,10 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
     private Query createKeywordQuery(String keyword) {
         return Query.of(search -> search.multiMatch(multiMatch -> multiMatch
                 .query(keyword)
-                .fields("title", "title.english", "description", "description.english")
+                .fields(
+                        "title", "title.ngram", "title.english",
+                        "description", "description.ngram", "description.english"
+                )
                 .type(TextQueryType.BestFields) // 가장 잘 매칭되는 필드를 우선적으로 채택. 여러 필드 중 가낭 높은 점수 매칭 결과 반환
         ));
     }
@@ -180,6 +182,11 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
                 .field(fieldSort -> fieldSort
                         .field("id")
                         .order(SortOrder.Desc))));
+
+//        sortOptions.add(SortOptions.of(sort -> sort
+//                .field(fieldSort -> fieldSort
+//                        .field("createdAt") // 추가
+//                        .order(SortOrder.Desc))));
 
         return sortOptions;
     }

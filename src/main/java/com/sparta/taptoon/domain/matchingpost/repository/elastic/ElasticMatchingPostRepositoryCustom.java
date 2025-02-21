@@ -1,4 +1,4 @@
-package com.sparta.taptoon.domain.matchingpost.repository.elasticsearch;
+package com.sparta.taptoon.domain.matchingpost.repository.elastic;
 
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 
