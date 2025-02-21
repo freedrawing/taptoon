@@ -6,8 +6,8 @@ import feign.Client;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.openfeign.support.SpringMvcContract;
@@ -21,11 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Tag("localOnly")
 public class uploadImageToS3 {
     @Autowired
     private ImageService imageService;
-
+    
+    @DisabledIf("systemProperty['CI'] == 'true'")
     @Test
     void uploadImageUsingFeign() throws IOException {
         // given
