@@ -121,4 +121,5 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	exclude '**/*uploadtoS3FromClient.*'//로컬에서 테스트 하고 싶으면 주석 처리 하세요!
 }
