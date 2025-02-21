@@ -1,7 +1,6 @@
 package com.sparta.taptoon.domain.portfolio.entity;
 
 import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.domain.portfolio.dto.request.CreatePortfolioRequest;
 import com.sparta.taptoon.domain.portfolio.dto.request.UpdatePortfolioRequest;
 import com.sparta.taptoon.global.common.BaseEntity;
 import jakarta.persistence.*;
@@ -12,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "portfolios")
+@Table(name = "portfolio")
 public class Portfolio extends BaseEntity {
 
     @Id
@@ -30,6 +29,7 @@ public class Portfolio extends BaseEntity {
     @Column(name = "content", nullable = false, length = 3000, columnDefinition = "TEXT")
     private String content;
 
+    // 파일 업로드 로직 추가할지 안할지 후에 결정
     @Column(name = "file_url", nullable = false)
     private String fileUrl;
 
