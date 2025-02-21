@@ -11,10 +11,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Comment", description = "댓글 API")
 @AllArgsConstructor
@@ -33,4 +30,17 @@ public class CommentController {
         return ApiResponse.created(comment);
     }
 
+    @Operation(summary = "댓글 수정")
+    @PutMapping("/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> updateComment(
+            @AuthenticationPrincipal MemberDetail memberDetail,
+            @Valid @PathVariable Long commentId,
+            @RequestBody CommentRequest commentRequest, Long matchingPostId) {
+        commentSerivce.editComment(commentRequest,memberDetail.getMember(), matchingPostId, commentId);
+        return ApiResponse.noContent();
+    }
+
+
+//    @Operation(summary = "특정 포스트의 모든 댓글 조회")
+//    @GetMapping("/{matchingPostId}")
 }

@@ -43,11 +43,14 @@ public enum ErrorCode {
   PORTFOLIO_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND,"PORTFOLIO_404", "존재하지 않는 포트폴리오 이미지입니다."),
   PORTFOLIO_ACCESS_DENIED(HttpStatus.FORBIDDEN, "PORTFOLIO_403", "포트폴리오 접근 권한이 없습니다."),
   PORTFOLIO_IMAGE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "PORTFOLIO_403", "선택하신 이미지가 포트폴리오에 속해있지 않습니다."),
-  CREATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PORTFOLIO_400", "허용된 개수를 초과하였습니다.")
+  CREATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PORTFOLIO_400", "허용된 개수를 초과하였습니다."),
 
   //comment
+  COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"COMMENT_404", "존재하지 않는 댓글입니다."),
+  COMMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COMMENT_403", "댓글을 수정할 권한이 없습니다."),
 
   //chat
+
 
   ;
 

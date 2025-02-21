@@ -1,5 +1,6 @@
 package com.sparta.taptoon.domain.comment.entity;
 
+import com.sparta.taptoon.domain.comment.dto.request.CommentRequest;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.global.common.BaseEntity;
@@ -44,5 +45,9 @@ public class Comment extends BaseEntity {
         this.parent = parent;
         this.content = content;
         this.isDeleted = isDeleted;
+    }
+
+    public void updateComment(CommentRequest commentRequest) {
+        this.content = commentRequest.content();
     }
 }

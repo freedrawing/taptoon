@@ -9,6 +9,8 @@ import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
+import com.sparta.taptoon.global.error.exception.AccessDeniedException;
+import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -38,5 +40,26 @@ public class CommentSerivce {
         Comment savedComment = commentRepository.save(comment);
 
         return CommentResponse.from(savedComment);
+    }
+
+    // 댓글 수정
+    @Transactional
+    public void editComment(
+            CommentRequest commentRequest,
+            Member member,
+            Long matchingPostId,
+            Long commentId) {
+        // 수정할 댓글 찾기
+        Comment foundComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
+        // 수정할 댓글이 멤버가 작성한 댓글인지 검증
+        if (!foundComment.getMember().getId().equals(member.getId())) {
+            throw new AccessDeniedException(ErrorCode.COMMENT_ACCESS_DENIED);
+        }
+        // 수정할 댓글이 포스트의 댓글인지 검증
+        if (!foundComment.getMatchingPost().getId().equals(matchingPostId)) {
+            throw new InvalidRequestException(ErrorCode.INVALID_REQUEST);
+        }
+        foundComment.updateComment(commentRequest);
     }
 }
