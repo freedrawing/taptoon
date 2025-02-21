@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "Comment", description = "댓글 API")
 @AllArgsConstructor
 @RestController
@@ -40,7 +42,12 @@ public class CommentController {
         return ApiResponse.noContent();
     }
 
+    @Operation(summary = "특정 포스트의 모든 댓글 조회")
+    @GetMapping("/{matchingPostId}")
+    public ResponseEntity<ApiResponse<List<CommentResponse>>> getAllCommentsFromMatchingPost(
+            @PathVariable Long matchingPostId) {
+        List<CommentResponse> commentsFromMatchingPost = commentSerivce.findAllCommentsFromMatchingPost(matchingPostId);
+        return ApiResponse.success(commentsFromMatchingPost);
+    }
 
-//    @Operation(summary = "특정 포스트의 모든 댓글 조회")
-//    @GetMapping("/{matchingPostId}")
 }

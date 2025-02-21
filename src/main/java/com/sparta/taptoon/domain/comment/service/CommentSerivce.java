@@ -16,6 +16,9 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @AllArgsConstructor
 @Service
 public class CommentSerivce {
@@ -61,5 +64,17 @@ public class CommentSerivce {
             throw new InvalidRequestException(ErrorCode.INVALID_REQUEST);
         }
         foundComment.updateComment(commentRequest);
+    }
+
+    // 특정 포스트의 모든 댓글 조회
+    public List<CommentResponse> findAllCommentsFromMatchingPost(Long matchingPostId) {
+        // 특정 포스트에 달린 댓글 찾기
+        List<Comment> foundComments = commentRepository.findAllByMatchingPostId(matchingPostId);
+        // 댓글 Response에 담기
+        List<CommentResponse> commentResponses = foundComments.stream()
+                .map(comment -> CommentResponse.from(comment))
+                .collect(Collectors.toList());
+
+        return commentResponses;
     }
 }
