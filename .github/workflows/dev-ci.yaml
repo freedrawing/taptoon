@@ -21,7 +21,7 @@ jobs:
     - name: Build with Gradle Wrapper
       run: |
         chmod +x ./gradlew
-        ./gradlew build -DCI=true
+        ./gradlew build  
   dependency-submission:
     runs-on: ubuntu-latest
     permissions:
