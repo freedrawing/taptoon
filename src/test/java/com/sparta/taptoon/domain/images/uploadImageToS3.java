@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 public class uploadImageToS3 {
     @Autowired
     private ImageService imageService;
-    
+
     @DisabledIf("systemProperty['CI'] == 'true'")
     @Test
     void uploadImageUsingFeign() throws IOException {
@@ -50,11 +50,9 @@ public class uploadImageToS3 {
         byte[] imageBytes = FileCopyUtils.copyToByteArray(resource.getInputStream());
 
         // 파일 업로드 - 예외가 발생하지 않으면 성공
-        assertDoesNotThrow(() -> {
-            s3UploadClient.uploadFile(
-                    "image/jpeg",
-                    imageBytes
-            );
-        });
+        assertDoesNotThrow(() -> s3UploadClient.uploadFile(
+                "image/jpeg",
+                imageBytes
+        ));
     }
 }
