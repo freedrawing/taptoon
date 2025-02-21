@@ -2,7 +2,7 @@ package com.sparta.taptoon.domain.comment.controller;
 
 import com.sparta.taptoon.domain.comment.dto.request.CommentRequest;
 import com.sparta.taptoon.domain.comment.dto.response.CommentResponse;
-import com.sparta.taptoon.domain.comment.service.CommentSerivce;
+import com.sparta.taptoon.domain.comment.service.CommentService;
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,14 +21,14 @@ import java.util.List;
 @RequestMapping("/comments")
 public class CommentController {
 
-    private final CommentSerivce commentSerivce;
+    private final CommentService commentService;
 
     @Operation(summary = "댓글 생성")
     @PostMapping
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
             @AuthenticationPrincipal MemberDetail memberDetail,
             @Valid @RequestBody CommentRequest commentRequest, Long matchingPostId) {
-        CommentResponse comment = commentSerivce.makeComment(commentRequest, memberDetail.getMember(), matchingPostId);
+        CommentResponse comment = commentService.makeComment(commentRequest, memberDetail.getMember(), matchingPostId);
         return ApiResponse.created(comment);
     }
 
@@ -38,7 +38,7 @@ public class CommentController {
             @AuthenticationPrincipal MemberDetail memberDetail,
             @Valid @PathVariable Long commentId,
             @RequestBody CommentRequest commentRequest, Long matchingPostId) {
-        commentSerivce.editComment(commentRequest,memberDetail.getMember(), matchingPostId, commentId);
+        commentService.editComment(commentRequest,memberDetail.getMember(), matchingPostId, commentId);
         return ApiResponse.noContent();
     }
 
@@ -46,8 +46,16 @@ public class CommentController {
     @GetMapping("/{matchingPostId}")
     public ResponseEntity<ApiResponse<List<CommentResponse>>> getAllCommentsFromMatchingPost(
             @PathVariable Long matchingPostId) {
-        List<CommentResponse> commentsFromMatchingPost = commentSerivce.findAllCommentsFromMatchingPost(matchingPostId);
+        List<CommentResponse> commentsFromMatchingPost = commentService.findAllCommentsFromMatchingPost(matchingPostId);
         return ApiResponse.success(commentsFromMatchingPost);
     }
 
+    @Operation(summary = "댓글 삭제")
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> deleteComment(
+            @AuthenticationPrincipal MemberDetail memberDetail,
+            @PathVariable Long commentId) {
+        commentService.removeComment(memberDetail.getMember(), commentId);
+        return ApiResponse.noContent();
+    }
 }

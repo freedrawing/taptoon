@@ -44,10 +44,16 @@ public class Comment extends BaseEntity {
         this.matchingPost = matchingPost;
         this.parent = parent;
         this.content = content;
-        this.isDeleted = isDeleted;
+        this.isDeleted = false;
     }
 
+    // 댓글 수정 메서드
     public void updateComment(CommentRequest commentRequest) {
         this.content = commentRequest.content();
+    }
+
+    // 댓글 Soft Delete 메서드
+    public void remove() {
+        this.isDeleted = true;
     }
 }

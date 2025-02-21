@@ -47,7 +47,7 @@ public enum ErrorCode {
 
   //comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"COMMENT_404", "존재하지 않는 댓글입니다."),
-  COMMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COMMENT_403", "댓글을 수정할 권한이 없습니다."),
+  COMMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COMMENT_403", "본 댓글에 대한 권한이 없습니다."),
 
   //chat
 

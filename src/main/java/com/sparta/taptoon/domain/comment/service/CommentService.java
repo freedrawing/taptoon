@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
-public class CommentSerivce {
+public class CommentService {
 
     private final CommentRepository commentRepository;
     private final MatchingPostRepository matchingPostRepository;
@@ -76,5 +76,21 @@ public class CommentSerivce {
                 .collect(Collectors.toList());
 
         return commentResponses;
+    }
+
+    // 댓글 삭제
+    @Transactional
+    public void removeComment(Member member, Long commentId) {
+        // 삭제할 댓글 찾기
+        Comment foundComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
+
+        // 삭제할 댓글이 유저가 작성한 댓글이 맞는지 검증
+        if (!foundComment.getMember().getId().equals(member.getId())) {
+            throw new AccessDeniedException(ErrorCode.COMMENT_ACCESS_DENIED);
+        }
+
+        // 댓글 Soft Delete
+        foundComment.remove();
     }
 }
