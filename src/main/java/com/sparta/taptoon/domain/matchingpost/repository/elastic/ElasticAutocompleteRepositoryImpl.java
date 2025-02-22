@@ -44,38 +44,40 @@ public class ElasticAutocompleteRepositoryImpl implements ElasticAutocompletedRe
         return Query.of(query ->
                         query.bool(bool ->
                                         bool
-                                                // 정확한 구문 매칭 (가장 높은 우선순위)
-                                                .should(should ->
-                                                        should.matchPhrase(mp -> mp
-                                                                .field("word.keyword")
+                                                .should(should -> should
+                                                        // 정확한 prefix 매칭 (가장 높은 우선순위)
+                                                        .prefix(prefix -> prefix
+                                                                .field("word")
+                                                                .value(searchText)
+                                                                .boost(4.0f)
+                                                        )
+                                                )
+                                                .should(should -> should
+                                                        // NGram 기반 부분 매칭
+                                                        .match(match -> match
+                                                                .field("word.ngram")
                                                                 .query(searchText)
                                                                 .boost(3.0f)
                                                         )
                                                 )
-                                                // 시작 부분 매칭
-                                                .should(should ->
-                                                        should.matchPhrasePrefix(mpp -> mpp
-                                                                .field("word")
+                                                .should(should -> should
+                                                        // Nori 형태소 분석 기반 매칭
+                                                        .match(match -> match
+                                                                .field("word.nori")
                                                                 .query(searchText)
                                                                 .boost(2.0f)
                                                         )
                                                 )
-                                                // 오타나 유사어 검색: keyword 필드에서 fuzzy 검색 수행
-                                                .should(should ->
-                                                        should.fuzzy(fuzzy -> fuzzy
-                                                                .field("word.keyword")
+                                                .should(should -> should
+                                                        // 오타 교정
+                                                        .fuzzy(fuzzy -> fuzzy
+                                                                .field("word")
                                                                 .value(searchText)
                                                                 .fuzziness("1")
-                                                        )
-                                                )
-                                                // 부분 매칭 (가장 낮은 우선순위)
-                                                .should(should ->
-                                                        should.match(m -> m
-                                                                .field("word")
-                                                                .query(searchText)
                                                                 .boost(1.0f)
                                                         )
                                                 )
+//                                .minimumShouldMatch(1)
                         )
         );
     }

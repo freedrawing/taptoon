@@ -16,13 +16,17 @@ public class AutocompleteDocument {
     @MultiField(
             mainField = @Field(type = FieldType.Text),
             otherFields = {
-                    @InnerField(suffix = "keyword", type = FieldType.Keyword),
+                    @InnerField(suffix = "ngram", type = FieldType.Text, analyzer = "my_ngram_analyzer"),
+                    @InnerField(suffix = "nori", type = FieldType.Text, analyzer = "my_nori_analyzer")
             }
     )
     private String word;
 
-    @Field(type = FieldType.Long, index = false)
+    @Field(type = FieldType.Long)
     private Long searchCount;
+
+    @Field(type = FieldType.Integer, index = false)
+    private Integer wordLength;
 
     @CreatedDate
     @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis")
@@ -35,6 +39,7 @@ public class AutocompleteDocument {
     public AutocompleteDocument(String word) {
         this.word = word;
         searchCount = 0L;
+        wordLength = word.length();
         createdAt = LocalDateTime.now(); // @CreatedDate가 동작을 안 한다.... Elasticsearch는 생각보다 버그가 많은 듯하다
     }
 
