@@ -4,6 +4,7 @@ import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
+import com.sparta.taptoon.domain.matchingpost.service.ElasticAutocompleteService;
 import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
@@ -15,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "matching-posts", description = "매칭보드 게시글 API")
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class MatchingPostController {
 
     private final MatchingPostService matchingPostService;
+    private final ElasticAutocompleteService elasticAutocompleteService;
 
     @Operation(summary = "매칭보드에 게시글 등록")
     @PostMapping
@@ -37,7 +41,7 @@ public class MatchingPostController {
     @Operation(summary = "매칭 게시글 단건 조회")
     @GetMapping("/{matchingPostId}")
     public ResponseEntity<ApiResponse<MatchingPostResponse>> getMatchingPost(@PathVariable Long matchingPostId) {
-        MatchingPostResponse response = matchingPostService.findMatchingPostAndUpdateViewsV3(matchingPostId);
+        MatchingPostResponse response = matchingPostService.findMatchingPostAndUpdateViews(matchingPostId);
         return ApiResponse.success(response);
     }
 
@@ -84,6 +88,11 @@ public class MatchingPostController {
         return ApiResponse.success(response);
     }
 
-    // 자동완성 기능 추가
+    // Autocomplete (10개씩만 보내주자. debounce 방식으로 처리해야 할 듯)
+    @PostMapping("/autocomplete")
+    public ResponseEntity<ApiResponse<List<String>>> getAutocomplete(@RequestParam String keyword) {
+        List<String> autocompleteSuggestions = elasticAutocompleteService.findAutocompleteSuggestion(keyword);
+        return ApiResponse.success(autocompleteSuggestions);
+    }
 
 }

@@ -5,7 +5,9 @@ import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequ
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
+import com.sparta.taptoon.domain.matchingpost.entity.document.AutocompleteDocument;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
+import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticAutocompleteRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
@@ -16,6 +18,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.sparta.taptoon.global.error.enums.ErrorCode.MATCHING_POST_NOT_FOUND;
 import static com.sparta.taptoon.global.error.enums.ErrorCode.MEMBER_NOT_FOUND;
@@ -29,6 +35,7 @@ public class MatchingPostService {
     private final MatchingPostRepository matchingPostRepository;
     private final ElasticMatchingPostRepository elasticMatchingPostRepository;
     private final ElasticMatchingPostManager elasticMatchingPostManager;
+    private final ElasticAutocompleteService elasticAutocompleteService;
     private final MemberRepository memberRepository; // 나중에 서비스로 바꿔야 함.
 
     // Upsert Queue와 delete Queue를 만들어야 함.
@@ -87,6 +94,9 @@ public class MatchingPostService {
             Long lastId,
             int pageSize) {
 
+        // 검색어 인덱싱
+        elasticAutocompleteService.logSearchQuery(keyword);
+
         return elasticMatchingPostRepository.searchFrom(
                 artistType,
                 workType,
@@ -101,7 +111,7 @@ public class MatchingPostService {
     // 매칭 포스트 단건 조회 + 조회수 증가 (update 로직을 분리하고 싶은데, AOP라서 분리하기가 다소 번거롭다)
     @DistributedLock(key = "#matchingPostId", waitTime = 10, leaseTime = 2)
     @Transactional
-    public MatchingPostResponse findMatchingPostAndUpdateViewsV3(Long matchingPostId) {
+    public MatchingPostResponse findMatchingPostAndUpdateViews(Long matchingPostId) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
         findMatchingPost.increaseViewCount();
 

@@ -17,12 +17,13 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j(topic = "Elasticsearch:MatchingPost")
+@Slf4j(topic = "ElasticMatchingPostRepositoryImpl")
 @RequiredArgsConstructor
 public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRepositoryCustom {
 
     private final ElasticsearchOperations elasticsearchOperations;
 
+    // Search
     @Override
     public MatchingPostCursorResponse searchFrom(
             String artistType,
@@ -61,7 +62,7 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
         );
 
         // NativeQuery 생성
-        NativeQuery query = NativeQuery.builder()
+        NativeQuery nativeQuery = NativeQuery.builder()
                 .withQuery(boolQuery)
                 .withSort(createSortBuilders())  // 정렬 기준 추가
                 .withMaxResults(pageSize)        // 페이지 크기 지정
@@ -70,7 +71,7 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
 
         // Elasticsearch 검색 실행
         SearchHits<MatchingPostDocument> searchHits = elasticsearchOperations.search(
-                query,
+                nativeQuery,
                 MatchingPostDocument.class
         );
 
