@@ -6,6 +6,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import co.elastic.clients.json.JsonData;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
+import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostDocumentResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,7 +77,7 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
         );
 
         // 검색 결과 변환
-        List<MatchingPostDocument> results = searchHits.stream()
+        List<MatchingPostDocumentResponse> results = searchHits.stream()
 //                .map(SearchHit::getContent)
                 .map(searchHit -> {
                     MatchingPostDocument document = searchHit.getContent();
@@ -84,16 +85,16 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
                     float score = searchHit.getScore();
                     log.info("{} score: {}", document, score);
 
-                    return document;
+                    return MatchingPostDocumentResponse.from(document);
                 })
                 .toList();
 
         Long nextViewCount = null;
         Long nextId = null;
         if (!results.isEmpty()) {
-            MatchingPostDocument lastDoc = results.get(results.size() - 1);
-            nextViewCount = lastDoc.getViewCount();
-            nextId = lastDoc.getId();
+            MatchingPostDocumentResponse lastDoc = results.get(results.size() - 1);
+            nextViewCount = lastDoc.viewCount();
+            nextId = lastDoc.id();
         }
 
         // 클라이언트에게 현재 데이터 + 다음 페이지 요청을 위한 커서 반환
