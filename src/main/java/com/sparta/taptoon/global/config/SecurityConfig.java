@@ -2,6 +2,7 @@ package com.sparta.taptoon.global.config;
 
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.util.JwtUtil;
+import com.sparta.taptoon.global.util.GoogleAuthHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +29,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final GoogleAuthHandler googleAuthHandler;
     private final MemberRepository memberRepository;
     private final JwtUtil jwtUtil;
 
@@ -44,6 +46,9 @@ public class SecurityConfig {
                                 "/auth/naver/login", "/auth/naver/callback",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(googleAuthHandler)
                 )
                 .addFilterBefore(new JwtFilter(memberRepository, jwtUtil),
                         UsernamePasswordAuthenticationFilter.class)
