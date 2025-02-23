@@ -36,14 +36,29 @@ public class ChatRoomService {
         Member creator = memberRepository.findById(ownerId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
 
-        // 채팅방 생성
-        ChatRoom chatRoom = chatRoomRepository.save(CreateChatRoomRequest.toEntity());
+        // 자기 자신을 초대할 경우 예외 발생
+        if (request.memberIds().contains(ownerId)) {
+            throw new IllegalArgumentException("자기 자신을 초대할 수 없습니다.");
+        }
+
+        // 중복된 ID 제거
+        List<Long> inviteeIds = request.memberIds().stream()
+                .distinct()
+                .toList();
+
+
+        if (inviteeIds.isEmpty()) {
+            throw new IllegalArgumentException("유효한 초대 멤버가 없습니다.");
+        }
 
         // 요청된 멤버들을 찾아서 채팅방에 추가
         List<Member> members = memberRepository.findAllById(request.memberIds());
-        if (members.size() < 2) {
+        if (members.size() < 1) {
             throw new IllegalArgumentException("채팅방은 최소 2명 이상이어야 합니다.");
         }
+
+        // 채팅방 생성
+        ChatRoom chatRoom = chatRoomRepository.save(CreateChatRoomRequest.toEntity());
 
         // 채팅방에 멤버 추가
         chatRoom.addMember(creator); // 생성자 추가
