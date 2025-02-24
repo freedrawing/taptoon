@@ -1,6 +1,7 @@
 package com.sparta.taptoon.domain.chat.dto.response;
 
 import com.sparta.taptoon.domain.chat.entity.ChatImageMessage;
+import com.sparta.taptoon.global.common.enums.ImageStatus;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ public record ChatImageMessageResponse(
         Long senderId,
         String imageUrl,
         Integer unreadCount,
-        String status,
+        ImageStatus status ,
         LocalDateTime createdAt
 ) {
     public static ChatImageMessageResponse from(ChatImageMessage chatImageMessage) {
@@ -22,7 +23,7 @@ public record ChatImageMessageResponse(
                 .senderId(chatImageMessage.getSender().getId())
                 .imageUrl(chatImageMessage.getImageUrl())
                 .unreadCount(chatImageMessage.getUnreadCount())
-                .status(chatImageMessage.getStatus().toString())
+                .status(ImageStatus.PENDING)
                 .createdAt(chatImageMessage.getCreatedAt())
                 .build();
     }

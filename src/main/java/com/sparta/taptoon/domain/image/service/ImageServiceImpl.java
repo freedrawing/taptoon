@@ -96,27 +96,26 @@ public class ImageServiceImpl implements ImageService{
 
         String imageUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
 
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+        Member sender = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.CHAT_MEMBER_NOT_FOUND));
+
+        ChatImageMessage imageMessage = ChatImageMessage.builder()
+                .chatRoom(chatRoom)
+                .sender(sender)
+                .imageUrl(imageUrl)
+                .unreadCount(0)
+                .status(ImageStatus.PENDING)
+                .build();
+
         if ("chat/".equals(folderPath)) {
             try {
-                ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                        .orElseThrow(() -> new NotFoundException(ErrorCode.CHAT_ROOM_NOT_FOUND));
-                Member sender = memberRepository.findById(memberId)
-                        .orElseThrow(() -> new NotFoundException(ErrorCode.CHAT_MEMBER_NOT_FOUND));
-
-                ChatImageMessage imageMessage = ChatImageMessage.builder()
-                        .chatRoom(chatRoom)
-                        .sender(sender)
-                        .imageUrl(imageUrl)
-                        .unreadCount(0)
-                        .status(ImageStatus.UPLOADED)
-                        .build();
                 ChatImageMessage savedMessage = chatImageMessageRepository.saveAndFlush(imageMessage);
                 log.info("ChatImageMessage 저장 완료 - ID: {}, URL: {}", savedMessage.getId(), savedMessage.getImageUrl());
-
-                return imageUrl + "," + savedMessage.getId();
-            } catch (Exception e) { // 모든 예외 잡기
+            } catch (Exception e) {
                 log.error("채팅 이미지 메시지 저장 실패 - roomId: {}, memberId: {}, 에러: {}", chatRoomId, memberId, e.getMessage(), e);
-                throw e; // 예외 전파
+                throw e;
             }
         }
         return imageUrl;

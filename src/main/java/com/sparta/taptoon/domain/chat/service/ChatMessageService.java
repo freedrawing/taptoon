@@ -80,7 +80,7 @@ public class ChatMessageService {
         if (!imageMessage.getSender().getId().equals(senderId)) {
             throw new AccessDeniedException("본인이 업로드한 이미지만 전송할 수 있습니다.");
         }
-        if (imageMessage.getStatus() != ImageStatus.UPLOADED) {
+        if (imageMessage.getStatus() != ImageStatus.PENDING) {
             throw new AccessDeniedException("이미 전송된 이미지입니다.");
         }
 
