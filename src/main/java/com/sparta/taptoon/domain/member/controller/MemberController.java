@@ -62,7 +62,7 @@ public class MemberController {
     }
 
     @Operation(summary = "이름이나 닉네임으로 멤버 정보 조회")
-    @GetMapping
+    @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<MemberResponse>>> getUsers(@RequestParam(required = false) String name,
                                                                       @RequestParam(required = false) String nickname,
                                                                       @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
