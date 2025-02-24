@@ -3,8 +3,18 @@ package com.sparta.taptoon.domain.image.service;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
+import com.sparta.taptoon.domain.matchingpost.entity.MatchingPostImage;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostImageRepository;
+import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
+import com.sparta.taptoon.domain.portfolio.entity.Portfolio;
+import com.sparta.taptoon.domain.portfolio.entity.PortfolioImage;
+import com.sparta.taptoon.domain.portfolio.repository.PortfolioImageRepository;
+import com.sparta.taptoon.domain.portfolio.repository.PortfolioRepository;
+import com.sparta.taptoon.global.common.enums.ImageStatus;
+import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
+import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,16 +29,19 @@ public class ImageService {
 
     private final AmazonS3 amazonS3;
     private final MatchingPostImageRepository matchingPostImageRepository;
+    private final MatchingPostRepository matchingPostRepository;
+    private final PortfolioRepository portfolioRepository;
+    private final PortfolioImageRepository portfolioImageRepository;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    public String generatePresignedUrl(String folderPath, String fileName) {
+    public String generatePresignedUrl(String folderPath, Long id, String fileName) {//id 값을
         if (!folderPath.endsWith("/")) {
             folderPath += "/";
         }
         String contentType = getContentType(fileName);
-        String directory = folderPath + "original/"+ fileName;
+        String directory = folderPath + id + "original/"+ fileName;
         Date expiration = new Date();
         long expTimeMillis = expiration.getTime();
         expTimeMillis += EXPIRE_TIME;
@@ -40,16 +53,38 @@ public class ImageService {
                         .withExpiration(expiration)
                         .withContentType(contentType);
 
-        /**
-         * 여기에 각 db에 저장하는 로직을 추가하면 됩니다.
-         * 레디스를 이용해서 UUID,memberId, url 이 세개 저장. 나중에 UUID로 꺼내 쓰기. TTL 적용해서 알아서 지워지게. -> 이미지는 여러개 들어갈 수 있어야 함!
-         * hash -> id, value, ..
-         * UUID 하나만을 제공하는 API가 있어야 하나...? -> 클라이언트에서 UUID 를 생성 후에 호출한다고 가정한다면?
+        /*
+         * 클라이언트에게 전달할 url 생성, 각 img 테이블에 url, status = PENDING 저장
+         * 반드시 글쓰기 버튼 클릭(빈 객체 생성) 후에 진행해야 합니다!
          */
 
+        String imageUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
+        switch (folderPath) {
+            case "matchingpost":
+                MatchingPost matchingPost = matchingPostRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.MATCHING_POST_NOT_FOUND));
+                MatchingPostImage matchingPostImage = MatchingPostImage.builder()
+                        .matchingPost(matchingPost)
+                        .imageUrl(imageUrl)
+                        .status(ImageStatus.PENDING)
+                        .build();
+                matchingPostImageRepository.save(matchingPostImage);
+                break;
+            case "portfolio":
+                Portfolio portfolio = portfolioRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.PORTFOLIO_NOT_FOUND));
+                PortfolioImage portfolioImage = PortfolioImage.builder()
+                        .portfolio(portfolio)
+                        .imageUrl(imageUrl)
+                        .status(ImageStatus.PENDING)
+                        .build();
+                portfolioImageRepository.save(portfolioImage);
+                break;
+            case "chat":
 
-
-        return amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
+                break;
+        }
+        return imageUrl;
     }
 
     private String getContentType(String fileName) {
