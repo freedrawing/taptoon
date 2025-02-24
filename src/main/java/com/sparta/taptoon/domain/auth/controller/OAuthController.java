@@ -1,6 +1,8 @@
 package com.sparta.taptoon.domain.auth.controller;
 
+import com.sparta.taptoon.domain.auth.dto.request.OAuthDisconnectRequest;
 import com.sparta.taptoon.domain.auth.dto.response.LoginMemberResponse;
+import com.sparta.taptoon.domain.auth.service.AuthService;
 import com.sparta.taptoon.domain.auth.service.NaverAuthService;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +22,7 @@ import java.net.URI;
 public class OAuthController {
     private final NaverAuthService naverAuthService;
     private final String googleAuthUrl = "http://localhost:8080/oauth2/authorization/google";
+    private final AuthService authService;
 
     @Operation(summary = "네이버 로그인")
     @GetMapping("/naver/login")
@@ -47,5 +50,12 @@ public class OAuthController {
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create(googleAuthUrl))
                 .build();
+    }
+
+    @Operation(summary = "소셜 로그인 연동 해제")
+    @PostMapping("/oauth/disconnect")
+    public ResponseEntity<ApiResponse<Void>> disconnectOAuth(OAuthDisconnectRequest request) {
+        authService.disconnectOAuthMember(request.providerId(), request.provider());
+        return ApiResponse.noContent();
     }
 }

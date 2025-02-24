@@ -71,4 +71,9 @@ public class Member extends BaseEntity {
     }
 
     public void withdrawMember(){ this.isDeleted = true;}
+
+    public void disconnectOAuthInfo() {
+        this.providerId = null;
+        this.provider = null;
+    }
 }
