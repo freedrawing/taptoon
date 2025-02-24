@@ -24,10 +24,11 @@ public class CommentController {
     private final CommentService commentService;
 
     @Operation(summary = "댓글 생성")
-    @PostMapping
+    @PostMapping("/{matchingPostId}")
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
             @AuthenticationPrincipal MemberDetail memberDetail,
-            @Valid @RequestBody CommentRequest commentRequest, Long matchingPostId) {
+            @Valid @RequestBody CommentRequest commentRequest,
+            @PathVariable Long matchingPostId) {
         CommentResponse comment = commentService.makeComment(commentRequest, memberDetail.getMember(), matchingPostId);
         return ApiResponse.created(comment);
     }
@@ -42,12 +43,20 @@ public class CommentController {
         return ApiResponse.noContent();
     }
 
-    @Operation(summary = "특정 포스트의 모든 댓글 조회")
+    @Operation(summary = "특정 포스트의 모든 댓글 조회 (대댓글 제외)")
     @GetMapping("/{matchingPostId}")
     public ResponseEntity<ApiResponse<List<CommentResponse>>> getAllCommentsFromMatchingPost(
             @PathVariable Long matchingPostId) {
         List<CommentResponse> commentsFromMatchingPost = commentService.findAllCommentsFromMatchingPost(matchingPostId);
         return ApiResponse.success(commentsFromMatchingPost);
+    }
+
+    @Operation(summary = "특정 댓글과 대댓글 조회")
+    @GetMapping("/{commentId}")
+    public ResponseEntity<ApiResponse<CommentResponse>> getAllRepliesWithParentComment(
+            @PathVariable Long commentId) {
+        CommentResponse repliesWithParentComment = commentService.findAllRepliesWithParentComment(commentId);
+        return ApiResponse.success(repliesWithParentComment);
     }
 
     @Operation(summary = "댓글 삭제")

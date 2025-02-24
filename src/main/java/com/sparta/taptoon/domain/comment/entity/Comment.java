@@ -28,18 +28,23 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "matching_post_id", nullable = false, updatable = false)
     private MatchingPost matchingPost;
 
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, length = 3000)
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
+    @JoinColumn(name = "parent_id", updatable = false)
     private Comment parent;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @Builder
-    public Comment(Member member, MatchingPost matchingPost, Comment parent, String content, boolean isDeleted) {
+    public Comment(
+            Member member,
+            MatchingPost matchingPost,
+            Comment parent,
+            String content
+    ) {
         this.member = member;
         this.matchingPost = matchingPost;
         this.parent = parent;
