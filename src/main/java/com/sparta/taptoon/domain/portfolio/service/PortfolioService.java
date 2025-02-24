@@ -10,6 +10,7 @@ import com.sparta.taptoon.domain.portfolio.entity.Portfolio;
 import com.sparta.taptoon.domain.portfolio.entity.PortfolioImage;
 import com.sparta.taptoon.domain.portfolio.repository.PortfolioImageRepository;
 import com.sparta.taptoon.domain.portfolio.repository.PortfolioRepository;
+import com.sparta.taptoon.global.common.enums.ImageStatus;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.CreationLimitExceededException;
@@ -50,7 +51,7 @@ public class PortfolioService {
 
         // 등록된 모든 포트폴리오 이미지url을 객체로 변환
         List<PortfolioImage> portfolioImages = imageUrls.stream()
-                .map(imageUrl -> new PortfolioImage(imageUrl, portfolio))
+                .map(imageUrl -> new PortfolioImage(imageUrl, portfolio, ImageStatus.PENDING))
                 .collect(Collectors.toList());
 
         // 객체화한 포트폴리오 이미지리스들 레포지토리에 저장

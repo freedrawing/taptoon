@@ -8,9 +8,15 @@ import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "Member", description = "사용자 API")
 @RestController
@@ -53,6 +59,15 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberResponse>> getUserInfo(@AuthenticationPrincipal MemberDetail memberDetail) {
         MemberResponse memberResponse = memberService.findMember(memberDetail.getMember());
         return ApiResponse.success(memberResponse);
+    }
+
+    @Operation(summary = "이름이나 닉네임으로 멤버 정보 조회")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<MemberResponse>>> getUsers(@RequestParam(required = false) String name,
+                                                                      @RequestParam(required = false) String nickname,
+                                                                      @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<MemberResponse> memberResponses = memberService.findMemberByNameOrNickname(name,nickname, pageable);
+        return ApiResponse.success(memberResponses);
     }
 
     @Operation(summary = "회원 탈퇴")
