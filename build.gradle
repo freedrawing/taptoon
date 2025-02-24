@@ -60,7 +60,7 @@ dependencies {
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client' // temp for 성욱
 
 	// docker
-//	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+//	developmentOnly 'org.springframework.boot:spring-boot-docker-compose.yml'
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
@@ -110,6 +110,11 @@ dependencies {
 
 	// OpenFeign
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation 'io.github.openfeign:feign-jackson'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+	// Oauth2
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
 	//aws
 	implementation 'software.amazon.awssdk:s3:2.20.68'
@@ -121,4 +126,5 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	exclude '**/*uploadtoS3FromClient.*'//로컬에서 테스트 하고 싶으면 주석 처리 하세요!
 }

@@ -42,7 +42,11 @@ public class ImageService {
 
         /**
          * 여기에 각 db에 저장하는 로직을 추가하면 됩니다.
+         * 레디스를 이용해서 UUID,memberId, url 이 세개 저장. 나중에 UUID로 꺼내 쓰기. TTL 적용해서 알아서 지워지게. -> 이미지는 여러개 들어갈 수 있어야 함!
+         * hash -> id, value, ..
+         * UUID 하나만을 제공하는 API가 있어야 하나...? -> 클라이언트에서 UUID 를 생성 후에 호출한다고 가정한다면?
          */
+
 
 
         return amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
