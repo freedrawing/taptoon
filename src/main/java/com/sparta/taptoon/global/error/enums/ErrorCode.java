@@ -43,12 +43,17 @@ public enum ErrorCode {
   PORTFOLIO_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND,"PORTFOLIO_404", "존재하지 않는 포트폴리오 이미지입니다."),
   PORTFOLIO_ACCESS_DENIED(HttpStatus.FORBIDDEN, "PORTFOLIO_403", "포트폴리오 접근 권한이 없습니다."),
   PORTFOLIO_IMAGE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "PORTFOLIO_403", "선택하신 이미지가 포트폴리오에 속해있지 않습니다."),
-  CREATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PORTFOLIO_400", "허용된 개수를 초과하였습니다.")
+  CREATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PORTFOLIO_400", "허용된 개수를 초과하였습니다."),
 
   //comment
 
   //chat
-
+  CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_404", "채팅방이 존재하지 않습니다."),
+  CHAT_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_404", "사용자가 존재하지 않습니다."),
+  CHAT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CHAT_403", "이 채팅방에 속해 있지 않은 사용자입니다."),
+  CHAT_SELF_INVITATION(HttpStatus.BAD_REQUEST, "CHAT_400", "자기 자신을 초대할 수 없습니다."),
+  CHAT_NO_VALID_INVITEES(HttpStatus.BAD_REQUEST, "CHAT_400", "유효한 초대 멤버가 없습니다."),
+  CHAT_MINIMUM_MEMBERS(HttpStatus.BAD_REQUEST, "CHAT_400", "채팅방은 최소 2명 이상이어야 합니다."),
   ;
 
   private final HttpStatus status;
