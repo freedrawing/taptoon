@@ -12,12 +12,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @Tag(name = "matching-posts", description = "매칭보드 게시글 API")
 @RestController
 @RequiredArgsConstructor
@@ -78,6 +80,11 @@ public class MatchingPostController {
             @RequestParam(required = false) Long lastViewCount,
             @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
+
+
+        log.info("Request Parameters - artistType: {}, workType: {}, keyword: {}, lastId: {}, lastViewCount: {}, pageSize: {}",
+                artistType, workType, keyword, lastId, lastViewCount, pageSize);
+
         MatchingPostCursorResponse response = matchingPostService.findFilteredMatchingPosts(
                 artistType,
                 workType,
@@ -93,6 +100,15 @@ public class MatchingPostController {
     public ResponseEntity<ApiResponse<List<String>>> getAutocomplete(@RequestParam String keyword) {
         List<String> autocompleteSuggestions = elasticAutocompleteService.findAutocompleteSuggestion(keyword);
         return ApiResponse.success(autocompleteSuggestions);
+    }
+
+    @Operation(summary = "MatchingPost 글쓰기 버튼 클릭")
+    @PostMapping("/write")
+    public ResponseEntity<ApiResponse<Long>> createSkeleton(
+            @AuthenticationPrincipal MemberDetail memberDetail
+    ) {
+        Long id = matchingPostService.generateEmptyMatchingPost(memberDetail.getId());
+        return ApiResponse.success(id);
     }
 
 }
