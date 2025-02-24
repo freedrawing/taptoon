@@ -97,8 +97,10 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
             nextId = lastDoc.id();
         }
 
+        Boolean isLastPage = results.size() < pageSize;
+
         // 클라이언트에게 현재 데이터 + 다음 페이지 요청을 위한 커서 반환
-        return new MatchingPostCursorResponse(results, nextId, nextViewCount);
+        return new MatchingPostCursorResponse(results, nextId, nextViewCount, isLastPage);
     }
 
     /**
