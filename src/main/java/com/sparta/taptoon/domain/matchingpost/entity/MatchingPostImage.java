@@ -23,6 +23,9 @@ public class MatchingPostImage extends BaseEntity {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
+    @Column(name = "status", nullable = false)
+    private String status;
+
     @Builder
     public MatchingPostImage(MatchingPost matchingPost, String imageUrl) {
         this.matchingPost = matchingPost;

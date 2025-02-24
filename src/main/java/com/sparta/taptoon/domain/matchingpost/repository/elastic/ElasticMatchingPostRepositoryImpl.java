@@ -1,4 +1,4 @@
-package com.sparta.taptoon.domain.matchingpost.repository.elasticsearch;
+package com.sparta.taptoon.domain.matchingpost.repository.elastic;
 
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
@@ -6,6 +6,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import co.elastic.clients.json.JsonData;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
+import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostDocumentResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,12 +18,13 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j(topic = "Elasticsearch:MatchingPost")
+@Slf4j(topic = "ElasticMatchingPostRepositoryImpl")
 @RequiredArgsConstructor
 public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRepositoryCustom {
 
     private final ElasticsearchOperations elasticsearchOperations;
 
+    // Search
     @Override
     public MatchingPostCursorResponse searchFrom(
             String artistType,
@@ -61,7 +63,7 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
         );
 
         // NativeQuery 생성
-        NativeQuery query = NativeQuery.builder()
+        NativeQuery nativeQuery = NativeQuery.builder()
                 .withQuery(boolQuery)
                 .withSort(createSortBuilders())  // 정렬 기준 추가
                 .withMaxResults(pageSize)        // 페이지 크기 지정
@@ -70,12 +72,12 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
 
         // Elasticsearch 검색 실행
         SearchHits<MatchingPostDocument> searchHits = elasticsearchOperations.search(
-                query,
+                nativeQuery,
                 MatchingPostDocument.class
         );
 
         // 검색 결과 변환
-        List<MatchingPostDocument> results = searchHits.stream()
+        List<MatchingPostDocumentResponse> results = searchHits.stream()
 //                .map(SearchHit::getContent)
                 .map(searchHit -> {
                     MatchingPostDocument document = searchHit.getContent();
@@ -83,16 +85,16 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
                     float score = searchHit.getScore();
                     log.info("{} score: {}", document, score);
 
-                    return document;
+                    return MatchingPostDocumentResponse.from(document);
                 })
                 .toList();
 
         Long nextViewCount = null;
         Long nextId = null;
         if (!results.isEmpty()) {
-            MatchingPostDocument lastDoc = results.get(results.size() - 1);
-            nextViewCount = lastDoc.getViewCount();
-            nextId = lastDoc.getId();
+            MatchingPostDocumentResponse lastDoc = results.get(results.size() - 1);
+            nextViewCount = lastDoc.viewCount();
+            nextId = lastDoc.id();
         }
 
         // 클라이언트에게 현재 데이터 + 다음 페이지 요청을 위한 커서 반환
@@ -105,7 +107,6 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
      * viewCount가 lastViewCount와 같고 id가 lastId보다 작은 문서들을 가져옴
      * must(): AND 조건 (모든 조건 만족해야 함)
      * should(): OR 조건 (두 가지 경우 중 하나를 만족)
-     *
      */
     private Query createCursorFilter(Long lastViewCount, Long lastId) {
         return Query.of(filter -> filter.bool(boolFilter -> boolFilter
@@ -138,7 +139,10 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
     private Query createKeywordQuery(String keyword) {
         return Query.of(search -> search.multiMatch(multiMatch -> multiMatch
                 .query(keyword)
-                .fields("title", "title.english", "description", "description.english")
+                .fields(
+                        "title", "title.ngram", "title.english",
+                        "description", "description.ngram", "description.english"
+                )
                 .type(TextQueryType.BestFields) // 가장 잘 매칭되는 필드를 우선적으로 채택. 여러 필드 중 가낭 높은 점수 매칭 결과 반환
         ));
     }
@@ -180,6 +184,11 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
                 .field(fieldSort -> fieldSort
                         .field("id")
                         .order(SortOrder.Desc))));
+
+//        sortOptions.add(SortOptions.of(sort -> sort
+//                .field(fieldSort -> fieldSort
+//                        .field("createdAt") // 추가
+//                        .order(SortOrder.Desc))));
 
         return sortOptions;
     }

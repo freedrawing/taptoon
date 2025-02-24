@@ -4,6 +4,7 @@ import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
+import com.sparta.taptoon.domain.matchingpost.service.ElasticAutocompleteService;
 import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
@@ -11,10 +12,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+@Slf4j
 @Tag(name = "matching-posts", description = "매칭보드 게시글 API")
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class MatchingPostController {
 
     private final MatchingPostService matchingPostService;
+    private final ElasticAutocompleteService elasticAutocompleteService;
 
     @Operation(summary = "매칭보드에 게시글 등록")
     @PostMapping
@@ -29,15 +35,15 @@ public class MatchingPostController {
             @AuthenticationPrincipal MemberDetail memberDetail,
             @Valid @RequestBody AddMatchingPostRequest request) {
 
-//        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(memberDetail.getId(), request);
-        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(1L, request);
+        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(memberDetail.getId(), request);
+//        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(1L, request);
         return ApiResponse.created(response);
     }
 
     @Operation(summary = "매칭 게시글 단건 조회")
     @GetMapping("/{matchingPostId}")
     public ResponseEntity<ApiResponse<MatchingPostResponse>> getMatchingPost(@PathVariable Long matchingPostId) {
-        MatchingPostResponse response = matchingPostService.findMatchingPostAndUpdateViewsV3(matchingPostId);
+        MatchingPostResponse response = matchingPostService.findMatchingPostAndUpdateViews(matchingPostId);
         return ApiResponse.success(response);
     }
 
@@ -48,8 +54,8 @@ public class MatchingPostController {
             @PathVariable Long matchingPostId,
             @Valid @RequestBody UpdateMatchingPostRequest request) {
 
-//        MatchingPostResponse response = matchingPostService.modifyMatchingPost(memberDetail.getId(), matchingPostId, request);
-        MatchingPostResponse response = matchingPostService.modifyMatchingPost(1L, matchingPostId, request);
+        MatchingPostResponse response = matchingPostService.modifyMatchingPost(memberDetail.getId(), matchingPostId, request);
+//        MatchingPostResponse response = matchingPostService.modifyMatchingPost(1L, matchingPostId, request);
         return ApiResponse.success(response);
     }
 
@@ -59,9 +65,9 @@ public class MatchingPostController {
             @AuthenticationPrincipal MemberDetail memberDetail,
             @PathVariable Long matchingPostId) {
 
-//        matchingPostService.removeMatchingPost(memberDetail.getId(), matchingPostId);
-        matchingPostService.removeMatchingPost(1L, matchingPostId);
-        return ApiResponse.success(null);
+        matchingPostService.removeMatchingPost(memberDetail.getId(), matchingPostId);
+//        matchingPostService.removeMatchingPost(1L, matchingPostId);
+        return ApiResponse.noContent();
     }
 
     @Operation(summary = "매칭 게시글 다건 조회 (검색)")
@@ -74,6 +80,11 @@ public class MatchingPostController {
             @RequestParam(required = false) Long lastViewCount,
             @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
+
+
+        log.info("Request Parameters - artistType: {}, workType: {}, keyword: {}, lastId: {}, lastViewCount: {}, pageSize: {}",
+                artistType, workType, keyword, lastId, lastViewCount, pageSize);
+
         MatchingPostCursorResponse response = matchingPostService.findFilteredMatchingPosts(
                 artistType,
                 workType,
@@ -82,6 +93,22 @@ public class MatchingPostController {
                 lastId,
                 pageSize);
         return ApiResponse.success(response);
+    }
+
+    // Autocomplete (10개씩만 보내주자. debounce 방식으로 처리해야 할 듯)
+    @PostMapping("/autocomplete")
+    public ResponseEntity<ApiResponse<List<String>>> getAutocomplete(@RequestParam String keyword) {
+        List<String> autocompleteSuggestions = elasticAutocompleteService.findAutocompleteSuggestion(keyword);
+        return ApiResponse.success(autocompleteSuggestions);
+    }
+
+    @Operation(summary = "MatchingPost 글쓰기 버튼 클릭")
+    @PostMapping("/write")
+    public ResponseEntity<ApiResponse<Long>> createSkeleton(
+            @AuthenticationPrincipal MemberDetail memberDetail
+    ) {
+        Long id = matchingPostService.generateEmptyMatchingPost(memberDetail.getId());
+        return ApiResponse.success(id);
     }
 
 }
