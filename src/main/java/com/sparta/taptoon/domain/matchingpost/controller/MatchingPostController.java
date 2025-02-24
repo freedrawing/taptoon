@@ -35,8 +35,8 @@ public class MatchingPostController {
             @AuthenticationPrincipal MemberDetail memberDetail,
             @Valid @RequestBody AddMatchingPostRequest request) {
 
-//        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(memberDetail.getId(), request);
-        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(1L, request);
+        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(memberDetail.getId(), request);
+//        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(1L, request);
         return ApiResponse.created(response);
     }
 
@@ -54,8 +54,8 @@ public class MatchingPostController {
             @PathVariable Long matchingPostId,
             @Valid @RequestBody UpdateMatchingPostRequest request) {
 
-//        MatchingPostResponse response = matchingPostService.modifyMatchingPost(memberDetail.getId(), matchingPostId, request);
-        MatchingPostResponse response = matchingPostService.modifyMatchingPost(1L, matchingPostId, request);
+        MatchingPostResponse response = matchingPostService.modifyMatchingPost(memberDetail.getId(), matchingPostId, request);
+//        MatchingPostResponse response = matchingPostService.modifyMatchingPost(1L, matchingPostId, request);
         return ApiResponse.success(response);
     }
 
@@ -65,8 +65,8 @@ public class MatchingPostController {
             @AuthenticationPrincipal MemberDetail memberDetail,
             @PathVariable Long matchingPostId) {
 
-//        matchingPostService.removeMatchingPost(memberDetail.getId(), matchingPostId);
-        matchingPostService.removeMatchingPost(1L, matchingPostId);
+        matchingPostService.removeMatchingPost(memberDetail.getId(), matchingPostId);
+//        matchingPostService.removeMatchingPost(1L, matchingPostId);
         return ApiResponse.noContent();
     }
 
