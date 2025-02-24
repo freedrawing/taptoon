@@ -8,9 +8,12 @@ import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -56,6 +59,11 @@ public class MemberService {
 
     public MemberResponse findMember(Member member) {
         return MemberResponse.from(member);
+    }
+
+    public Page<MemberResponse> findMemberByNameOrNickname(String name, String nickname, Pageable pageable) {
+        Page<Member> members = memberRepository.findByNameOrNickname(name, nickname, pageable);
+        return members.map(MemberResponse::from);
     }
 
     public void removeMember(Member member) {
