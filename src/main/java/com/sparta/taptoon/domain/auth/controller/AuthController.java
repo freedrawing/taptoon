@@ -51,4 +51,12 @@ public class AuthController {
     public void logout(@AuthenticationPrincipal MemberDetail memberDetail, HttpServletRequest httpServletRequest) {
         authService.logout(memberDetail.getId(), httpServletRequest);
     }
+
+
+    @Operation(summary = "이메일 중복 체크 (true = 중복)")
+    @PatchMapping("/check-email-duplicated")
+    public ResponseEntity<ApiResponse<Boolean>> checkEmailIsDuplicated(String email) {
+        boolean emailAlreadyExist = authService.checkEmailAlreadyExist(email);
+        return ApiResponse.success(emailAlreadyExist);
+    }
 }
