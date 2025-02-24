@@ -36,7 +36,7 @@ public class uploadtoS3FromClient {
         String directory = directory_t;
         String fileName = "test-image.jpg";
 
-        String presignedUrl = imageService.generatePresignedUrl(directory, fileName);
+        String presignedUrl = imageService.generatePresignedUrl(directory, 1L, fileName);
 
         S3UploadClient s3UploadClient = Feign.builder()
                 .contract(new SpringMvcContract())
