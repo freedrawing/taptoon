@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.sparta.taptoon.domain.image.S3UploadClient;
 import com.sparta.taptoon.domain.image.service.ImageService;
+import com.sparta.taptoon.domain.image.service.ImageServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,7 +27,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class uploadImageToS3 {
     @InjectMocks
-    private ImageService imageService;
+    private ImageServiceImpl imageService;
 
     @Mock
     S3UploadClient s3UploadClient;
