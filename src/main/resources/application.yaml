@@ -42,6 +42,10 @@ spring:
             authorization-grant-type: authorization_code
             scope: name
             client-name: Naver
+          google:
+            client-id: 9561287207-u9dks-d92hpa7.apps.googleusercontent.com
+            client-secret: G7CeX-UAi23X_fdi2qRd3ews7GQdS3e9
+            redirect-uri: http://localhost:8080/auth/google/callback
 logging:
   level:
     org.springframework.security: warn
