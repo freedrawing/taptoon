@@ -5,8 +5,12 @@ import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequ
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
+import com.sparta.taptoon.domain.matchingpost.entity.document.AutocompleteDocument;
+import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
+import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
-import com.sparta.taptoon.domain.matchingpost.repository.elasticsearch.ElasticMatchingPostRepository;
+import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticAutocompleteRepository;
+import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.common.annotation.DistributedLock;
@@ -16,6 +20,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.sparta.taptoon.global.error.enums.ErrorCode.MATCHING_POST_NOT_FOUND;
 import static com.sparta.taptoon.global.error.enums.ErrorCode.MEMBER_NOT_FOUND;
@@ -29,9 +37,25 @@ public class MatchingPostService {
     private final MatchingPostRepository matchingPostRepository;
     private final ElasticMatchingPostRepository elasticMatchingPostRepository;
     private final ElasticMatchingPostManager elasticMatchingPostManager;
+    private final ElasticAutocompleteService elasticAutocompleteService;
     private final MemberRepository memberRepository; // 나중에 서비스로 바꿔야 함.
 
-    // Upsert Queue와 delete Queue를 만들어야 함.
+    // 빈 MatchingPost 만들기. 이미지 저장용
+    @Transactional
+    public Long generateEmptyMatchingPost(Long memberId) {
+        Member findMember = findMemberById(memberId);
+        MatchingPost savedEmtpyMatchingPost = matchingPostRepository.save(MatchingPost.builder()
+                .title("")
+                .author(findMember)
+                .description("")
+                .fileUrl("")
+                .workType(WorkType.random())
+                .artistType(ArtistType.random())
+                .build());
+
+        return savedEmtpyMatchingPost.getId();
+    }
+
 
     // 매칭포스트 생성
     @Transactional
@@ -78,7 +102,11 @@ public class MatchingPostService {
         elasticMatchingPostManager.deleteFromESAfterCommit(matchingPostId);
     }
 
-    // 매칭 포스트 필터링 다건 검색 (using Elasticsearch)
+    /*
+        * 매칭 포스트 필터링 다건 검색 (using Elasticsearch)
+        * 예외 처리를 해야 할 것 같지만 검색 중 예외가 발생하면 사실 Elasticsearch 내부에서 발생한 예외일 것이므로,
+        * 그때는 500번대 에러가 맞는 듯하다. 굳이 할 필요 없을 수도?
+     */
     public MatchingPostCursorResponse findFilteredMatchingPosts(
             String artistType,
             String workType,
@@ -86,6 +114,9 @@ public class MatchingPostService {
             Long lastViewCount,
             Long lastId,
             int pageSize) {
+
+        // 검색어 인덱싱
+        elasticAutocompleteService.logSearchQuery(keyword);
 
         return elasticMatchingPostRepository.searchFrom(
                 artistType,
@@ -101,7 +132,7 @@ public class MatchingPostService {
     // 매칭 포스트 단건 조회 + 조회수 증가 (update 로직을 분리하고 싶은데, AOP라서 분리하기가 다소 번거롭다)
     @DistributedLock(key = "#matchingPostId", waitTime = 10, leaseTime = 2)
     @Transactional
-    public MatchingPostResponse findMatchingPostAndUpdateViewsV3(Long matchingPostId) {
+    public MatchingPostResponse findMatchingPostAndUpdateViews(Long matchingPostId) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
         findMatchingPost.increaseViewCount();
 
@@ -122,10 +153,9 @@ public class MatchingPostService {
     }
 
     // 임시 메서드 (나중에 교체, 삭제된 사용자인지도 사실 검증해야 함)
-    private Member findMemberById(Long userId) {
-        return memberRepository.findById(userId)
+    private Member findMemberById(Long memberId) {
+        return memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
     }
-
 
 }

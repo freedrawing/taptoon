@@ -1,6 +1,5 @@
 package com.sparta.taptoon.domain.matchingpost.entity.document;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
@@ -9,15 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @ToString
 @Slf4j
 @Getter
-@Document(indexName = "matching-posts")
+@Document(indexName = "matching_post")
+//@Setting(settingPath = "/elastic/matchingpost-setting.json") // Elasticsearch 버전에 오류가 많아서 이 방법은 안 될 듯하다...
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MatchingPostDocument {
 
@@ -31,10 +29,10 @@ public class MatchingPostDocument {
     private ArtistType artistType;
 
     @MultiField(
-            mainField = @Field(type = FieldType.Text, analyzer = "nori", searchAnalyzer = "nori"),
-            otherFields = { // 사실 `searchAnalyer`는 NGram이 아니면 따로 설정을 안 하지만, 설정 가독성 차원에서...
-                    @InnerField(suffix = "english", type = FieldType.Text, analyzer = "english", searchAnalyzer = "english"),
-//                    @InnerField(suffix = "keyword", type = FieldType.Keyword) // 정확한 매칭을 할 때
+            mainField = @Field(type = FieldType.Text, analyzer = "nori"),
+            otherFields = {
+                    @InnerField(suffix = "ngram", type = FieldType.Text, analyzer = "ngram_analyzer"), // 이건 ES에 미리 안 만들어지면 서버 동작 안 함
+                    @InnerField(suffix = "english", type = FieldType.Text, analyzer = "english"),
             }
     )
     private String title;
@@ -43,10 +41,10 @@ public class MatchingPostDocument {
     private WorkType workType;
 
     @MultiField(
-            mainField = @Field(type = FieldType.Text, analyzer = "nori", searchAnalyzer = "nori"),
+            mainField = @Field(type = FieldType.Text, analyzer = "nori"),
             otherFields = {
-                    @InnerField(suffix = "english", type = FieldType.Text, analyzer = "english", searchAnalyzer = "english"),
-//                    @InnerField(suffix = "keyword", type = FieldType.Keyword) // 필요 없을 듯
+                    @InnerField(suffix = "ngram", type = FieldType.Text, analyzer = "ngram_analyzer"),
+                    @InnerField(suffix = "english", type = FieldType.Text, analyzer = "english"),
             }
     )
     private String description;
@@ -57,13 +55,12 @@ public class MatchingPostDocument {
     @Field(type = FieldType.Keyword, index = false)
     private List<String> fileImageUrlList;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "UTC")
-    @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
-    private Instant createdAt;
+    // 나중에 정렬할 때 속도가 너무 느리면 `epoch_millis`로 바꾸자
+    @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis")
+    private LocalDateTime createdAt;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "UTC")
-    @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
-    private Instant updatedAt;
+    @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis")
+    private LocalDateTime updatedAt;
 
 
     @Builder
@@ -78,9 +75,8 @@ public class MatchingPostDocument {
         this.description = description;
         this.viewCount = viewCount;
         this.fileImageUrlList = fileImageUrlList;
-        this.createdAt = createdAt.atZone(ZoneId.systemDefault()).toInstant();
-        ;
-        this.updatedAt = updatedAt.atZone(ZoneId.systemDefault()).toInstant();
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public static MatchingPostDocument from(MatchingPost matchingPost) {

@@ -36,6 +36,10 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
+    public boolean checkEmailAlreadyExist(String email) {
+        return memberRepository.findByEmail(email).isPresent();
+    }
+
     public MemberResponse signUp(SignupMemberRequest request) {
         Member member = request.toEntity(passwordEncoder);
         Member savedMember = memberRepository.save(member);

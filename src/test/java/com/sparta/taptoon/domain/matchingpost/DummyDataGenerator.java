@@ -7,7 +7,7 @@ import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
 import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
-import org.junit.jupiter.api.Test;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 
 import static com.sparta.taptoon.domain.util.EntityCreatorUtil.*;
 
+@Slf4j
 @SpringBootTest
 @ActiveProfiles("dev")
 public class DummyDataGenerator {
