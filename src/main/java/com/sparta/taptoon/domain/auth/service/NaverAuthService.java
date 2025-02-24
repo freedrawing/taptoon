@@ -1,11 +1,14 @@
 package com.sparta.taptoon.domain.auth.service;
 
 import com.sparta.taptoon.domain.auth.dto.NaverMemberInfo;
+import com.sparta.taptoon.domain.auth.dto.request.NaverTokenRequest;
 import com.sparta.taptoon.domain.auth.dto.response.LoginMemberResponse;
 import com.sparta.taptoon.domain.auth.dto.response.NaverApiResponse;
 import com.sparta.taptoon.domain.auth.dto.response.NaverTokenResponse;
 import com.sparta.taptoon.domain.auth.dto.response.TokenInfo;
 import com.sparta.taptoon.domain.auth.entity.RefreshToken;
+import com.sparta.taptoon.domain.auth.repository.NaverAuthClient;
+import com.sparta.taptoon.domain.auth.repository.NaverClientInfo;
 import com.sparta.taptoon.domain.auth.repository.RefreshTokenRepository;
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.domain.member.entity.Member;
@@ -17,14 +20,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.UUID;
 
@@ -35,6 +33,8 @@ public class NaverAuthService {
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
+    private final NaverAuthClient naverAuthClient;
+    private final NaverClientInfo naverClientInfo;
 
     @Value("${spring.security.oauth2.client.registration.naver.client-id}")
     private String clientId;
@@ -63,52 +63,33 @@ public class NaverAuthService {
     }
 
     private String getAccessTokenFromNaver(String code, String state) {
-        String tokenRequestUrl = "https://nid.naver.com/oauth2.0/token";
-        log.info("code 값: {} state 값: {}",code,state);
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("grant_type", "authorization_code");
-        params.add("client_id", clientId);
-        params.add("client_secret", clientSecret);
-        params.add("code", code);
-        params.add("state", state);
+        NaverTokenRequest request = NaverTokenRequest.builder()
+                .grantType("authorization_code")
+                .clientId(clientId)
+                .clientSecret(clientSecret)
+                .code(code)
+                .state(state)
+                .build();
 
-        WebClient webClient = WebClient.create();
-        NaverTokenResponse response = webClient.post()
-                .uri(tokenRequestUrl)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .bodyValue(params)
-                .retrieve()
-                .bodyToMono(NaverTokenResponse.class)
-                .block();
-
-        if (response.getError() != null) {
-            log.info("에러메세지: {}",response.getError());
-            throw new RuntimeException("네이버에서 access token 획득 실패: " + response.getErrorDescription());
+        NaverTokenResponse response = naverAuthClient.getAccessToken(request);
+        if (response.error() != null) {
+            log.info("네이버 토큰 발급 실패 error: {}, discripsion:{}",response.error(), response.errorDescription());
+            throw new RuntimeException("네이버에서 access token 획득 실패: " + response.errorDescription());
         }
 
-        if (response.getAccessToken() == null) {
+        if (response.accessToken() == null) {
             throw new RuntimeException("Access token 을 찾을 수 없음!");
         }
-        return response.getAccessToken();
+        return response.accessToken();
     }
 
     private NaverMemberInfo getUserInfoFromNaver(String accessToken) {
-        String apiUrl = "https://openapi.naver.com/v1/nid/me";
+        NaverApiResponse response = naverClientInfo.getUserInfo("Bearer " + accessToken);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-
-        WebClient webClient = WebClient.create();
-        NaverApiResponse response = webClient.get()
-                .uri(apiUrl)
-                .headers(httpHeaders -> httpHeaders.addAll(headers))
-                .retrieve()
-                .bodyToMono(NaverApiResponse.class)
-                .block();
-        log.info("네이버 로그인 유저 id: {}, 유저 이름: {} ", response.getResponse().getId(), response.getResponse().getName());
+        log.info("네이버 로그인 유저 id: {}, 유저 이름: {} ", response.response().id(), response.response().name());
         return NaverMemberInfo.builder()
-                .id(response.getResponse().getId())
-                .name(response.getResponse().getName())
+                .id(response.response().id())
+                .name(response.response().name())
                 .build();
     }
 
