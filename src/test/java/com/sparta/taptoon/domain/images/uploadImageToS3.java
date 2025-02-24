@@ -54,7 +54,7 @@ public class uploadImageToS3 {
                 .when(s3UploadClient)
                 .uploadFile(eq("image/jpeg"), any(byte[].class));
         //when
-        String preSignedUrl = imageService.generatePresignedUrl(directory, fileName);
+        String preSignedUrl = imageService.generatePresignedUrl(directory,1L, fileName);
 
         // 테스트 이미지 로드
         ClassPathResource resource = new ClassPathResource("test-images/test-image.jpg");

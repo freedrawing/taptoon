@@ -2,6 +2,7 @@ package com.sparta.taptoon.domain.image.controller;
 
 import com.sparta.taptoon.domain.image.dto.PreSignedUrlRequest;
 import com.sparta.taptoon.domain.image.service.ImageService;
+import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,7 +22,7 @@ public class ImageController {
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<String>> getPresignedUrl(
             @Valid @RequestBody PreSignedUrlRequest request) {
-        String presignedUrl = imageService.generatePresignedUrl(request.directory(),request.fileName());
+        String presignedUrl = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileName());
         return ApiResponse.success(presignedUrl);
     }
 }
