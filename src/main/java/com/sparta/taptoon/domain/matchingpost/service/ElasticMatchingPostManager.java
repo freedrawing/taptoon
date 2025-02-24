@@ -1,18 +1,27 @@
 package com.sparta.taptoon.domain.matchingpost.service;
 
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
+import com.sparta.taptoon.domain.matchingpost.entity.document.AutocompleteDocument;
 import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
-import com.sparta.taptoon.domain.matchingpost.repository.elasticsearch.ElasticMatchingPostRepository;
+import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticAutocompleteRepository;
+import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticMatchingPostRepository;
+import com.sparta.taptoon.global.common.annotation.DistributedLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ElasticMatchingPostManager {
+
+    private final ElasticAutocompleteRepository elasticAutocompleteRepository;
 
     /**
      * 우선 DB에는 저장이 무조건 되게 하자.
@@ -59,6 +68,7 @@ public class ElasticMatchingPostManager {
         });
     }
 
+    // `Elasticsearch`에 저장된 포스트 정보 삭제
     void deleteFromESAfterCommit(Long matchingPostId) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -73,4 +83,7 @@ public class ElasticMatchingPostManager {
             }
         });
     }
+
+
+
 }

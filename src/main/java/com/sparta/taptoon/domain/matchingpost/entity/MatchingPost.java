@@ -73,8 +73,8 @@ public class MatchingPost extends BaseEntity {
     }
 
     // id 비교는 따로 쿼리가 안 날라감
-    public boolean isMyMatchingPost(Long userId) {
-        return author.getId() == userId;
+    public boolean isMyMatchingPost(Long memberId) {
+        return author.getId() == memberId;
     }
 
     public void removeMe() {
