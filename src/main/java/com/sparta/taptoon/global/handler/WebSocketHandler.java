@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.taptoon.domain.chat.dto.request.SendChatMessageRequest;
 import com.sparta.taptoon.domain.chat.service.ChatMessageService;
+import com.sparta.taptoon.global.error.exception.AccessDeniedException;
+import com.sparta.taptoon.global.error.exception.InvalidRequestException;
+import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -12,6 +15,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @RequiredArgsConstructor
 public class WebSocketHandler extends TextWebSocketHandler {
+
+    private static final String CHAT_ROOM_ID_PATH_INDEX = "/chat/";
 
     private final ChatMessageService chatMessageService;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -58,14 +64,19 @@ public class WebSocketHandler extends TextWebSocketHandler {
         log.info("📩 받은 메시지: {}", payload);
 
         try {
-            JsonNode jsonNode = objectMapper.readTree(payload);
+            MessagePayload messagePayload = parseMessagePayload(payload);
             Long chatRoomId = extractChatRoomId(session);
-            Long senderId = jsonNode.get("senderId").asLong();
-            String chatMessage = jsonNode.get("message").asText();
 
-            // 메시지 저장 및 Redis 발행
-            chatMessageService.sendMessage(senderId, chatRoomId, new SendChatMessageRequest(chatMessage));
-
+            chatMessageService.sendMessage(messagePayload.senderId(), chatRoomId, new SendChatMessageRequest(messagePayload.message()));
+        } catch (NotFoundException e) {
+            log.error("❌ 채팅방 또는 사용자를 찾을 수 없음: {}", payload, e);
+            sendErrorMessage(session, "Chat room or user not found");
+        } catch (AccessDeniedException e) {
+            log.error("❌ 채팅방 접근 권한 없음: {}", payload, e);
+            sendErrorMessage(session, "Access denied to chat room");
+        } catch (InvalidRequestException e) {
+            log.error("❌ 유효하지 않은 메시지 요청: {}", payload, e);
+            sendErrorMessage(session, "Invalid message request");
         } catch (Exception e) {
             log.error("❌ WebSocket 메시지 처리 중 오류 발생: {}", payload, e);
             sendErrorMessage(session, "Server error processing message");
@@ -113,7 +124,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private Long extractChatRoomId(WebSocketSession session) {
         try {
             String path = session.getUri().getPath();
-            return Long.parseLong(path.split("/")[3]);
+            String chatRoomIdStr = path.substring(path.indexOf(CHAT_ROOM_ID_PATH_INDEX) + CHAT_ROOM_ID_PATH_INDEX.length());
+            return Long.parseLong(chatRoomIdStr);
         } catch (Exception e) {
             log.warn("❌ WebSocket URL에서 채팅방 ID 추출 실패: {}", session.getUri().getPath(), e);
             return null;
@@ -132,11 +144,27 @@ public class WebSocketHandler extends TextWebSocketHandler {
      * WebSocket 오류 발생 시 클라이언트에 메시지 전송
      */
     private void sendErrorMessage(WebSocketSession session, String errorMessage) {
+        if (!session.isOpen()) {
+            log.warn("❌ 세션이 닫혀 있어 오류 메시지 전송 불가: {}", session.getId());
+            return;
+        }
         try {
-            session.sendMessage(new TextMessage("{\"error\": \"" + errorMessage + "\"}"));
-        } catch (Exception e) {
-            log.error("❌ WebSocket 오류 메시지 전송 실패", e);
+            String jsonError = objectMapper.writeValueAsString(Map.of("error", errorMessage));
+            session.sendMessage(new TextMessage(jsonError));
+        } catch (IOException e) {
+            log.error("❌ WebSocket 오류 메시지 전송 실패: {}", errorMessage, e);
         }
     }
+
+    // JSON 메시지를 파싱하여 필요한 데이터를 추출
+    private MessagePayload parseMessagePayload(String payload) throws IOException {
+        JsonNode jsonNode = objectMapper.readTree(payload);
+        Long senderId = jsonNode.get("senderId").asLong();
+        String message = jsonNode.get("message").asText();
+        return new MessagePayload(senderId, message);
+    }
+
+    // 메시지 페이로드 데이터 홀더
+    private record MessagePayload(Long senderId, String message) {}
 }
 
