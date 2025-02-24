@@ -8,7 +8,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "images", description = "이미지 업로드 API")
 @RestController
@@ -21,7 +24,7 @@ public class ImageController {
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<String>> getPresignedUrl(
             @Valid @RequestBody PreSignedUrlRequest request) {
-        String presignedUrl = imageService.generatePresignedUrl(request.directory(),request.fileName());
+        String presignedUrl = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileName());
         return ApiResponse.success(presignedUrl);
     }
 }
