@@ -5,6 +5,7 @@ import lombok.Builder;
 
 import javax.annotation.Nullable;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Builder
@@ -16,6 +17,7 @@ public record CommentResponse(
 
         @Nullable
         Long parentId,
+
         String content,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
@@ -29,7 +31,7 @@ public record CommentResponse(
                 .matchingPostId(comment.getMatchingPost().getId())
                 .memberId(comment.getMember().getId())
                 .memberNickname(comment.getMember().getNickname())
-                .parentId(comment.getParent().getId())
+                .parentId(comment.getParent() != null ? comment.getParent().getId() : null) // parent가 null이 아니다. true면 Id를 가져오고 false면 null 반환
                 .content(comment.getContent())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
@@ -43,11 +45,11 @@ public record CommentResponse(
                 .matchingPostId(comment.getMatchingPost().getId())
                 .memberId(comment.getMember().getId())
                 .memberNickname(comment.getMember().getNickname())
-                .parentId(comment.getParent().getId())
+                .parentId(comment.getParent() != null ? comment.getParent().getId() : null) // parent가 null이 아니다. true면 Id를 가져오고 false면 null 반환
                 .content(comment.getContent())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
-                .replies(replies)
+                .replies(replies != null ? replies : Collections.emptyList()) // replies가 null이 아니다. true면 replies를 false면 빈리스트로 반환
                 .build();
     }
 }

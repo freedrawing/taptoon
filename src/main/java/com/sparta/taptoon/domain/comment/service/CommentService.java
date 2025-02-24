@@ -12,9 +12,9 @@ import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,7 +40,7 @@ public class CommentService {
         // 댓글은 부모 객체를 가지지 않는 것이 default
         Comment parent = null;
         // 만약 requestDto에서 parentId를 입력받았다면 그 댓글의 parent를 찾기 (대댓글로 결정되는 과정)
-        if (commentRequest.parentId() != null) {
+        if (commentRequest.parentId() != null && commentRequest.parentId() > 0) {
             parent = commentRepository.findById(commentRequest.parentId())
                     .orElseThrow(()-> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
         }
@@ -72,7 +72,7 @@ public class CommentService {
             throw new InvalidRequestException(ErrorCode.INVALID_REQUEST);
         }
         // 만약 requestDto에서 parentId를 입력받았다면 그 댓글의 parent를 찾기
-        if (commentRequest.parentId() != null) {
+        if (commentRequest.parentId() != null && commentRequest.parentId() > 0) {
             commentRepository.findById(commentRequest.parentId())
                     .orElseThrow(()-> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
         }
@@ -81,6 +81,7 @@ public class CommentService {
     }
 
     // 특정 포스트의 모든 댓글 (대댓글 제외) 조회
+    @Transactional(readOnly = true)
     public List<CommentResponse> findAllCommentsFromMatchingPost(Long matchingPostId) {
         // 특정 포스트에 달린 댓글 찾기
         List<Comment> foundComments = commentRepository.findAllByMatchingPostIdOrderByCreatedAt(matchingPostId);
@@ -95,12 +96,13 @@ public class CommentService {
     }
 
     // 특정 댓글과 대댓글 조회
+    @Transactional(readOnly = true)
     public CommentResponse findAllRepliesWithParentComment(Long commentId) {
         // 댓글 찾기
         Comment parentComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
         // parentId로 대댓글 찾기
-        List<Comment> replies = commentRepository.findAllById(commentId);
+        List<Comment> replies = commentRepository.findAllByParentId(commentId);
         // 대댓글이 부모 댓글의 id를 제대로 갖고있는지 비교 검증
         for (Comment reply : replies) {
             if (!reply.getParent().getId().equals(parentComment.getId())) {
@@ -130,10 +132,10 @@ public class CommentService {
         foundComment.remove();
 
         /*
-         1. 댓글 isDeleted 할때 대댓글이 있으면 대댓글도 함께 지울것인지?
+         1. 댓글 isDeleted 할때 대댓글이 있으면 대댓글도 함께 지울것인지? -> (parentComment가 삭제되어도 하위 대댓글들 유지하기)
          2. 이 isDeleted가 이미 true인 댓글 중복 삭제 요청 안되게 하기
          3. isDeleted true인 댓글들 조회 안되게 예외처리
-         4.
+         4. 포스트에서 parent댓글만 조회할때 답글이 있는지 없는지 response에서 알려주기
          */
 
     }

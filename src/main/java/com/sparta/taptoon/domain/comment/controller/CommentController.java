@@ -34,11 +34,12 @@ public class CommentController {
     }
 
     @Operation(summary = "댓글 수정")
-    @PutMapping("/{commentId}")
+    @PutMapping("/matchingPostId/{matchingPostId}/commentId/{commentId}")
     public ResponseEntity<ApiResponse<Void>> updateComment(
             @AuthenticationPrincipal MemberDetail memberDetail,
+            @Valid @PathVariable Long matchingPostId,
             @Valid @PathVariable Long commentId,
-            @RequestBody CommentRequest commentRequest, Long matchingPostId) {
+            @RequestBody CommentRequest commentRequest) {
         commentService.editComment(commentRequest,memberDetail.getMember(), matchingPostId, commentId);
         return ApiResponse.noContent();
     }
@@ -52,7 +53,7 @@ public class CommentController {
     }
 
     @Operation(summary = "특정 댓글과 대댓글 조회")
-    @GetMapping("/{commentId}")
+    @GetMapping("/reply/{commentId}")
     public ResponseEntity<ApiResponse<CommentResponse>> getAllRepliesWithParentComment(
             @PathVariable Long commentId) {
         CommentResponse repliesWithParentComment = commentService.findAllRepliesWithParentComment(commentId);
