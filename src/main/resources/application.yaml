@@ -68,4 +68,4 @@ cloud:
       bucket: your-bucket-name
 
 slack:
-  webhook-url: https://hooks.slack.com/services/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
+  webhook-url: "https://hooks.slack.com/services/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"

@@ -77,7 +77,7 @@ public class ElasticAutocompleteRepositoryImpl implements ElasticAutocompletedRe
                                                                 .boost(1.0f)
                                                         )
                                                 )
-//                                .minimumShouldMatch(1)
+                                .minimumShouldMatch("1")
                         )
         );
     }

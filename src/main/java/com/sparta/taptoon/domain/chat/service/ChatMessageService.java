@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -64,6 +65,12 @@ public class ChatMessageService {
         ChatMessage chatMessage = saveChatMessage(request, chatRoom, sender);
         ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
 
+        // 내가 보낸 메시지 읽음 처리
+//        String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);
+//        redisTemplate.opsForValue().set(key, String.valueOf(chatMessage.getId()));
+//        log.info("✅ 메시지 전송 및 읽음 처리 완료 - chatRoomId: {}, senderId: {}, messageId: {}",
+//                chatRoomId, senderId, chatMessage.getId());
+
         publishMessage(chatRoom.getId(), response, sender, request.message());
         return response;
     }
@@ -87,6 +94,12 @@ public class ChatMessageService {
         imageMessage.updateStatus(ImageStatus.COMPLETED);
         imageMessage.setUnreadCount(chatRoom.getMemberCount() - 1); // 전송 시 읽지 않은 멤버 수 설정
         chatImageMessageRepository.save(imageMessage);
+
+//        // 이미지 메시지도 읽음 처리
+//        String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);
+//        redisTemplate.opsForValue().set(key, String.valueOf(imageMessage.getId()));
+//        log.info("✅ 이미지 메시지 전송 및 읽음 처리 완료 - chatRoomId: {}, senderId: {}, imageMessageId: {}",
+//                chatRoomId, senderId, imageMessage.getId());
 
         ChatImageMessageResponse response = ChatImageMessageResponse.from(imageMessage);
         publishImage(chatRoom.getId(), response, sender, "이미지 메시지 전송");
@@ -118,7 +131,7 @@ public class ChatMessageService {
                         textMessages.stream().map(ChatCombinedMessageResponse::from),
                         imageMessages.stream().map(ChatCombinedMessageResponse::from)
                 )
-                .sorted(Comparator.comparing(ChatCombinedMessageResponse::createdAt).reversed())
+                .sorted(Comparator.comparing(ChatCombinedMessageResponse::createdAt))
                 .toList();
     }
 
@@ -174,6 +187,11 @@ public class ChatMessageService {
         }
     }
 
+    public Optional<ChatMessage> findLatestMessage(Long chatRoomId) {
+        ChatRoom chatRoom = findChatRoom(chatRoomId);
+        return chatMessageRepository.findTopByChatRoomOrderByCreatedAtDesc(chatRoom);
+    }
+
     // Redis에서 사용자의 마지막 읽은 메시지 ID를 조회
     private Long getLastReadMessageId(Long chatRoomId, Long memberId) {
         String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, memberId);
@@ -200,6 +218,12 @@ public class ChatMessageService {
                 .stream()
                 .map(ChatMessageResponse::from)
                 .toList();
+    }
+
+    // unread count 계산 메서드 추가
+    public int calculateUnreadCount(ChatRoom chatRoom, Long memberId) {
+        Long lastReadMessageId = getLastReadMessageId(chatRoom.getId(), memberId);
+        return chatMessageRepository.countUnreadMessagesExcludingSender(chatRoom, lastReadMessageId, memberId);
     }
 
 }
