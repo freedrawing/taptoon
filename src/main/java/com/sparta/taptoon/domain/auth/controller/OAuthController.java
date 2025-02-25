@@ -53,7 +53,7 @@ public class OAuthController {
     }
 
     @Operation(summary = "소셜 로그인 연동 해제")
-    @PostMapping("/oauth/disconnect")
+    @PostMapping("/disconnect")
     public ResponseEntity<ApiResponse<Void>> disconnectOAuth(OAuthDisconnectRequest request) {
         authService.disconnectOAuthMember(request.providerId(), request.provider());
         return ApiResponse.noContent();
