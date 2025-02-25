@@ -21,5 +21,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
         registry.addHandler(webSocketHandler, "/ws/chat/{roomId}")
                 .addInterceptors(webSocketAuthInterceptor)
                 .setAllowedOrigins("*"); // CORS 문제 해결
+//                .withSockJS(); // SockJS 활성화
     }
 }
