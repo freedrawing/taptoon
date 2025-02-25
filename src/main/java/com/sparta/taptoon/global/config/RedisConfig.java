@@ -55,7 +55,11 @@ public class RedisConfig {
      */
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory("localhost", 6379);
+        String host = System.getenv("SPRING_DATA_REDIS_HOST") != null ?
+                System.getenv("SPRING_DATA_REDIS_HOST") : "localhost";
+        int port = System.getenv("SPRING_DATA_REDIS_PORT") != null ?
+                Integer.parseInt(System.getenv("SPRING_DATA_REDIS_PORT")) : 6379;
+        return new LettuceConnectionFactory(host, port);
     }
 
     /**
