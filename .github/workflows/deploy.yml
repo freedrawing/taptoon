@@ -7,8 +7,7 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
     outputs:
-      image-tag: ${{ github.sha }}  # 다음 작업에서 사용할 이미지 태그 저장
-      ecr-registry: ${{ steps.login-ecr.outputs.registry }}  # ECR 레지스트리 URL 저장
+      image-tag: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v3
 
@@ -47,14 +46,51 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+  # 설정 파일 동기화 작업
+  sync_config:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Verify SSH connection and sync configs
+        run: |
+          # SSH 키 권한 설정
+          mkdir -p ~/.ssh
+          echo "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null" > ~/.ssh/config
+          chmod 600 ~/.ssh/config
+          
+          # 연결 테스트
+          ssh ubuntu@${{ secrets.EC2_HOST_1 }} "echo 'Connection to Instance 1 successful'"
+          ssh ubuntu@${{ secrets.EC2_HOST_2 }} "echo 'Connection to Instance 2 successful'"
+          
+          # 설정 디렉토리 존재 확인
+          ssh ubuntu@${{ secrets.EC2_HOST_1 }} "mkdir -p /home/ubuntu/taptoon/config"
+          ssh ubuntu@${{ secrets.EC2_HOST_2 }} "mkdir -p /home/ubuntu/taptoon/config"
+          
+          # 인스턴스 1에서 설정 파일 가져오기
+          echo "Retrieving config from Instance 1"
+          ssh ubuntu@${{ secrets.EC2_HOST_1 }} "cat /home/ubuntu/taptoon/config/application-deploy.yaml" > application-deploy.yaml
+          
+          # 인스턴스 2로 설정 파일 전송
+          echo "Syncing config to Instance 2"
+          cat application-deploy.yaml | ssh ubuntu@${{ secrets.EC2_HOST_2 }} "cat > /home/ubuntu/taptoon/config/application-deploy.yaml"
+          
+          echo "Config synchronization completed"
+
   deploy:
-    needs: build_and_push  # 이전 작업이 완료된 후 실행
+    needs: [build_and_push, sync_config]
     runs-on: ubuntu-latest
     strategy:
       matrix:
         instance_info:
           - { host_var: EC2_HOST_1, name: "Instance 1" }
           - { host_var: EC2_HOST_2, name: "Instance 2" }
+      # 인스턴스 하나에 오류가 발생해도 다른 인스턴스 배포는 계속 진행
+      fail-fast: false
     steps:
       - name: Deploy to ${{ matrix.instance_info.name }}
         uses: appleboy/ssh-action@master
@@ -65,7 +101,9 @@ jobs:
           script_stop: true
           envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
           script: |
-            # 명시적인 ECR 레지스트리 주소 설정 (outputs에서 가져오지 않음)
+            set -e  # 스크립트 오류 발생 시 즉시 중단
+            
+            # 환경 변수 설정
             export ECR_REGISTRY="120569645336.dkr.ecr.ap-northeast-2.amazonaws.com"
             export ECR_REPOSITORY="taptoon"
             export IMAGE_TAG="${{ needs.build_and_push.outputs.image-tag }}"
@@ -80,11 +118,19 @@ jobs:
             BACKUP_DIR="$PROJECT_ROOT/backup"
             CONFIG_DIR="$PROJECT_ROOT/config"
             
+            # 설정 파일 존재 확인
+            if [ ! -f "$CONFIG_DIR/application-deploy.yaml" ]; then
+              echo "ERROR: application-deploy.yaml not found in $CONFIG_DIR"
+              exit 1
+            else
+              echo "Found configuration file: $CONFIG_DIR/application-deploy.yaml"
+            fi
+            
             # AWS CLI 설치 확인 및 설치
             if ! command -v aws &> /dev/null; then
               echo "Installing AWS CLI..."
               sudo apt-get update
-              sudo apt-get install -y unzip
+              sudo apt-get install -y unzip curl
               curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
               unzip -o awscliv2.zip
               sudo ./aws/install --update
@@ -108,7 +154,18 @@ jobs:
             
             chmod 600 ~/.aws/credentials ~/.aws/config
             
-            # ECR 로그인 (Docker의 비 TTY 오류 방지)
+            # Docker 설치 확인
+            if ! command -v docker &> /dev/null; then
+              echo "ERROR: Docker is not installed. Installing Docker..."
+              sudo apt-get update
+              sudo apt-get install -y docker.io
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -aG docker ubuntu
+              echo "Docker installed. You may need to reconnect for group changes to take effect."
+            fi
+            
+            # ECR 로그인
             echo "Logging in to ECR..."
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
             
@@ -137,42 +194,41 @@ jobs:
             echo "Creating new current directory..."
             mkdir -p "$CURRENT_DIR"
             
-            # application-deploy.yaml 복사 (config 디렉토리에서)
-            if [ -f "$CONFIG_DIR/application-deploy.yaml" ]; then
-              echo "Copying application-deploy.yaml from config directory..."
-              cp "$CONFIG_DIR/application-deploy.yaml" "$CURRENT_DIR/"
+            echo "Copying application-deploy.yaml from config directory..."
+            cp "$CONFIG_DIR/application-deploy.yaml" "$CURRENT_DIR/"
+            
+            # Docker 네트워크 존재 확인 및 생성
+            if ! docker network inspect taptoon-network &> /dev/null; then
+              echo "Creating Docker network: taptoon-network"
+              docker network create taptoon-network
             else
-              echo "WARNING: application-deploy.yaml not found in config directory!"
-              # 백업에서 복구 시도
-              if [ -f "$BACKUP_DIR/current_backup/application-deploy.yaml" ]; then
-                echo "Recovering application-deploy.yaml from backup..."
-                cp "$BACKUP_DIR/current_backup/application-deploy.yaml" "$CURRENT_DIR/"
-              else
-                echo "ERROR: No application-deploy.yaml found. Deployment cannot continue."
-                exit 1
-              fi
+              echo "Docker network taptoon-network already exists"
             fi
             
-            # Docker 네트워크 생성
-            echo "Creating Docker network..."
-            docker network create taptoon-network || true
-            
             # Redis 컨테이너 재시작
-            echo "Restarting Redis container..."
-            docker stop redis-container || true
-            docker rm redis-container || true
+            echo "Stopping existing Redis container (if any)..."
+            docker stop redis-container &> /dev/null || true
+            docker rm redis-container &> /dev/null || true
+            
+            echo "Starting Redis container..."
             docker run -d \
               --name redis-container \
               --network taptoon-network \
               -p 6379:6379 \
               redis:latest
             
+            # Redis 컨테이너 실행 확인
+            if ! docker ps | grep redis-container &> /dev/null; then
+              echo "ERROR: Failed to start Redis container"
+              docker logs redis-container
+              exit 1
+            else
+              echo "Redis container started successfully"
+            fi
+            
             # 새 이미지 다운로드
             echo "Pulling Docker image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-            docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            
-            # 이미지 풀 성공 확인
-            if [ $? -ne 0 ]; then
+            if ! docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG; then
               echo "ERROR: Failed to pull Docker image."
               exit 1
             else
@@ -180,9 +236,11 @@ jobs:
             fi
             
             # 앱 컨테이너 재시작
+            echo "Stopping existing application container (if any)..."
+            docker stop taptoon-app &> /dev/null || true
+            docker rm taptoon-app &> /dev/null || true
+            
             echo "Starting application container..."
-            docker stop taptoon-app || true
-            docker rm taptoon-app || true
             docker run -d \
               --name taptoon-app \
               --network taptoon-network \
@@ -197,17 +255,29 @@ jobs:
               -e REDISSON_ADDRESS=redis://redis-container:6379 \
               "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             
-            # 배포 결과 확인
-            if [ $? -eq 0 ]; then
-              echo "Container started successfully."
-              docker ps | grep taptoon-app
-              echo "=== Deployment on ${{ matrix.instance_info.name }} completed successfully ==="
-            else
-              echo "ERROR: Failed to start container."
-              echo "=== Deployment on ${{ matrix.instance_info.name }} failed ==="
+            # 컨테이너 실행 여부 확인
+            if ! docker ps | grep taptoon-app &> /dev/null; then
+              echo "ERROR: Application container failed to start"
+              docker logs taptoon-app
               exit 1
+            else
+              echo "Application container started successfully"
+              docker ps | grep taptoon-app
+            fi
+            
+            # 서비스 헬스 체크 (10초 대기 후)
+            echo "Waiting for application to start..."
+            sleep 10
+            
+            if curl -s http://localhost:8080/actuator/health &> /dev/null; then
+              echo "Application is responding to health checks."
+            else
+              echo "WARNING: Application health check failed. Check application logs:"
+              docker logs taptoon-app
             fi
             
             # 사용하지 않는 이미지 정리
             echo "Cleaning up unused Docker images..."
             docker image prune -f
+            
+            echo "=== Deployment on ${{ matrix.instance_info.name }} completed ==="
