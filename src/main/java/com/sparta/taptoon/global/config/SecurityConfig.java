@@ -38,9 +38,6 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                .requiresChannel(channel ->
-                        channel.anyRequest().requiresSecure() // 모든 요청을 HTTPS로 강제 리디렉트
-                )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
