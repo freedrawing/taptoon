@@ -14,9 +14,7 @@ public class HomeController {
     @GetMapping("/")
     public ResponseEntity<ApiResponse<Map<String, Object>>> home() {
         Map<String, Object> response = new HashMap<>();
-        response.put("success_or_fail", true);
-        response.put("data", "Welcome to Taptoon API");
-        response.put("message", "OK");
+        response.put("data", "Taptoon 홈페이지입니다.");
 
         return ApiResponse.success(response);
     }
@@ -24,9 +22,7 @@ public class HomeController {
     @GetMapping("/health")
     public ResponseEntity<ApiResponse<Map<String, Object>>> healthCheck() {
         Map<String, Object> response = new HashMap<>();
-        response.put("success_or_fail", true);
         response.put("data", "서비스 정상 작동 중!");
-        response.put("message", "OK");
         return ApiResponse.success(response);
     }
 }
