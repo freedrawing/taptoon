@@ -1,6 +1,7 @@
 package com.sparta.taptoon.domain.image.controller;
 
-import com.sparta.taptoon.domain.image.dto.PreSignedUrlRequest;
+import com.sparta.taptoon.domain.image.dto.request.PreSignedUrlRequest;
+import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
 import com.sparta.taptoon.domain.image.service.ImageService;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,9 +23,9 @@ public class ImageController {
 
     @Operation(summary = "preSignedUrl 방식 이미지 업로드")
     @PostMapping("/upload")
-    public ResponseEntity<ApiResponse<String>> getPresignedUrl(
+    public ResponseEntity<ApiResponse<PresignedUrlResponse>> getPresignedUrl(
             @Valid @RequestBody PreSignedUrlRequest request) {
-        String presignedUrl = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileName());
+        PresignedUrlResponse presignedUrl = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileName());
         return ApiResponse.success(presignedUrl);
     }
 }
