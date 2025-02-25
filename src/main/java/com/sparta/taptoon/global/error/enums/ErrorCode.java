@@ -1,5 +1,6 @@
 package com.sparta.taptoon.global.error.enums;
 
+import co.elastic.clients.elasticsearch.nodes.Http;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,7 @@ public enum ErrorCode {
   //Comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"COMMENT_404", "존재하지 않는 댓글입니다."),
   COMMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COMMENT_403", "본 댓글에 대한 권한이 없습니다."),
+  COMMENT_ALREADY_DELETED(HttpStatus.CONFLICT, "COMMENT_409", "이미 삭제된 댓글입니다."),
 
   //chat
   CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_404", "채팅방이 존재하지 않습니다."),

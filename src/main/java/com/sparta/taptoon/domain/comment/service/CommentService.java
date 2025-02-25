@@ -10,9 +10,11 @@ import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
+import com.sparta.taptoon.global.error.exception.EntityAlreadyExistsException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
+@Slf4j
 public class CommentService {
 
     private final CommentRepository commentRepository;
@@ -37,12 +40,16 @@ public class CommentService {
         MatchingPost foundMatchingPost = matchingPostRepository.findById(matchingPostId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MATCHING_POST_NOT_FOUND));
 
+        log.info("Received parentId: " + commentRequest.parentId());
         // 댓글은 부모 객체를 가지지 않는 것이 default
         Comment parent = null;
+        log.info("parent1 is " + parent);
         // 만약 requestDto에서 parentId를 입력받았다면 그 댓글의 parent를 찾기 (대댓글로 결정되는 과정)
         if (commentRequest.parentId() != null && commentRequest.parentId() > 0) {
             parent = commentRepository.findById(commentRequest.parentId())
                     .orElseThrow(()-> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
+        } else {
+            parent = null;
         }
         // 유저가 작성한 댓글
         Comment comment = commentRequest.toEntity(foundMember, foundMatchingPost, parent);
@@ -128,6 +135,12 @@ public class CommentService {
         if (!foundComment.getMember().getId().equals(member.getId())) {
             throw new AccessDeniedException(ErrorCode.COMMENT_ACCESS_DENIED);
         }
+
+        // 중복 삭제 처리 막기
+        if (foundComment.isDeleted()) {
+            throw new EntityAlreadyExistsException(ErrorCode.COMMENT_ALREADY_DELETED);
+        }
+
         // 댓글 Soft Delete
         foundComment.remove();
 
