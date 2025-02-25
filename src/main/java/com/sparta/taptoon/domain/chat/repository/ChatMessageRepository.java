@@ -3,6 +3,8 @@ package com.sparta.taptoon.domain.chat.repository;
 import com.sparta.taptoon.domain.chat.entity.ChatMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,5 +23,13 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     /** 마지막으로 읽은 메시지 이후 메시지 개수 조회 */
     int countByChatRoomAndIdGreaterThan(ChatRoom chatRoom, Long lastReadMessageId);
+
+    @Query("SELECT COUNT(cm) FROM ChatMessage cm " +
+            "WHERE cm.chatRoom = :chatRoom " +
+            "AND cm.id > :lastReadMessageId " +
+            "AND cm.sender.id != :memberId")
+    int countUnreadMessagesExcludingSender(@Param("chatRoom") ChatRoom chatRoom,
+                                           @Param("lastReadMessageId") Long lastReadMessageId,
+                                           @Param("memberId") Long memberId);
 
 }
