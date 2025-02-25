@@ -54,6 +54,7 @@ jobs:
             export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
             export ECR_REPOSITORY=taptoon
             export IMAGE_TAG=${{ github.sha }}
+            chmod +x /home/ubuntu/taptoon/deploy.sh
             /home/ubuntu/taptoon/deploy.sh
 
       - name: Deploy to EC2 instance 2
@@ -67,4 +68,5 @@ jobs:
             export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
             export ECR_REPOSITORY=taptoon
             export IMAGE_TAG=${{ github.sha }}
+            chmod +x /home/ubuntu/taptoon/deploy.sh
             /home/ubuntu/taptoon/deploy.sh
