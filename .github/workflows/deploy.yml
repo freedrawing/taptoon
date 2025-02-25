@@ -4,8 +4,10 @@ on:
     branches: [ cd-deploy ]  # 메인 브랜치에 push될 때 실행
 
 jobs:
-  deploy:
+  build_and_push:
     runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ github.sha }}  # 다음 작업에서 사용할 이미지 태그 저장
     steps:
       - uses: actions/checkout@v3
 
@@ -43,30 +45,94 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Deploy to EC2 instance 1
+  deploy:
+    needs: build_and_push  # 이전 작업이 완료된 후 실행
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        host: [EC2_HOST_1, EC2_HOST_2]  # 호스트 목록을 매트릭스로 정의
+    steps:
+      - name: Deploy to EC2 instance
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST_1 }}
+          host: ${{ secrets[matrix.host] }}  # 매트릭스 변수를 사용하여 호스트 선택
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG
+          script_stop: true  # 오류 발생 시 스크립트 중단
           script: |
-            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-            export ECR_REPOSITORY=taptoon
-            export IMAGE_TAG=${{ github.sha }}
-            chmod +x /home/ubuntu/taptoon/deploy.sh
-            /home/ubuntu/taptoon/deploy.sh
-
-      - name: Deploy to EC2 instance 2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST_2 }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG
-          script: |
-            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-            export ECR_REPOSITORY=taptoon
-            export IMAGE_TAG=${{ github.sha }}
-            chmod +x /home/ubuntu/taptoon/deploy.sh
-            /home/ubuntu/taptoon/deploy.sh
+            # 환경 변수 설정
+            export ECR_REGISTRY="120569645336.dkr.ecr.ap-northeast-2.amazonaws.com"
+            export ECR_REPOSITORY="taptoon"
+            export IMAGE_TAG="${{ needs.build_and_push.outputs.image-tag }}"  # 이전 작업에서 저장한 태그 사용
+            
+            # 디렉토리 변수 설정
+            PROJECT_ROOT="/home/ubuntu/taptoon"
+            CURRENT_DIR="$PROJECT_ROOT/current"
+            BACKUP_DIR="$PROJECT_ROOT/backup"
+            CONFIG_DIR="$PROJECT_ROOT/config"  # 이미 있는 config 디렉토리 사용
+            
+            echo "Starting deployment with image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+            echo "Using configuration from: $CONFIG_DIR/application-deploy.yaml"
+            
+            # 백업 관리
+            mkdir -p "$BACKUP_DIR"
+            if [ -d "$BACKUP_DIR/current_backup" ]; then
+              rm -rf "$BACKUP_DIR/current_backup"
+            fi
+            
+            # 현재 디렉토리 백업
+            if [ -d "$CURRENT_DIR" ]; then
+              mv "$CURRENT_DIR" "$BACKUP_DIR/current_backup"
+            fi
+            
+            # 새 current 디렉토리 생성 및 설정 파일 복사
+            mkdir -p "$CURRENT_DIR"
+            cp "$CONFIG_DIR/application-deploy.yaml" "$CURRENT_DIR/"
+            
+            # AWS ECR 로그인
+            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+            
+            # Docker 네트워크 생성
+            docker network create taptoon-network || true
+            
+            # Redis 컨테이너 재시작
+            docker stop redis-container || true
+            docker rm redis-container || true
+            docker run -d \
+              --name redis-container \
+              --network taptoon-network \
+              -p 6379:6379 \
+              redis:latest
+            
+            # 새 이미지 다운로드
+            echo "Pulling image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+            docker pull "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+            
+            # 앱 컨테이너 재시작
+            docker stop taptoon-app || true
+            docker rm taptoon-app || true
+            docker run -d \
+              --name taptoon-app \
+              --network taptoon-network \
+              -p 0.0.0.0:8080:8080 \
+              -v "$CURRENT_DIR:/app/config" \
+              -e SPRING_PROFILES_ACTIVE=deploy \
+              -e SPRING_CONFIG_LOCATION=file:/app/config/application-deploy.yaml \
+              -e SPRING_DATA_REDIS_HOST=redis-container \
+              -e SPRING_DATA_REDIS_PORT=6379 \
+              -e SPRING_REDIS_HOST=redis-container \
+              -e SPRING_REDIS_PORT=6379 \
+              -e REDISSON_ADDRESS=redis://redis-container:6379 \
+              "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+            
+            # 배포 결과 확인
+            if [ $? -eq 0 ]; then
+              echo "Deployment succeeded!"
+              docker ps | grep taptoon-app
+            else
+              echo "Deployment failed!"
+              exit 1
+            fi
+            
+            # 사용하지 않는 이미지 정리
+            docker image prune -f
