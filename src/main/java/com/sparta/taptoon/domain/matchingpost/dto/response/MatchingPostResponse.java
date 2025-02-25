@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 public record MatchingPostResponse(
         Long matchingPostId,
+        Long authorId,
         String title,
         String description,
         String artistType,
@@ -19,6 +20,7 @@ public record MatchingPostResponse(
     public static MatchingPostResponse from(MatchingPost matchingPost) {
         return new MatchingPostResponse(
                 matchingPost.getId(),
+                matchingPost.getAuthor().getId(),
                 matchingPost.getTitle(),
                 matchingPost.getDescription(),
                 matchingPost.getArtistType().name(),
