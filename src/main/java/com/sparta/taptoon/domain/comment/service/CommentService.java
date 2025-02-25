@@ -10,7 +10,6 @@ import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
-import com.sparta.taptoon.global.error.exception.EntityAlreadyExistsException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +51,11 @@ public class CommentService {
         // 답글을 작성할 댓글을 찾기
         Comment parentComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
+
+        // 답글에는 답글을 달 수 없음
+        if (parentComment.getParent().isPresent()) {
+            throw new InvalidRequestException(ErrorCode.INVALID_REQUEST);
+        }
 
         // 댓글의 매칭포스트를 찾기
         MatchingPost matchingPostOfParentComment = parentComment.getMatchingPost();
@@ -110,6 +114,11 @@ public class CommentService {
         Comment parentComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
 
+        // 답글을 조회할 수 없음
+        if (parentComment.getParent().isPresent()) {
+            throw new InvalidRequestException(ErrorCode.INVALID_REQUEST);
+        }
+
         // parentId로 답글 찾기
         List<Comment> replies = commentRepository.findAllByParentId(commentId);
 
@@ -133,14 +142,14 @@ public class CommentService {
             throw new AccessDeniedException(ErrorCode.COMMENT_ACCESS_DENIED);
         }
 
-        // 중복 삭제 처리 막기
-        if (foundComment.isDeleted()) {
-            throw new EntityAlreadyExistsException(ErrorCode.COMMENT_ALREADY_DELETED);
-        }
-
         // 댓글 Soft Delete
         foundComment.remove();
 
+        // 댓글 삭제하고 답글들도 삭제하기
+        List<Comment> allByParentId = commentRepository.findAllByParentId(commentId);
+        allByParentId.forEach(Comment::remove);
+    }
+}
         /*
          1. isDeleted true인 댓글들 조회 안되게 예외처리
          2. 댓글은 자식까지만 (손주, 증손주 허용안됨)
@@ -148,6 +157,3 @@ public class CommentService {
          4. 포스트에서 댓글만 조회할때 답글이 있는지 없는지 response에서 알려주기
          5. 조회 api Pageable통해 페이징처리 기능 추가
          */
-
-    }
-}

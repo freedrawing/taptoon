@@ -8,9 +8,11 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 import java.util.Optional;
 
+@Where(clause = "is_deleted = false")
 @Getter
 @Entity
 @NoArgsConstructor
@@ -54,9 +56,9 @@ public class Comment extends BaseEntity {
         this.isDeleted = false;
     }
 
-    public Optional<Long> getParent() {
-        return Optional.ofNullable(parent)
-                .map(Comment::getId);
+    // parentId null check
+    public Optional<Comment> getParent() {
+        return Optional.ofNullable(parent);
     }
 
     // 댓글 수정 메서드

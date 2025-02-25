@@ -26,7 +26,7 @@ public record CommentResponse(
                 .matchingPostId(comment.getMatchingPost().getId())
                 .memberId(comment.getMember().getId())
                 .memberNickname(comment.getMember().getNickname())
-                .parentId(comment.getParent().orElse(null))
+                .parentId(getParentId(comment)) // null checked
                 .content(comment.getContent())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
@@ -40,11 +40,18 @@ public record CommentResponse(
                 .matchingPostId(comment.getMatchingPost().getId())
                 .memberId(comment.getMember().getId())
                 .memberNickname(comment.getMember().getNickname())
-                .parentId(comment.getParent().orElse(null))
+                .parentId(getParentId(comment)) // null checked
                 .content(comment.getContent())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
                 .replies(replies)
                 .build();
+    }
+
+    // Optional ParentId null check logic
+    private static Long getParentId(Comment comment) {
+        return comment.getParent()
+                .map(Comment::getId)
+                .orElse(null);
     }
 }
