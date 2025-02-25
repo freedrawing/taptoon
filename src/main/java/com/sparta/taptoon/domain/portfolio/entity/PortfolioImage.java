@@ -18,7 +18,7 @@ public class PortfolioImage extends BaseEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url", nullable = false, length = 1000)
     private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)

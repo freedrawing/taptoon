@@ -7,6 +7,7 @@ import com.sparta.taptoon.domain.chat.entity.ChatImageMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
 import com.sparta.taptoon.domain.chat.repository.ChatImageMessageRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomRepository;
+import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPostImage;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostImageRepository;
@@ -44,11 +45,14 @@ public class ImageServiceImpl implements ImageService{
     private final MemberRepository memberRepository;
     private final ChatImageMessageRepository chatImageMessageRepository;
 
+    private final String MATCHING_POST = "matchingpost";
+    private final String PORTFOLIO = "portfolio";
+
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
     @Override
-    public String generatePresignedUrl(String folderPath, Long id, String fileName) {//id 값을
+    public PresignedUrlResponse generatePresignedUrl(String folderPath, Long id, String fileName) {//id 값을
         folderPath = normalizeFolderPath(folderPath);
         String contentType = getContentType(fileName);
         String directory = folderPath + id + "/original/"+ fileName;
@@ -59,29 +63,35 @@ public class ImageServiceImpl implements ImageService{
          * 클라이언트에게 전달할 url 생성, 각 img 테이블에 url, status = PENDING 저장
          * 반드시 글쓰기 버튼 클릭(빈 객체 생성) 후에 진행해야 합니다!
          */
-        switch (folderPath) {
-            case "matchingpost":
-                MatchingPost matchingPost = matchingPostRepository.findById(id)
-                        .orElseThrow(() -> new NotFoundException(ErrorCode.MATCHING_POST_NOT_FOUND));
-                MatchingPostImage matchingPostImage = MatchingPostImage.builder()
-                        .matchingPost(matchingPost)
-                        .imageUrl(imageUrl)
-                        .status(ImageStatus.PENDING)
-                        .build();
-                matchingPostImageRepository.save(matchingPostImage);
-                break;
-            case "portfolio":
-                Portfolio portfolio = portfolioRepository.findById(id)
-                        .orElseThrow(() -> new NotFoundException(ErrorCode.PORTFOLIO_NOT_FOUND));
-                PortfolioImage portfolioImage = PortfolioImage.builder()
-                        .portfolio(portfolio)
-                        .imageUrl(imageUrl)
-                        .status(ImageStatus.PENDING)
-                        .build();
-                portfolioImageRepository.save(portfolioImage);
-                break;
-        }
-        return imageUrl;
+        return folderPath.contains(MATCHING_POST) ? saveMatchingPostImage(id, imageUrl) : savePortfolioImage(id, imageUrl);
+    }
+
+    private PresignedUrlResponse saveMatchingPostImage(Long id, String imageUrl) {
+        MatchingPost matchingPost = matchingPostRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MATCHING_POST_NOT_FOUND));
+
+        MatchingPostImage image = MatchingPostImage.builder()
+                .matchingPost(matchingPost)
+                .imageUrl(imageUrl)
+                .status(ImageStatus.PENDING)
+                .build();
+
+        MatchingPostImage savedImage = matchingPostImageRepository.save(image);
+        return new PresignedUrlResponse(imageUrl, savedImage.getId());
+    }
+
+    private PresignedUrlResponse savePortfolioImage(Long id, String imageUrl) {
+        Portfolio portfolio = portfolioRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.PORTFOLIO_NOT_FOUND));
+
+        PortfolioImage image = PortfolioImage.builder()
+                .portfolio(portfolio)
+                .imageUrl(imageUrl)
+                .status(ImageStatus.PENDING)
+                .build();
+
+        PortfolioImage savedImage = portfolioImageRepository.save(image);
+        return new PresignedUrlResponse(imageUrl, savedImage.getId());
     }
 
     @Override
