@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Optional;
+
 @Getter
 @Entity
 @NoArgsConstructor
@@ -50,6 +52,11 @@ public class Comment extends BaseEntity {
         this.parent = parent;
         this.content = content;
         this.isDeleted = false;
+    }
+
+    public Optional<Long> getParent() {
+        return Optional.ofNullable(parent)
+                .map(Comment::getId);
     }
 
     // 댓글 수정 메서드

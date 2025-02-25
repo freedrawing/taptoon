@@ -13,7 +13,7 @@ import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.EntityAlreadyExistsException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 @Slf4j
 public class CommentService {
@@ -33,28 +33,33 @@ public class CommentService {
     // 댓글 생성
     @Transactional
     public CommentResponse makeComment(CommentRequest commentRequest, Member member, Long matchingPostId) {
-        // 유저 찾기
-        Member foundMember = memberRepository.findById(member.getId())
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         // 매칭포스트 찾기
         MatchingPost foundMatchingPost = matchingPostRepository.findById(matchingPostId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MATCHING_POST_NOT_FOUND));
 
-        log.info("Received parentId: " + commentRequest.parentId());
-        // 댓글은 부모 객체를 가지지 않는 것이 default
-        Comment parent = null;
-        log.info("parent1 is " + parent);
-        // 만약 requestDto에서 parentId를 입력받았다면 그 댓글의 parent를 찾기 (대댓글로 결정되는 과정)
-        if (commentRequest.parentId() != null && commentRequest.parentId() > 0) {
-            parent = commentRepository.findById(commentRequest.parentId())
-                    .orElseThrow(()-> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
-        } else {
-            parent = null;
-        }
         // 유저가 작성한 댓글
-        Comment comment = commentRequest.toEntity(foundMember, foundMatchingPost, parent);
+        Comment comment = commentRequest.toEntity(member, foundMatchingPost);
 
         // 유저가 작성한 댓글 저장
+        Comment savedComment = commentRepository.save(comment);
+
+        return CommentResponse.from(savedComment);
+    }
+
+    // 답글(대댓글) 생성
+    @Transactional
+    public CommentResponse makeReply(CommentRequest commentRequest, Member member, Long commentId) {
+        // 답글을 작성할 댓글을 찾기
+        Comment parentComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
+
+        // 댓글의 매칭포스트를 찾기
+        MatchingPost matchingPostOfParentComment = parentComment.getMatchingPost();
+
+        // 유저가 작성한 답글
+        Comment comment = commentRequest.toEntity(member, parentComment, matchingPostOfParentComment);
+
+        // 유저가 작성한 답글 저장
         Comment savedComment = commentRepository.save(comment);
 
         return CommentResponse.from(savedComment);
@@ -70,6 +75,7 @@ public class CommentService {
         // 수정할 댓글 찾기
         Comment foundComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
+
         // 수정할 댓글이 멤버가 작성한 댓글인지 검증
         if (!foundComment.getMember().getId().equals(member.getId())) {
             throw new AccessDeniedException(ErrorCode.COMMENT_ACCESS_DENIED);
@@ -78,16 +84,11 @@ public class CommentService {
         if (!foundComment.getMatchingPost().getId().equals(matchingPostId)) {
             throw new InvalidRequestException(ErrorCode.INVALID_REQUEST);
         }
-        // 만약 requestDto에서 parentId를 입력받았다면 그 댓글의 parent를 찾기
-        if (commentRequest.parentId() != null && commentRequest.parentId() > 0) {
-            commentRepository.findById(commentRequest.parentId())
-                    .orElseThrow(()-> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
-        }
 
         foundComment.updateComment(commentRequest);
     }
 
-    // 특정 포스트의 모든 댓글 (대댓글 제외) 조회
+    // 특정 포스트의 모든 댓글 (답글 제외) 조회
     @Transactional(readOnly = true)
     public List<CommentResponse> findAllCommentsFromMatchingPost(Long matchingPostId) {
         // 특정 포스트에 달린 댓글 찾기
@@ -95,28 +96,24 @@ public class CommentService {
 
         // 부모가 없는 댓글 Response에 담기
         List<CommentResponse> commentResponses = foundComments.stream()
-                .filter(comment -> comment.getParent() == null) // parentId가 null인 댓글들 조회
+                .filter(comment -> comment.getParent().isEmpty()) // parentId가 없는 댓글들 조회
                 .map(CommentResponse::from)
                 .collect(Collectors.toList());
 
         return commentResponses;
     }
 
-    // 특정 댓글과 대댓글 조회
+    // 특정 댓글과 답글 조회
     @Transactional(readOnly = true)
     public CommentResponse findAllRepliesWithParentComment(Long commentId) {
         // 댓글 찾기
         Comment parentComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMENT_NOT_FOUND));
-        // parentId로 대댓글 찾기
+
+        // parentId로 답글 찾기
         List<Comment> replies = commentRepository.findAllByParentId(commentId);
-        // 대댓글이 부모 댓글의 id를 제대로 갖고있는지 비교 검증
-        for (Comment reply : replies) {
-            if (!reply.getParent().getId().equals(parentComment.getId())) {
-                throw new InvalidRequestException(ErrorCode.INVALID_REQUEST);
-            }
-        }
-        // id 비교 검증 로직으로 모두 통과되면 대댓글 ResponseDto에 담기
+
+        // 대댓글 ResponseDto에 담기
         List<CommentResponse> repliesResponses = replies.stream()
                 .map(CommentResponse::from)
                 .collect(Collectors.toList());
@@ -145,10 +142,11 @@ public class CommentService {
         foundComment.remove();
 
         /*
-         1. 댓글 isDeleted 할때 대댓글이 있으면 대댓글도 함께 지울것인지? -> (parentComment가 삭제되어도 하위 대댓글들 유지하기)
-         2. 이 isDeleted가 이미 true인 댓글 중복 삭제 요청 안되게 하기
-         3. isDeleted true인 댓글들 조회 안되게 예외처리
-         4. 포스트에서 parent댓글만 조회할때 답글이 있는지 없는지 response에서 알려주기
+         1. isDeleted true인 댓글들 조회 안되게 예외처리
+         2. 댓글은 자식까지만 (손주, 증손주 허용안됨)
+         3. 특정 댓글과 대댓글 조회에서 답글은 조회대상에서 제외시키기
+         4. 포스트에서 댓글만 조회할때 답글이 있는지 없는지 response에서 알려주기
+         5. 조회 api Pageable통해 페이징처리 기능 추가
          */
 
     }

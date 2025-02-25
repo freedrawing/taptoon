@@ -8,7 +8,7 @@ import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @Slf4j
 @Tag(name = "Comment", description = "댓글 API")
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/comments")
 public class CommentController {
@@ -30,12 +30,19 @@ public class CommentController {
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
             @AuthenticationPrincipal MemberDetail memberDetail,
             @PathVariable Long matchingPostId,
-            @Valid @RequestBody CommentRequest commentRequest
-            ) {
-        log.info("Received request: parentId={}, content={}, matchingPostId={}",
-                commentRequest.parentId(), commentRequest.content(), matchingPostId);
+            @Valid @RequestBody CommentRequest commentRequest) {
         CommentResponse comment = commentService.makeComment(commentRequest, memberDetail.getMember(), matchingPostId);
         return ApiResponse.created(comment);
+    }
+
+    @Operation(summary = "답글 생성")
+    @PostMapping("/reply/{commentId}")
+    public ResponseEntity<ApiResponse<CommentResponse>> createReply(
+            @AuthenticationPrincipal MemberDetail memberDetail,
+            @PathVariable Long commentId,
+            @Valid @RequestBody CommentRequest commentRequest) {
+        CommentResponse reply = commentService.makeReply(commentRequest, memberDetail.getMember(),commentId);
+        return ApiResponse.created(reply);
     }
 
     @Operation(summary = "댓글 수정")
@@ -49,7 +56,7 @@ public class CommentController {
         return ApiResponse.noContent();
     }
 
-    @Operation(summary = "특정 포스트의 모든 댓글 조회 (대댓글 제외)")
+    @Operation(summary = "특정 포스트의 모든 댓글 조회 (답글 제외)")
     @GetMapping("/matching-post/{matchingPostId}")
     public ResponseEntity<ApiResponse<List<CommentResponse>>> getAllCommentsFromMatchingPost(
             @PathVariable Long matchingPostId) {
@@ -57,7 +64,7 @@ public class CommentController {
         return ApiResponse.success(commentsFromMatchingPost);
     }
 
-    @Operation(summary = "특정 댓글과 대댓글 조회")
+    @Operation(summary = "특정 댓글과 답글 조회")
     @GetMapping("/reply/{commentId}")
     public ResponseEntity<ApiResponse<CommentResponse>> getAllRepliesWithParentComment(
             @PathVariable Long commentId) {
