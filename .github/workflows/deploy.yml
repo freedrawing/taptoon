@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image-tag: ${{ github.sha }}  # 다음 작업에서 사용할 이미지 태그 저장
+      ecr-registry: ${{ steps.login-ecr.outputs.registry }}  # ECR 레지스트리 URL 저장
     steps:
       - uses: actions/checkout@v3
 
@@ -52,27 +53,80 @@ jobs:
       matrix:
         host: [EC2_HOST_1, EC2_HOST_2]  # 호스트 목록을 매트릭스로 정의
     steps:
+      # EC2 인스턴스에 AWS 자격 증명 전송
+      - name: Copy AWS credentials to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets[matrix.host] }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
+          script: |
+            # AWS CLI가 설치되어 있는지 확인
+            if ! command -v aws &> /dev/null; then
+              echo "AWS CLI not found. Installing..."
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip -q awscliv2.zip
+              sudo ./aws/install
+              rm -rf aws awscliv2.zip
+            fi
+            
+            # AWS 자격 증명 설정
+            mkdir -p ~/.aws
+            cat > ~/.aws/credentials << EOF
+            [default]
+            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            EOF
+            
+            cat > ~/.aws/config << EOF
+            [default]
+            region=ap-northeast-2
+            output=json
+            EOF
+            
+            # 권한 설정
+            chmod 600 ~/.aws/credentials
+            chmod 600 ~/.aws/config
+
       - name: Deploy to EC2 instance
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets[matrix.host] }}  # 매트릭스 변수를 사용하여 호스트 선택
+          host: ${{ secrets[matrix.host] }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true  # 오류 발생 시 스크립트 중단
+          script_stop: true
           script: |
             # 환경 변수 설정
-            export ECR_REGISTRY="120569645336.dkr.ecr.ap-northeast-2.amazonaws.com"
+            export ECR_REGISTRY="${{ needs.build_and_push.outputs.ecr-registry }}"
             export ECR_REPOSITORY="taptoon"
-            export IMAGE_TAG="${{ needs.build_and_push.outputs.image-tag }}"  # 이전 작업에서 저장한 태그 사용
+            export IMAGE_TAG="${{ needs.build_and_push.outputs.image-tag }}"
+            export AWS_REGION="ap-northeast-2"
             
             # 디렉토리 변수 설정
             PROJECT_ROOT="/home/ubuntu/taptoon"
             CURRENT_DIR="$PROJECT_ROOT/current"
             BACKUP_DIR="$PROJECT_ROOT/backup"
-            CONFIG_DIR="$PROJECT_ROOT/config"  # 이미 있는 config 디렉토리 사용
+            CONFIG_DIR="$PROJECT_ROOT/config"
             
             echo "Starting deployment with image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
-            echo "Using configuration from: $CONFIG_DIR/application-deploy.yaml"
+            
+            # ECR 로그인 - 강화된 버전
+            echo "Logging in to Amazon ECR..."
+            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+            
+            # 로그인 확인
+            if [ $? -ne 0 ]; then
+              echo "ECR login failed. Retrying with explicit AWS credentials..."
+              # 로그인 실패 시 명시적으로 AWS_ACCESS_KEY_ID와 AWS_SECRET_ACCESS_KEY를 사용
+              aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+            
+              if [ $? -ne 0 ]; then
+                echo "ECR login failed again. Deployment cannot continue."
+                exit 1
+              fi
+            fi
             
             # 백업 관리
             mkdir -p "$BACKUP_DIR"
@@ -89,9 +143,6 @@ jobs:
             mkdir -p "$CURRENT_DIR"
             cp "$CONFIG_DIR/application-deploy.yaml" "$CURRENT_DIR/"
             
-            # AWS ECR 로그인
-            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin "$ECR_REGISTRY"
-            
             # Docker 네트워크 생성
             docker network create taptoon-network || true
             
@@ -107,6 +158,12 @@ jobs:
             # 새 이미지 다운로드
             echo "Pulling image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
             docker pull "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+            
+            # 이미지 풀 성공 확인
+            if [ $? -ne 0 ]; then
+              echo "Failed to pull Docker image. Deployment cannot continue."
+              exit 1
+            fi
             
             # 앱 컨테이너 재시작
             docker stop taptoon-app || true
