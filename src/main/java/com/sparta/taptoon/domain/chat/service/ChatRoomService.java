@@ -19,7 +19,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -47,6 +50,19 @@ public class ChatRoomService {
         validateSelfInvitation(ownerId, request);
         List<Long> inviteeIds = removeDuplicateIds(request.memberIds());
         validateInvitees(inviteeIds);
+
+        // 전체 멤버 리스트 (ownerId 포함)
+        List<Long> allMemberIds = new ArrayList<>(inviteeIds);
+        allMemberIds.add(ownerId);
+        Collections.sort(allMemberIds); // 순서 무관 비교를 위해 정렬
+
+        // 동일 멤버 조합의 기존 채팅방 확인
+        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findByExactMembers(allMemberIds, allMemberIds.size());
+        if (existingChatRoom.isPresent()) {
+            log.info("✅ 기존 채팅방 반환 - chatRoomId: {}, memberCount: {}",
+                    existingChatRoom.get().getId(), existingChatRoom.get().getMemberCount());
+            return ChatRoomResponse.from(existingChatRoom.get());
+        }
 
         List<Member> members = fetchMembers(inviteeIds);
         ChatRoom chatRoom = createAndSaveChatRoom(creator, members);

@@ -71,11 +71,22 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
     // Authorization 헤더에서 토큰 추출
     private String extractToken(HttpServletRequest request) {
-        String token = request.getHeader(AUTHORIZATION_HEADER);
-        if (token == null || !token.startsWith(BEARER_PREFIX)) {
-            return null;
+//        String token = request.getHeader(AUTHORIZATION_HEADER);
+//        if (token == null || !token.startsWith(BEARER_PREFIX)) {
+//            return null;
+//        }
+//        return token.substring(BEARER_PREFIX.length());
+
+        String tokenFromQuery = request.getParameter("token");
+        if (tokenFromQuery != null) {
+            // Bearer 접두사가 포함되어 있을 수 있으니 확인 후 제거
+            if (tokenFromQuery.startsWith(BEARER_PREFIX)) {
+                return tokenFromQuery.substring(BEARER_PREFIX.length());
+            }
+            return tokenFromQuery; // Bearer 접두사 없이 순수 JWT 토큰 반환
         }
-        return token.substring(BEARER_PREFIX.length());
+
+        return null; // 토큰이 없으면 null 반환
     }
 
     // JWT 토큰 검증 및 senderId 추출
