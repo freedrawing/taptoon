@@ -99,7 +99,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         log.info("📤 WebSocket을 통해 메시지 브로드캐스트: {}", message);
 
         JsonNode jsonNode = objectMapper.readTree(message);
-        Long chatRoomId = jsonNode.get("chatRoomId").asLong();
+        Long chatRoomId = jsonNode.get("chat_room_id").asLong();
 
         sendMessageToChatRoom(chatRoomId, message);
     }
