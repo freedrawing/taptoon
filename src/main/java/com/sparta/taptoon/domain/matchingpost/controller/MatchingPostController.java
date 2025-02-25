@@ -80,11 +80,6 @@ public class MatchingPostController {
             @RequestParam(required = false) Long lastViewCount,
             @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
-
-
-        log.info("Request Parameters - artistType: {}, workType: {}, keyword: {}, lastId: {}, lastViewCount: {}, pageSize: {}",
-                artistType, workType, keyword, lastId, lastViewCount, pageSize);
-
         MatchingPostCursorResponse response = matchingPostService.findFilteredMatchingPosts(
                 artistType,
                 workType,
@@ -96,6 +91,7 @@ public class MatchingPostController {
     }
 
     // Autocomplete (10개씩만 보내주자. debounce 방식으로 처리해야 할 듯)
+    @Operation(summary = "검색시 키워드 자동완성")
     @PostMapping("/autocomplete")
     public ResponseEntity<ApiResponse<List<String>>> getAutocomplete(@RequestParam String keyword) {
         List<String> autocompleteSuggestions = elasticAutocompleteService.findAutocompleteSuggestion(keyword);

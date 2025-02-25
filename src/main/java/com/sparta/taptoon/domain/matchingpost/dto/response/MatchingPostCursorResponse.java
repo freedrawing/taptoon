@@ -8,6 +8,7 @@ import java.util.List;
 public record MatchingPostCursorResponse(
         List<MatchingPostDocumentResponse> content,
         Long lastId, // 마지막으로 읽은 문서ID
-        Long lastViewCount // 마지막으로 읽은 viewCount
+        Long lastViewCount, // 마지막으로 읽은 viewCount
+        Boolean isLastPage
 ) {
 }
