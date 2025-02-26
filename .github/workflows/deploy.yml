@@ -248,3 +248,43 @@ jobs:
             docker image prune -f
             
             echo "=== Deployment on ${{ matrix.instance_info.name }} completed ==="
+  cleanup_ecr:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Clean up old ECR images
+        env:
+          ECR_REPOSITORY: taptoon
+        run: |
+          echo "Cleaning up old ECR images..."
+          # 이미지 목록 가져오기 (최신 이미지 제외)
+          IMAGES_TO_DELETE=$(aws ecr describe-images \
+            --repository-name $ECR_REPOSITORY \
+            --query 'imageDetails[?imageTags!=`null`]|sort_by(@, &imagePushedAt)[:-1].imageDigest' \
+            --output json)
+          
+          # 삭제할 이미지가 있는지 확인
+          if [ "$IMAGES_TO_DELETE" != "[]" ] && [ "$IMAGES_TO_DELETE" != "" ]; then
+            echo "Found old images to delete: $IMAGES_TO_DELETE"
+            # 이미지 삭제
+          for digest in $(echo $IMAGES_TO_DELETE | jq -r '.[]'); do
+            echo "Deleting image with digest: $digest"
+            aws ecr batch-delete-image \
+            --repository-name $ECR_REPOSITORY \
+            --image-ids imageDigest=$digest
+          done
+            echo "Old ECR images cleaned up successfully"
+          else
+            echo "No old ECR images to clean up or only the latest image exists"
+          fi
