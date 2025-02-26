@@ -1,5 +1,6 @@
 package com.sparta.taptoon.global.error.enums;
 
+import co.elastic.clients.elasticsearch.nodes.Http;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,9 @@ public enum ErrorCode {
   ENTITY_ALREADY_EXISTS(HttpStatus.CONFLICT, "GENERAL_409", "이미 존재하는 엔티티입니다."),
   ACCESS_DENIED(HttpStatus.FORBIDDEN, "GENERAL_403", "접근 권한이 없습니다."),
   TOO_MANY_REQUEST(HttpStatus.TOO_MANY_REQUESTS, "GENERAL_429", "현재 요청이 많아 처리할 수 없습니다. 잠시 후 다시 시도해주세요."),
+
+  // S3
+  FAIL_CONNECT_TO_S3(HttpStatus.FORBIDDEN,"S3_403","S3와 연결에 실패했습니다."),
 
   // Member
   MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_404", "존재하지 않는 유저입니다."),
@@ -43,7 +47,10 @@ public enum ErrorCode {
   PORTFOLIO_IMAGE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "PORTFOLIO_403", "선택하신 이미지가 포트폴리오에 속해있지 않습니다."),
   CREATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PORTFOLIO_400", "허용된 개수를 초과하였습니다."),
 
-  // Comment
+  //Comment
+  COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"COMMENT_404", "존재하지 않는 댓글입니다."),
+  COMMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COMMENT_403", "본 댓글에 대한 권한이 없습니다."),
+  COMMENT_ALREADY_DELETED(HttpStatus.CONFLICT, "COMMENT_409", "이미 삭제된 댓글입니다."),
 
   //chat
   CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_404", "채팅방이 존재하지 않습니다."),

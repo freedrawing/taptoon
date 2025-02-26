@@ -1,6 +1,7 @@
 package com.sparta.taptoon.domain.images;
 
 import com.sparta.taptoon.domain.image.S3UploadClient;
+import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
 import com.sparta.taptoon.domain.image.service.ImageService;
 import feign.Client;
 import feign.Feign;
@@ -21,7 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class uploadtoS3FromClient {
+public class UploadToS3FromClient {
+
     @Autowired
     private ImageService imageService;
 
@@ -36,14 +38,14 @@ public class uploadtoS3FromClient {
         String directory = directory_t;
         String fileName = "test-image.jpg";
 
-        String presignedUrl = imageService.generatePresignedUrl(directory, 1L, fileName);
+        PresignedUrlResponse presignedUrlResponse = imageService.generatePresignedUrl(directory_m, 1L, fileName);
 
         S3UploadClient s3UploadClient = Feign.builder()
                 .contract(new SpringMvcContract())
                 .client(new Client.Default(null, null))
                 .encoder(new Encoder.Default())
                 .decoder(new Decoder.Default())
-                .target(S3UploadClient.class, presignedUrl);
+                .target(S3UploadClient.class, presignedUrlResponse.uploadingImageUrl());
 
         // 테스트 이미지 로드
         ClassPathResource resource = new ClassPathResource("test-images/test-image.jpg");

@@ -1,7 +1,7 @@
 package com.sparta.taptoon.domain.portfolio.entity;
 
 import com.sparta.taptoon.global.common.BaseEntity;
-import com.sparta.taptoon.global.common.enums.ImageStatus;
+import com.sparta.taptoon.global.common.enums.Status;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +18,7 @@ public class PortfolioImage extends BaseEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url", nullable = false, length = 1000)
     private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -27,10 +27,10 @@ public class PortfolioImage extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private ImageStatus status;
+    private Status status;
 
     @Builder
-    public PortfolioImage(String imageUrl, Portfolio portfolio, ImageStatus status) {
+    public PortfolioImage(String imageUrl, Portfolio portfolio, Status status) {
         this.imageUrl = imageUrl;
         this.portfolio = portfolio;
         this.status = status;

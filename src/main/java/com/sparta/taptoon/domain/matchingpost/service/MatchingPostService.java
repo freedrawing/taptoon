@@ -1,15 +1,15 @@
 package com.sparta.taptoon.domain.matchingpost.service;
 
 import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest;
-import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
+import com.sparta.taptoon.domain.matchingpost.dto.request.RegisterMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
-import com.sparta.taptoon.domain.matchingpost.entity.document.AutocompleteDocument;
+import com.sparta.taptoon.domain.matchingpost.entity.MatchingPostImage;
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
+import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostImageRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
-import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticAutocompleteRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
@@ -20,9 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.sparta.taptoon.global.error.enums.ErrorCode.MATCHING_POST_NOT_FOUND;
@@ -35,6 +33,7 @@ import static com.sparta.taptoon.global.error.enums.ErrorCode.MEMBER_NOT_FOUND;
 public class MatchingPostService {
 
     private final MatchingPostRepository matchingPostRepository;
+    private final MatchingPostImageRepository matchingPostImageRepository;
     private final ElasticMatchingPostRepository elasticMatchingPostRepository;
     private final ElasticMatchingPostManager elasticMatchingPostManager;
     private final ElasticAutocompleteService elasticAutocompleteService;
@@ -56,8 +55,8 @@ public class MatchingPostService {
         return savedEmtpyMatchingPost.getId();
     }
 
-
-    // 매칭포스트 생성
+    // 매칭포스트 생성 (이건 이제 사용 안 됨)
+    @Deprecated
     @Transactional
     public MatchingPostResponse makeNewMatchingPost(Long memberId, AddMatchingPostRequest request) {
         // Save to DB
@@ -65,26 +64,38 @@ public class MatchingPostService {
         MatchingPost savedMatchingPost = matchingPostRepository.save(request.toEntity(findMember));
 
         // 2. 트랜잭션이 정상적으로 완료된 후 ES에 저장
-        elasticMatchingPostManager.saveToESAfterCommit(savedMatchingPost);
+        elasticMatchingPostManager.saveToElasticsearchAfterCommit(savedMatchingPost);
 
         return MatchingPostResponse.from(savedMatchingPost);
     }
 
-    // 매칭 포스트 수정(일괄 수정)
+    // 매칭 포스트 등록 (수정 작업을 하지만 사실상 등록 로직임)
     @Transactional
-    public MatchingPostResponse modifyMatchingPost(Long memberId, Long matchingPostId, UpdateMatchingPostRequest request) {
+    public MatchingPostResponse registerMatchingPost(Long memberId, Long matchingPostId, RegisterMatchingPostRequest request) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
         if (findMatchingPost.isMyMatchingPost(memberId) == false) {
             throw new AccessDeniedException("매칭 게시글에 접근할 권한이 없습니다.");
         }
 
-        // 파일이랑 기타 정보 모두 수정해야 할 듯
-        findMatchingPost.modifyMe(request);
+        findMatchingPost.registerMe(request);
+        registerMatchingPostImages(request.matchingPostImageIds());
 
-        // Upsert to ES
-        elasticMatchingPostManager.upsertToESAfterCommit(findMatchingPost);
+        elasticMatchingPostManager.upsertToElasticsearchAfterCommit(findMatchingPost);
 
         return MatchingPostResponse.from(findMatchingPost);
+    }
+
+    /*
+        * MatchingPost 이미지 ID로 PENDING -> REGISTERED로 변경
+        * `modifyMatchingPost()`의 트랜잭션 하에서 실행됨
+     */
+    private void registerMatchingPostImages(List<Long> matchingPostImageIds) {
+        if (matchingPostImageIds.isEmpty()) return;
+
+        List<MatchingPostImage> uploadedImages = matchingPostImageRepository.findAllById(matchingPostImageIds);
+        if (uploadedImages.isEmpty() == false) {
+            uploadedImages.forEach(MatchingPostImage::registerMe);
+        }
     }
 
     // 매칭포스트 삭제 (soft deletion) 단, 사진이나 텍스트 파일을 어떻게 처리해야 할지 고려해야 함
@@ -99,7 +110,7 @@ public class MatchingPostService {
         findMatchingPost.removeMe();
 
         // Delete from ES
-        elasticMatchingPostManager.deleteFromESAfterCommit(matchingPostId);
+        elasticMatchingPostManager.deleteFromElasticsearchAfterCommit(matchingPostId);
     }
 
     /*
@@ -137,7 +148,7 @@ public class MatchingPostService {
         findMatchingPost.increaseViewCount();
 
         // 조회수 업데이트 (다만 이건 다소 비효율적이다)
-        elasticMatchingPostManager.upsertToESAfterCommit(findMatchingPost);
+        elasticMatchingPostManager.upsertToElasticsearchAfterCommit(findMatchingPost);
 
         return MatchingPostResponse.from(findMatchingPost);
     }

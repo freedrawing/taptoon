@@ -1,7 +1,6 @@
 package com.sparta.taptoon.domain.matchingpost.controller;
 
-import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest;
-import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
+import com.sparta.taptoon.domain.matchingpost.dto.request.RegisterMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.service.ElasticAutocompleteService;
@@ -29,33 +28,44 @@ public class MatchingPostController {
     private final MatchingPostService matchingPostService;
     private final ElasticAutocompleteService elasticAutocompleteService;
 
-    @Operation(summary = "매칭보드에 게시글 등록")
-    @PostMapping
-    public ResponseEntity<ApiResponse<MatchingPostResponse>> createMatchingPost(
-            @AuthenticationPrincipal MemberDetail memberDetail,
-            @Valid @RequestBody AddMatchingPostRequest request) {
 
-        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(memberDetail.getId(), request);
-//        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(1L, request);
-        return ApiResponse.created(response);
+
+//    @Operation(summary = "매칭보드에 게시글 등록 Deprecated")
+//    @PostMapping
+//    public ResponseEntity<ApiResponse<MatchingPostResponse>> createMatchingPost(
+//            @AuthenticationPrincipal MemberDetail memberDetail,
+//            @Valid @RequestBody AddMatchingPostRequest request) {
+//
+//        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(memberDetail.getId(), request);
+////        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(1L, request);
+//        return ApiResponse.created(response);
+//    }
+
+    @Operation(summary = "MatchingPost 글쓰기 버튼 클릭")
+    @PostMapping("/write")
+    public ResponseEntity<ApiResponse<Long>> createSkeleton(
+            @AuthenticationPrincipal MemberDetail memberDetail
+    ) {
+        Long id = matchingPostService.generateEmptyMatchingPost(memberDetail.getId());
+        return ApiResponse.success(id);
     }
 
-    @Operation(summary = "매칭 게시글 단건 조회")
-    @GetMapping("/{matchingPostId}")
-    public ResponseEntity<ApiResponse<MatchingPostResponse>> getMatchingPost(@PathVariable Long matchingPostId) {
-        MatchingPostResponse response = matchingPostService.findMatchingPostAndUpdateViews(matchingPostId);
-        return ApiResponse.success(response);
-    }
-
-    @Operation(summary = "매칭 게시글 수정 (일괄 수정)")
+    @Operation(summary = "매칭 게시글 등록")
     @PutMapping("/{matchingPostId}")
     public ResponseEntity<ApiResponse<MatchingPostResponse>> updateMatchingPost(
             @AuthenticationPrincipal MemberDetail memberDetail,
             @PathVariable Long matchingPostId,
-            @Valid @RequestBody UpdateMatchingPostRequest request) {
+            @Valid @RequestBody RegisterMatchingPostRequest request) {
 
-        MatchingPostResponse response = matchingPostService.modifyMatchingPost(memberDetail.getId(), matchingPostId, request);
-//        MatchingPostResponse response = matchingPostService.modifyMatchingPost(1L, matchingPostId, request);
+        MatchingPostResponse response = matchingPostService.registerMatchingPost(memberDetail.getId(), matchingPostId, request);
+    //        MatchingPostResponse response = matchingPostService.modifyMatchingPost(1L, matchingPostId, request);
+        return ApiResponse.success(response);
+    }
+
+    @Operation(summary = "매칭 게시글 단건 조회 (deprecated, 진짜 등록할 때는 `PUT`으로 함)")
+    @GetMapping("/{matchingPostId}")
+    public ResponseEntity<ApiResponse<MatchingPostResponse>> getMatchingPost(@PathVariable Long matchingPostId) {
+        MatchingPostResponse response = matchingPostService.findMatchingPostAndUpdateViews(matchingPostId);
         return ApiResponse.success(response);
     }
 
@@ -80,11 +90,6 @@ public class MatchingPostController {
             @RequestParam(required = false) Long lastViewCount,
             @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
-
-
-        log.info("Request Parameters - artistType: {}, workType: {}, keyword: {}, lastId: {}, lastViewCount: {}, pageSize: {}",
-                artistType, workType, keyword, lastId, lastViewCount, pageSize);
-
         MatchingPostCursorResponse response = matchingPostService.findFilteredMatchingPosts(
                 artistType,
                 workType,
@@ -95,20 +100,24 @@ public class MatchingPostController {
         return ApiResponse.success(response);
     }
 
+    /*
+     * 클라이언트 쪽에서 이미지 업로드 후에 X 버튼을 눌러 업로드 취소했을 때
+     * 1. DB에서 삭제해주고,
+     * 2. S3에서도 삭제해줘야 함.
+     */
+    @Operation(summary = "매칭 포스트에 첨부된 이미지 삭제")
+    @DeleteMapping("/images/{matchingPostImageId}")
+    public ResponseEntity<ApiResponse<Void>> deleteMatchingPostImage(@PathVariable Long matchingPostImageId) {
+        // TODO: 이미지 삭제 로직 추가
+        return ApiResponse.noContent();
+    }
+
     // Autocomplete (10개씩만 보내주자. debounce 방식으로 처리해야 할 듯)
+    @Operation(summary = "검색시 키워드 자동완성")
     @PostMapping("/autocomplete")
     public ResponseEntity<ApiResponse<List<String>>> getAutocomplete(@RequestParam String keyword) {
         List<String> autocompleteSuggestions = elasticAutocompleteService.findAutocompleteSuggestion(keyword);
         return ApiResponse.success(autocompleteSuggestions);
-    }
-
-    @Operation(summary = "MatchingPost 글쓰기 버튼 클릭")
-    @PostMapping("/write")
-    public ResponseEntity<ApiResponse<Long>> createSkeleton(
-            @AuthenticationPrincipal MemberDetail memberDetail
-    ) {
-        Long id = matchingPostService.generateEmptyMatchingPost(memberDetail.getId());
-        return ApiResponse.success(id);
     }
 
 }

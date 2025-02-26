@@ -3,12 +3,14 @@ package com.sparta.taptoon.global.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.taptoon.domain.chat.dto.request.SendChatMessageRequest;
+import com.sparta.taptoon.domain.chat.entity.ChatMessage;
 import com.sparta.taptoon.domain.chat.service.ChatMessageService;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -18,6 +20,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,8 +30,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketHandler extends TextWebSocketHandler {
 
     private static final String CHAT_ROOM_ID_PATH_INDEX = "/chat/";
+    private static final String LAST_READ_MESSAGE_KEY_TEMPLATE = "chat:room:%d:user:%d";
 
     private final ChatMessageService chatMessageService;
+    private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // 채팅방별 WebSocket 세션 관리
@@ -51,6 +56,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         chatRoomSessions.computeIfAbsent(chatRoomId, k -> ConcurrentHashMap.newKeySet()).add(session);
         log.info("✅ 채팅방 {} 에 세션 {} 추가 완료 (사용자: {})", chatRoomId, session.getId(), senderId);
+
+        // 처음 접속시 읽음 처리
+        updateLastReadMessageId(chatRoomId, senderId);
     }
 
     /**
@@ -67,7 +75,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
             MessagePayload messagePayload = parseMessagePayload(payload);
             Long chatRoomId = extractChatRoomId(session);
 
-            chatMessageService.sendMessage(messagePayload.senderId(), chatRoomId, new SendChatMessageRequest(messagePayload.message()));
+            chatMessageService.sendMessage(messagePayload.senderId(), chatRoomId,
+                    new SendChatMessageRequest(messagePayload.message()));
         } catch (NotFoundException e) {
             log.error("❌ 채팅방 또는 사용자를 찾을 수 없음: {}", payload, e);
             sendErrorMessage(session, "Chat room or user not found");
@@ -99,7 +108,20 @@ public class WebSocketHandler extends TextWebSocketHandler {
         log.info("📤 WebSocket을 통해 메시지 브로드캐스트: {}", message);
 
         JsonNode jsonNode = objectMapper.readTree(message);
-        Long chatRoomId = jsonNode.get("chatRoomId").asLong();
+        Long chatRoomId = jsonNode.get("chat_room_id").asLong();
+        Long messageId = jsonNode.get("id").asLong();
+
+        // 접속중인 사용자 읽음 처리
+        Set<WebSocketSession> sessions = chatRoomSessions.getOrDefault(chatRoomId, Collections.emptySet());
+        for (WebSocketSession session : sessions) {
+            Long senderId = getSenderIdFromSession(session);
+            if (senderId != null) {
+                String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);
+                redisTemplate.opsForValue().set(key, String.valueOf(messageId));
+                log.info("✅ 실시간 읽음 처리 - chatRoomId: {}, senderId: {}, messageId: {}",
+                        chatRoomId, senderId, messageId);
+            }
+        }
 
         sendMessageToChatRoom(chatRoomId, message);
     }
@@ -162,6 +184,17 @@ public class WebSocketHandler extends TextWebSocketHandler {
         Long senderId = jsonNode.get("senderId").asLong();
         String message = jsonNode.get("message").asText();
         return new MessagePayload(senderId, message);
+    }
+
+    // 초기 접속 시 읽음 처리
+    private void updateLastReadMessageId(Long chatRoomId, Long senderId) {
+        Optional<ChatMessage> latestMessage = chatMessageService.findLatestMessage(chatRoomId);
+        if (latestMessage.isPresent()) {
+            String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);
+            redisTemplate.opsForValue().set(key, String.valueOf(latestMessage.get().getId()));
+            log.info("✅ 초기 읽음 처리 - chatRoomId: {}, senderId: {}, lastReadMessageId: {}",
+                    chatRoomId, senderId, latestMessage.get().getId());
+        }
     }
 
     // 메시지 페이로드 데이터 홀더

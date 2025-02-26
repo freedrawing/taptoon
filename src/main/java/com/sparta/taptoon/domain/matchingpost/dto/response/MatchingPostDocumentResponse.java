@@ -15,7 +15,7 @@ public record MatchingPostDocumentResponse(
         WorkType workType,
         String description,
         Long viewCount,
-        List<String> fileList, // 여기에는 이미지와 텍스트 파일 포함
+        List<String> fileImageList,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
