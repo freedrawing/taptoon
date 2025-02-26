@@ -1,5 +1,6 @@
 package com.sparta.taptoon.global.error.enums;
 
+import co.elastic.clients.elasticsearch.nodes.Http;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -43,7 +44,10 @@ public enum ErrorCode {
   PORTFOLIO_IMAGE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "PORTFOLIO_403", "선택하신 이미지가 포트폴리오에 속해있지 않습니다."),
   CREATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PORTFOLIO_400", "허용된 개수를 초과하였습니다."),
 
-  // Comment
+  //Comment
+  COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"COMMENT_404", "존재하지 않는 댓글입니다."),
+  COMMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COMMENT_403", "본 댓글에 대한 권한이 없습니다."),
+  COMMENT_ALREADY_DELETED(HttpStatus.CONFLICT, "COMMENT_409", "이미 삭제된 댓글입니다."),
 
   //chat
   CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_404", "채팅방이 존재하지 않습니다."),
