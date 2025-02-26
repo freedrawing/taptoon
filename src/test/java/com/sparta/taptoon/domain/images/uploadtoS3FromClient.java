@@ -22,7 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class uploadToS3FromClient {
+public class UploadToS3FromClient {
+
     @Autowired
     private ImageService imageService;
 
@@ -37,7 +38,7 @@ public class uploadToS3FromClient {
         String directory = directory_t;
         String fileName = "test-image.jpg";
 
-        PresignedUrlResponse presignedUrlResponse = imageService.generatePresignedUrl(directory, 1L, fileName);
+        PresignedUrlResponse presignedUrlResponse = imageService.generatePresignedUrl(directory_m, 1L, fileName);
 
         S3UploadClient s3UploadClient = Feign.builder()
                 .contract(new SpringMvcContract())
