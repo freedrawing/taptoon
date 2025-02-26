@@ -15,9 +15,9 @@ import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.CreationLimitExceededException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +29,19 @@ public class PortfolioService {
     private final PortfolioRepository portfolioRepository;
     private final MemberRepository memberRepository;
     private final PortfolioImageRepository portfolioImageRepository;
+
+    // 포트폴리오 판떼기 생성
+    @Transactional
+    public Long makeBasePortfolio(Member member) {
+        Portfolio portfolio = Portfolio.builder()
+                .member(member)
+                .title("")
+                .content("")
+                .fileUrl("")
+                .build();
+        Portfolio savedPorfolio = portfolioRepository.save(portfolio);
+        return savedPorfolio.getId();
+    }
 
     // 포트폴리오 생성
     @Transactional

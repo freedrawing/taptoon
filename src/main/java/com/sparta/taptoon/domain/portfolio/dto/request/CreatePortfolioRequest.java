@@ -20,8 +20,7 @@ public record CreatePortfolioRequest(
         // 파일 첨부는 첨부하지 않아도 허용
         String fileUrl,
 
-        // 현재 입력값을 넣지 않아도 portfolioImage 객체가 생성되므로 이 점 보완해야 함.
-        // s3로 부터 이미지 Url 리스트를 requestDto로 옮기기
+        // 이미지 첨부하기
         List<String> imageUrls
 ) {
 

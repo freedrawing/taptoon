@@ -24,6 +24,14 @@ public class PortfolioController {
 
     private final PortfolioService portfolioService;
 
+    @Operation(summary =  "포트폴리오 시작하기")
+    @PostMapping
+    public ResponseEntity<ApiResponse<Long>> createSkeleton(
+            @AuthenticationPrincipal MemberDetail memberDetail) {
+        Long member = portfolioService.makeBasePortfolio(memberDetail.getMember());
+        return ApiResponse.success(member);
+    }
+
     @Operation(summary = "포트폴리오 생성")
     @PostMapping
     public ResponseEntity<ApiResponse<PortfolioResponse>> createPortfolio(
