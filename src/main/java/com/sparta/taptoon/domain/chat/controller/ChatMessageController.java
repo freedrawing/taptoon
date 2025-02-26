@@ -6,7 +6,7 @@ import com.sparta.taptoon.domain.chat.dto.response.ChatCombinedMessageResponse;
 import com.sparta.taptoon.domain.chat.dto.response.ChatImageMessageResponse;
 import com.sparta.taptoon.domain.chat.dto.response.ChatMessageResponse;
 import com.sparta.taptoon.domain.chat.service.ChatMessageService;
-import com.sparta.taptoon.domain.image.service.ImageServiceImpl;
+import com.sparta.taptoon.domain.image.service.ImageService;
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,7 +24,7 @@ import java.util.List;
 public class ChatMessageController {
 
     private final ChatMessageService chatMessageService;
-    private final ImageServiceImpl imageService;
+    private final ImageService imageService;
 
     @Operation(summary = "메시지 전송")
     @PostMapping("/{chatRoomId}/message")
