@@ -31,7 +31,7 @@ public class ImageController {
     }
 
     @Operation(summary = "S3에서 이미지 삭제")
-    @PostMapping("/upload")
+    @PostMapping("/delete")
     public ResponseEntity<ApiResponse<Void>> deleteImage(@Valid String imageUrl) {
         imageService.removeImageFromS3(imageUrl);
         return ApiResponse.noContent();
