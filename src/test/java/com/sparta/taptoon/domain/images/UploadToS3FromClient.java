@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class uploadtoS3FromClient {
+public class UploadToS3FromClient {
     @Autowired
     private ImageService imageService;
 

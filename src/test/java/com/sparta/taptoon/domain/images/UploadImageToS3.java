@@ -3,7 +3,6 @@ package com.sparta.taptoon.domain.images;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.sparta.taptoon.domain.image.S3UploadClient;
-import com.sparta.taptoon.domain.image.service.ImageService;
 import com.sparta.taptoon.domain.image.service.ImageServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +24,7 @@ import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
-public class uploadImageToS3 {
+public class UploadImageToS3 {
     @InjectMocks
     private ImageServiceImpl imageService;
 
