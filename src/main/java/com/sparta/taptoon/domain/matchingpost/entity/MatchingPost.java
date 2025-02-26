@@ -2,6 +2,7 @@ package com.sparta.taptoon.domain.matchingpost.entity;
 
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
+import com.sparta.taptoon.domain.matchingpost.enums.Status;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.global.common.BaseEntity;
@@ -54,6 +55,10 @@ public class MatchingPost extends BaseEntity {
     @Column(name = "is_delete", nullable = false)
     private Boolean isDeleted;
 
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private Status status;
+
     @OneToMany(mappedBy = "matchingPost", cascade = CascadeType.ALL, orphanRemoval = true) // Elasticsearch 용도
     private List<MatchingPostImage> matchingPostImages = new ArrayList<>();
 
@@ -70,6 +75,7 @@ public class MatchingPost extends BaseEntity {
         this.description = description;
         this.viewCount = 0L;
         this.isDeleted = false;
+        this.status = Status.PENDING; // 처음에는 등록 대기 상태
     }
 
     // id 비교는 따로 쿼리가 안 날라감

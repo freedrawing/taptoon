@@ -21,7 +21,7 @@ public class MatchingPostImage extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private MatchingPost matchingPost;
 
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url", nullable = false, length = 1000)
     private String imageUrl;
 
     @Enumerated(EnumType.STRING)

@@ -3,6 +3,8 @@ package com.sparta.taptoon.domain.images;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.sparta.taptoon.domain.image.S3UploadClient;
+import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
+import com.sparta.taptoon.domain.image.service.ImageService;
 import com.sparta.taptoon.domain.image.service.ImageServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
-public class UploadImageToS3 {
+public class uploadImageToS3 {
     @InjectMocks
     private ImageServiceImpl imageService;
 
@@ -54,7 +56,7 @@ public class UploadImageToS3 {
                 .when(s3UploadClient)
                 .uploadFile(eq("image/jpeg"), any(byte[].class));
         //when
-        String preSignedUrl = imageService.generatePresignedUrl(directory,1L, fileName);
+        PresignedUrlResponse preSignedUrl = imageService.generatePresignedUrl(directory,1L, fileName);
 
         // 테스트 이미지 로드
         ClassPathResource resource = new ClassPathResource("test-images/test-image.jpg");
@@ -62,7 +64,7 @@ public class UploadImageToS3 {
 
         // 파일 업로드 - 예외가 발생하지 않으면 성공
         assertDoesNotThrow(() -> s3UploadClient.uploadFile("image/jpeg", imageBytes));
-        assertEquals(mockUrl.toString(), preSignedUrl);
+        assertEquals(mockUrl.toString(), preSignedUrl.uploadingImageUrl());
         verify(s3UploadClient).uploadFile(eq("image/jpeg"), any(byte[].class));
         verify(amazonS3).generatePresignedUrl(any(GeneratePresignedUrlRequest.class));
     }

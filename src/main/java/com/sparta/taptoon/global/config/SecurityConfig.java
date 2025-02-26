@@ -76,7 +76,9 @@ public class SecurityConfig {
         // 허용할 origin 설정
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:8080",
-                "https://nid.naver.com"
+                "https://nid.naver.com",
+                "http://localhost:*", // 왜 안 되지?
+                "http://localhost:3000"
         ));
 
         // 허용할 HTTP 메서드 설정

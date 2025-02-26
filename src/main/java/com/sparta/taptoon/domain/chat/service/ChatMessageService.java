@@ -1,15 +1,21 @@
 package com.sparta.taptoon.domain.chat.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.taptoon.domain.chat.dto.request.SendChatImageMessageRequest;
 import com.sparta.taptoon.domain.chat.dto.request.SendChatMessageRequest;
+import com.sparta.taptoon.domain.chat.dto.response.ChatCombinedMessageResponse;
+import com.sparta.taptoon.domain.chat.dto.response.ChatImageMessageResponse;
 import com.sparta.taptoon.domain.chat.dto.response.ChatMessageResponse;
+import com.sparta.taptoon.domain.chat.entity.ChatImageMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
+import com.sparta.taptoon.domain.chat.repository.ChatImageMessageRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatMessageRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomMemberRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
+import com.sparta.taptoon.global.common.enums.ImageStatus;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
@@ -20,7 +26,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -37,6 +46,7 @@ public class ChatMessageService {
     private final ObjectMapper objectMapper;
     private final StringRedisTemplate redisTemplate;
     private final SlackAlarmService slackAlarmService;
+    private final ChatImageMessageRepository chatImageMessageRepository;
 
     /**
      * 메시지 전송 & 저장, Redis와 Slack으로 알림을 발행합니다.
@@ -55,7 +65,44 @@ public class ChatMessageService {
         ChatMessage chatMessage = saveChatMessage(request, chatRoom, sender);
         ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
 
+        // 내가 보낸 메시지 읽음 처리
+//        String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);
+//        redisTemplate.opsForValue().set(key, String.valueOf(chatMessage.getId()));
+//        log.info("✅ 메시지 전송 및 읽음 처리 완료 - chatRoomId: {}, senderId: {}, messageId: {}",
+//                chatRoomId, senderId, chatMessage.getId());
+
         publishMessage(chatRoom.getId(), response, sender, request.message());
+        return response;
+    }
+
+    @Transactional
+    public ChatImageMessageResponse sendImageMessage(Long senderId, Long chatRoomId, SendChatImageMessageRequest request) {
+        ChatRoom chatRoom = findChatRoom(chatRoomId);
+        Member sender = findMember(senderId);
+        validateChatRoomMembership(chatRoom, sender);
+
+        ChatImageMessage imageMessage = chatImageMessageRepository.findByIdAndChatRoom(request.imageMessageId(), chatRoom)
+                .orElseThrow(() -> new IllegalArgumentException("이미지 메시지를 찾을 수 없습니다."));
+
+        if (!imageMessage.getSender().getId().equals(senderId)) {
+            throw new AccessDeniedException("본인이 업로드한 이미지만 전송할 수 있습니다.");
+        }
+        if (imageMessage.getStatus() != ImageStatus.PENDING) {
+            throw new AccessDeniedException("이미 전송된 이미지입니다.");
+        }
+
+        imageMessage.updateStatus(ImageStatus.COMPLETED);
+        imageMessage.setUnreadCount(chatRoom.getMemberCount() - 1); // 전송 시 읽지 않은 멤버 수 설정
+        chatImageMessageRepository.save(imageMessage);
+
+//        // 이미지 메시지도 읽음 처리
+//        String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);
+//        redisTemplate.opsForValue().set(key, String.valueOf(imageMessage.getId()));
+//        log.info("✅ 이미지 메시지 전송 및 읽음 처리 완료 - chatRoomId: {}, senderId: {}, imageMessageId: {}",
+//                chatRoomId, senderId, imageMessage.getId());
+
+        ChatImageMessageResponse response = ChatImageMessageResponse.from(imageMessage);
+        publishImage(chatRoom.getId(), response, sender, "이미지 메시지 전송");
         return response;
     }
 
@@ -67,7 +114,7 @@ public class ChatMessageService {
      * @return 채팅방의 메시지 목록
      */
     @Transactional
-    public List<ChatMessageResponse> getChatMessages(Long memberId, Long chatRoomId) {
+    public List<ChatCombinedMessageResponse> getChatMessages(Long memberId, Long chatRoomId) {
         ChatRoom chatRoom = findChatRoom(chatRoomId);
         Member member = findMember(memberId);
         validateChatRoomMembership(chatRoom, member);
@@ -75,7 +122,17 @@ public class ChatMessageService {
         Long lastReadMessageId = getLastReadMessageId(chatRoomId, memberId);
         updateUnreadMessages(chatRoom, lastReadMessageId);
 
-        return fetchAllMessages(chatRoom);
+        // 텍스트와 이미지 메시지 조회
+        List<ChatMessage> textMessages = chatMessageRepository.findByChatRoomOrderByCreatedAtAsc(chatRoom);
+        List<ChatImageMessage> imageMessages = chatImageMessageRepository.findByChatRoomOrderByCreatedAtAsc(chatRoom);
+
+        // 통합 및 시간순 정렬
+        return Stream.concat(
+                        textMessages.stream().map(ChatCombinedMessageResponse::from),
+                        imageMessages.stream().map(ChatCombinedMessageResponse::from)
+                )
+                .sorted(Comparator.comparing(ChatCombinedMessageResponse::createdAt))
+                .toList();
     }
 
     // 채팅방 ID로 채팅방을 조회, 없으면 예외 발생
@@ -116,6 +173,25 @@ public class ChatMessageService {
         }
     }
 
+    // Redis로 메시지를 발행하고 Slack으로 알림을 전송
+    private void publishImage(Long chatRoomId, ChatImageMessageResponse response, Member sender, String imgUrl) {
+        try {
+            String jsonMessage = objectMapper.writeValueAsString(response);
+            redisPublisher.publish(chatRoomId, jsonMessage);
+            log.info("📤 Redis에 메시지 발행 완료: {}", response);
+
+            String slackMessage = String.format("📢 [채팅방 %d] %s: %s", chatRoomId, sender.getNickname(), imgUrl);
+            slackAlarmService.sendSlackMessage(slackMessage);
+        } catch (Exception e) {
+            log.error("❌ Redis 메시지 발행 중 오류 발생", e);
+        }
+    }
+
+    public Optional<ChatMessage> findLatestMessage(Long chatRoomId) {
+        ChatRoom chatRoom = findChatRoom(chatRoomId);
+        return chatMessageRepository.findTopByChatRoomOrderByCreatedAtDesc(chatRoom);
+    }
+
     // Redis에서 사용자의 마지막 읽은 메시지 ID를 조회
     private Long getLastReadMessageId(Long chatRoomId, Long memberId) {
         String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, memberId);
@@ -143,4 +219,11 @@ public class ChatMessageService {
                 .map(ChatMessageResponse::from)
                 .toList();
     }
+
+    // unread count 계산 메서드 추가
+    public int calculateUnreadCount(ChatRoom chatRoom, Long memberId) {
+        Long lastReadMessageId = getLastReadMessageId(chatRoom.getId(), memberId);
+        return chatMessageRepository.countUnreadMessagesExcludingSender(chatRoom, lastReadMessageId, memberId);
+    }
+
 }
