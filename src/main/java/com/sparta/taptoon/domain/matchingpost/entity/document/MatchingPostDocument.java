@@ -88,8 +88,7 @@ public class MatchingPostDocument {
                 .workType(matchingPost.getWorkType())
                 .description(matchingPost.getDescription())
                 .viewCount(matchingPost.getViewCount())
-//                .fileImageUrlList(matchingPost.getFileUrlList())
-                .fileImageUrlList(List.of("https://static.taptoon.com/1", "https://static.taptoon.com/2", "https://static.taptoon.com/3"))
+                .fileImageUrlList(matchingPost.getFileUrlList())
                 .createdAt(matchingPost.getCreatedAt())
                 .updatedAt(matchingPost.getUpdatedAt())
                 .build();

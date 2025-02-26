@@ -1,7 +1,7 @@
 package com.sparta.taptoon.domain.matchingpost.entity;
 
 import com.sparta.taptoon.global.common.BaseEntity;
-import com.sparta.taptoon.global.common.enums.ImageStatus;
+import com.sparta.taptoon.global.common.enums.Status;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,12 +26,16 @@ public class MatchingPostImage extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private ImageStatus status;
+    private Status status;
 
     @Builder
-    public MatchingPostImage(MatchingPost matchingPost, String imageUrl, ImageStatus status) {
+    public MatchingPostImage(MatchingPost matchingPost, String imageUrl, Status status) {
         this.matchingPost = matchingPost;
         this.imageUrl = imageUrl;
         this.status = status;
+    }
+
+    public void registerMe() {
+        status = Status.REGISTERED;
     }
 }

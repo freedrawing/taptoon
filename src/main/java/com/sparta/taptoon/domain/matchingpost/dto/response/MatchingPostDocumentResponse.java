@@ -5,6 +5,7 @@ import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record MatchingPostDocumentResponse(
         Long id,
@@ -14,7 +15,7 @@ public record MatchingPostDocumentResponse(
         WorkType workType,
         String description,
         Long viewCount,
-        String thumbnailImageUrl,
+        List<String> fileImageList,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -27,7 +28,7 @@ public record MatchingPostDocumentResponse(
                 document.getWorkType(),
                 document.getDescription(),
                 document.getViewCount(),
-                "https://github.com/user-attachments/assets/92f2c109-95ac-4a60-94da-0049b4a2992c",
+                document.getFileImageUrlList(),
                 document.getCreatedAt(),
                 document.getUpdatedAt()
         );

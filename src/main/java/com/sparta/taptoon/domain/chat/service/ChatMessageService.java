@@ -15,7 +15,7 @@ import com.sparta.taptoon.domain.chat.repository.ChatRoomMemberRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
-import com.sparta.taptoon.global.common.enums.ImageStatus;
+import com.sparta.taptoon.global.common.enums.Status;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
@@ -87,11 +87,11 @@ public class ChatMessageService {
         if (!imageMessage.getSender().getId().equals(senderId)) {
             throw new AccessDeniedException("본인이 업로드한 이미지만 전송할 수 있습니다.");
         }
-        if (imageMessage.getStatus() != ImageStatus.PENDING) {
+        if (imageMessage.getStatus() != Status.PENDING) {
             throw new AccessDeniedException("이미 전송된 이미지입니다.");
         }
 
-        imageMessage.updateStatus(ImageStatus.COMPLETED);
+        imageMessage.updateStatus(Status.REGISTERED);
         imageMessage.setUnreadCount(chatRoom.getMemberCount() - 1); // 전송 시 읽지 않은 멤버 수 설정
         chatImageMessageRepository.save(imageMessage);
 
