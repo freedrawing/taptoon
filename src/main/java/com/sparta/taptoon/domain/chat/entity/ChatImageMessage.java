@@ -2,7 +2,7 @@ package com.sparta.taptoon.domain.chat.entity;
 
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.global.common.BaseEntity;
-import com.sparta.taptoon.global.common.enums.ImageStatus;
+import com.sparta.taptoon.global.common.enums.Status;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,13 +34,13 @@ public class ChatImageMessage extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private ImageStatus status;
+    private Status status;
 
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
 
     @Builder
-    public ChatImageMessage(ChatRoom chatRoom, Member sender, String imageUrl, int unreadCount, ImageStatus status) {
+    public ChatImageMessage(ChatRoom chatRoom, Member sender, String imageUrl, int unreadCount, Status status) {
         this.chatRoom = chatRoom;
         this.sender = sender;
         this.imageUrl = imageUrl;
@@ -56,7 +56,7 @@ public class ChatImageMessage extends BaseEntity {
         }
     }
 
-    public void updateStatus(ImageStatus status) {
+    public void updateStatus(Status status) {
         this.status = status;
     }
 

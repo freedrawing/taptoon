@@ -1,11 +1,11 @@
 package com.sparta.taptoon.domain.matchingpost.entity;
 
-import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
+import com.sparta.taptoon.domain.matchingpost.dto.request.RegisterMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
-import com.sparta.taptoon.domain.matchingpost.enums.Status;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.global.common.BaseEntity;
+import com.sparta.taptoon.global.common.enums.Status;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -87,11 +87,16 @@ public class MatchingPost extends BaseEntity {
         isDeleted = true;
     }
 
-    public void modifyMe(UpdateMatchingPostRequest request) {
+    // 수정처럼 동작하지만 사실상 등록임. 빈 엔티티가 처음에 만들어지므로
+    public void registerMe(RegisterMatchingPostRequest request) {
         this.title = request.title();
+        this.artistType = ArtistType.of(request.artistType());
         this.workType = WorkType.of(request.workType());
         this.description = request.description();
+        status = Status.REGISTERED;
     }
+
+    // TODO: MatchingPost 수정용 메서드도 만들어야 함
 
     public void increaseViewCount() {
         viewCount++;
@@ -105,6 +110,7 @@ public class MatchingPost extends BaseEntity {
 
     public List<String> getFileUrlList() {
         return matchingPostImages.stream()
+                .filter(matchingPostImage -> Status.isRegistered(matchingPostImage.getStatus()))
                 .map(matchingPostImage -> matchingPostImage.getImageUrl())
                 .toList();
     }
