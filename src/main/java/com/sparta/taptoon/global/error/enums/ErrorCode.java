@@ -18,6 +18,9 @@ public enum ErrorCode {
   ACCESS_DENIED(HttpStatus.FORBIDDEN, "GENERAL_403", "접근 권한이 없습니다."),
   TOO_MANY_REQUEST(HttpStatus.TOO_MANY_REQUESTS, "GENERAL_429", "현재 요청이 많아 처리할 수 없습니다. 잠시 후 다시 시도해주세요."),
 
+  // S3
+  FAIL_CONNECT_TO_S3(HttpStatus.FORBIDDEN,"S3_403","S3와 연결에 실패했습니다."),
+
   // Member
   MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_404", "존재하지 않는 유저입니다."),
   MEMBER_DELETED(HttpStatus.FORBIDDEN, "MEMBER_403", "삭제된 유저입니다."),
