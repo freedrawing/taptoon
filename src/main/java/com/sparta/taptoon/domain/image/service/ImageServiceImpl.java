@@ -18,7 +18,7 @@ import com.sparta.taptoon.domain.portfolio.entity.Portfolio;
 import com.sparta.taptoon.domain.portfolio.entity.PortfolioImage;
 import com.sparta.taptoon.domain.portfolio.repository.PortfolioImageRepository;
 import com.sparta.taptoon.domain.portfolio.repository.PortfolioRepository;
-import com.sparta.taptoon.global.common.enums.ImageStatus;
+import com.sparta.taptoon.global.common.enums.Status;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
@@ -29,10 +29,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ImageServiceImpl implements ImageService{
+public class ImageServiceImpl implements ImageService {
 
     private static final long EXPIRE_TIME = 1000 * 60 * 5;//5분
 
@@ -45,53 +46,60 @@ public class ImageServiceImpl implements ImageService{
     private final MemberRepository memberRepository;
     private final ChatImageMessageRepository chatImageMessageRepository;
 
-    private final String MATCHING_POST = "matchingpost";
+    private final String MATCHING_POST = "matchingpost"; // 여기 있는 것도 따로 CONSTANT 관리하는 걸로 빼면 좋을 듯
     private final String PORTFOLIO = "portfolio";
 
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
+    @Value("${cloud.aws.s3.url}")
+    private final String BUCKET_URL;
 
+    @Value("${cloud.aws.s3.bucket}")
+    private String BUCKET;
+
+    @Transactional
     @Override
     public PresignedUrlResponse generatePresignedUrl(String folderPath, Long id, String fileName) {//id 값을
         folderPath = normalizeFolderPath(folderPath);
         String contentType = getContentType(fileName);
-        String directory = folderPath + id + "/original/"+ fileName;
-        GeneratePresignedUrlRequest generatePresignedUrlRequest = generatePresignedUrlRequest(directory, contentType);
+        String directory = folderPath + "original/" + id + "-" + fileName;
+        String imageFullPath = BUCKET_URL + directory;
 
-        String imageUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
+        GeneratePresignedUrlRequest generatePresignedUrlRequest = generatePresignedUrlRequest(directory, contentType);
+        String presignedUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
         /*
          * 클라이언트에게 전달할 url 생성, 각 img 테이블에 url, status = PENDING 저장
          * 반드시 글쓰기 버튼 클릭(빈 객체 생성) 후에 진행해야 합니다!
          */
-        return folderPath.contains(MATCHING_POST) ? saveMatchingPostImage(id, imageUrl) : savePortfolioImage(id, imageUrl);
+        return folderPath.contains(MATCHING_POST)
+                ? saveMatchingPostImage(id, imageFullPath, presignedUrl)
+                : savePortfolioImage(id, imageFullPath, presignedUrl);
     }
 
-    private PresignedUrlResponse saveMatchingPostImage(Long id, String imageUrl) {
+    private PresignedUrlResponse saveMatchingPostImage(Long id, String imageFullPath, String presignedUrl) {
         MatchingPost matchingPost = matchingPostRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MATCHING_POST_NOT_FOUND));
 
         MatchingPostImage image = MatchingPostImage.builder()
                 .matchingPost(matchingPost)
-                .imageUrl(imageUrl)
-                .status(ImageStatus.PENDING)
+                .imageUrl(imageFullPath)
+                .status(Status.PENDING)
                 .build();
 
         MatchingPostImage savedImage = matchingPostImageRepository.save(image);
-        return new PresignedUrlResponse(imageUrl, savedImage.getId());
+        return new PresignedUrlResponse(presignedUrl, savedImage.getId());
     }
 
-    private PresignedUrlResponse savePortfolioImage(Long id, String imageUrl) {
+    private PresignedUrlResponse savePortfolioImage(Long id, String imageFullPath, String presignedUrl) {
         Portfolio portfolio = portfolioRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PORTFOLIO_NOT_FOUND));
 
         PortfolioImage image = PortfolioImage.builder()
                 .portfolio(portfolio)
-                .imageUrl(imageUrl)
-                .status(ImageStatus.PENDING)
+                .imageUrl(imageFullPath)
+                .status(Status.PENDING)
                 .build();
 
         PortfolioImage savedImage = portfolioImageRepository.save(image);
-        return new PresignedUrlResponse(imageUrl, savedImage.getId());
+        return new PresignedUrlResponse(presignedUrl, savedImage.getId());
     }
 
     @Override
@@ -101,7 +109,9 @@ public class ImageServiceImpl implements ImageService{
                 folderPath, chatRoomId, memberId, fileName);
         folderPath = normalizeFolderPath(folderPath);
         String contentType = getContentType(fileName);
-        String directory = folderPath + chatRoomId + "/" + memberId + "/original/" + fileName;
+
+        String directory = folderPath + "original/" + chatRoomId + ":" + memberId + "-" + fileName;
+        String imageFullPath = BUCKET_URL + directory;
         GeneratePresignedUrlRequest generatePresignedUrlRequest = generatePresignedUrlRequest(directory, contentType);
 
         String imageUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
@@ -114,9 +124,9 @@ public class ImageServiceImpl implements ImageService{
         ChatImageMessage imageMessage = ChatImageMessage.builder()
                 .chatRoom(chatRoom)
                 .sender(sender)
-                .imageUrl(imageUrl)
+                .imageUrl(imageFullPath)
                 .unreadCount(0)
-                .status(ImageStatus.PENDING)
+                .status(Status.PENDING)
                 .build();
 
         if ("chat/".equals(folderPath)) {
@@ -138,7 +148,7 @@ public class ImageServiceImpl implements ImageService{
         expiration.setTime(expTimeMillis);
 
         GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                new GeneratePresignedUrlRequest(bucket, directory)
+                new GeneratePresignedUrlRequest(BUCKET, directory)
                         .withMethod(HttpMethod.PUT)
                         .withExpiration(expiration)
                         .withContentType(contentType);

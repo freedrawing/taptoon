@@ -1,20 +1,14 @@
 package com.sparta.taptoon.domain.matchingpost.service;
 
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
-import com.sparta.taptoon.domain.matchingpost.entity.document.AutocompleteDocument;
 import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
 import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticAutocompleteRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticMatchingPostRepository;
-import com.sparta.taptoon.global.common.annotation.DistributedLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.util.StringUtils;
-
-import java.util.Collections;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -32,7 +26,7 @@ public class ElasticMatchingPostManager {
     private final ElasticMatchingPostRepository elasticMatchingPostRepository;
 
     // DB에 Commit 된 이후에 ES에 저장
-    void saveToESAfterCommit(MatchingPost newMatchingPost) {
+    void saveToElasticsearchAfterCommit(MatchingPost newMatchingPost) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -49,7 +43,7 @@ public class ElasticMatchingPostManager {
     }
 
     // 없으면 추가
-    void upsertToESAfterCommit(MatchingPost updatedMatchingPost) {
+    void upsertToElasticsearchAfterCommit(MatchingPost updatedMatchingPost) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -69,7 +63,7 @@ public class ElasticMatchingPostManager {
     }
 
     // `Elasticsearch`에 저장된 포스트 정보 삭제
-    void deleteFromESAfterCommit(Long matchingPostId) {
+    void deleteFromElasticsearchAfterCommit(Long matchingPostId) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {

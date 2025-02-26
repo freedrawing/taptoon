@@ -21,11 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ImageController {
     private final ImageService imageService;
 
-    @Operation(summary = "preSignedUrl 방식 이미지 업로드")
+    @Operation(summary = "PresignedUrl 방식 이미지 업로드")
     @PostMapping("/upload")
-    public ResponseEntity<ApiResponse<PresignedUrlResponse>> getPresignedUrl(
-            @Valid @RequestBody PreSignedUrlRequest request) {
-        PresignedUrlResponse presignedUrl = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileName());
-        return ApiResponse.success(presignedUrl);
+    public ResponseEntity<ApiResponse<PresignedUrlResponse>> getPresignedUrl(@Valid @RequestBody PreSignedUrlRequest request) {
+
+        PresignedUrlResponse presignedUrlResponse
+                = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileName());
+        return ApiResponse.success(presignedUrlResponse);
     }
 }

@@ -3,6 +3,7 @@ package com.sparta.taptoon.domain.matchingpost.dto.response;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record MatchingPostResponse(
         Long matchingPostId,
@@ -11,7 +12,7 @@ public record MatchingPostResponse(
         String description,
         String artistType,
         String workType,
-        String url, // image or file
+        List<String> imageList,
         Long viewCount,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -25,7 +26,7 @@ public record MatchingPostResponse(
                 matchingPost.getDescription(),
                 matchingPost.getArtistType().name(),
                 matchingPost.getWorkType().name(),
-                matchingPost.getFileUrl(),
+                matchingPost.getFileUrlList(),
                 matchingPost.getViewCount(),
                 matchingPost.getCreatedAt(),
                 matchingPost.getUpdatedAt()
