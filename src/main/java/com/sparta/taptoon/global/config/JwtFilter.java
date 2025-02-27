@@ -42,6 +42,8 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         String header = request.getHeader(AUTHORIZATION_HEADER);
+        log.info("필터 - 요청 uri = {}",request.getRequestURI());
+        log.info("Authorization 헤더: {}", header != null ? "존재함" : "존재하지 않음");
         if (!StringUtils.hasText(header)) {
             chain.doFilter(request, response);
             return;
