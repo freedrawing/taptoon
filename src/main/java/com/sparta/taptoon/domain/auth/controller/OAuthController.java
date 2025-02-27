@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class OAuthController {
     private final NaverAuthService naverAuthService;
-    private final String googleAuthUrl = "http://localhost:8080/oauth2/authorization/google";
+    private final String googleAuthUrl = "http://taptoon.site/oauth2/authorization/google";
     private final AuthService authService;
 
     @Operation(summary = "네이버 로그인")
