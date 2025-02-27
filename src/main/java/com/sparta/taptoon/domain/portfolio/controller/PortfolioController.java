@@ -19,7 +19,7 @@ import java.util.List;
 @Tag(name = "Portfolio", description = "포트폴리오 API")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/portfolios")
+@RequestMapping("/api/portfolios")
 public class PortfolioController {
 
     private final PortfolioService portfolioService;
