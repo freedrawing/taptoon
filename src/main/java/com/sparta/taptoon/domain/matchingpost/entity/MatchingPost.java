@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,6 +96,7 @@ public class MatchingPost extends BaseEntity {
         this.workType = WorkType.of(request.workType());
         this.description = request.description();
         status = Status.REGISTERED;
+        createdAt = LocalDateTime.now();
     }
 
     // TODO: MatchingPost 수정용 메서드도 만들어야 함

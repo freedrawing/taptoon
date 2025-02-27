@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Entity
 @Table(name = "matching_post_image")
@@ -37,5 +39,6 @@ public class MatchingPostImage extends BaseEntity {
 
     public void registerMe() {
         status = Status.REGISTERED;
+        createdAt = LocalDateTime.now();
     }
 }
