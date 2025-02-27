@@ -34,9 +34,14 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return !path.startsWith("/api/") || path.startsWith("/api/auth");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         String header = request.getHeader(AUTHORIZATION_HEADER);
-        log.info("필터 - 요청 uri = {}",request.getRequestURI());
         if (!StringUtils.hasText(header)) {
             chain.doFilter(request, response);
             return;

@@ -11,7 +11,7 @@ import java.util.Map;
 @RestController
 public class HomeController {
 
-    @GetMapping("/")
+    @GetMapping("/api/home")
     public ResponseEntity<ApiResponse<Map<String, Object>>> home() {
         Map<String, Object> response = new HashMap<>();
         response.put("data", "Taptoon 홈페이지입니다.");
