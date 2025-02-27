@@ -78,7 +78,8 @@ public class SecurityConfig {
                 "http://localhost:8080",
                 "https://nid.naver.com",
                 "http://localhost:*", // 왜 안 되지?
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "https://taptoon.site"
         ));
 
         // 허용할 HTTP 메서드 설정
