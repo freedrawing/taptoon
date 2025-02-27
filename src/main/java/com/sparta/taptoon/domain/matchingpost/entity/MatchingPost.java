@@ -1,6 +1,7 @@
 package com.sparta.taptoon.domain.matchingpost.entity;
 
 import com.sparta.taptoon.domain.matchingpost.dto.request.RegisterMatchingPostRequest;
+import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostImageResponse;
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
 import com.sparta.taptoon.domain.member.entity.Member;
@@ -83,7 +84,7 @@ public class MatchingPost extends BaseEntity {
         return author.getId() == memberId;
     }
 
-    public void removeMe() {
+    public void deleteMe() {
         isDeleted = true;
     }
 
@@ -106,12 +107,5 @@ public class MatchingPost extends BaseEntity {
         if (isDeleted) {
             throw new NotFoundException(MATCHING_POST_NOT_FOUND);
         }
-    }
-
-    public List<String> getFileUrlList() {
-        return matchingPostImages.stream()
-                .filter(matchingPostImage -> Status.isRegistered(matchingPostImage.getStatus()))
-                .map(matchingPostImage -> matchingPostImage.getImageUrl())
-                .toList();
     }
 }

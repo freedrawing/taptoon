@@ -1,6 +1,5 @@
 package com.sparta.taptoon.domain.matchingpost.service;
 
-import com.sparta.taptoon.domain.matchingpost.dto.request.AddMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.request.RegisterMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
@@ -55,20 +54,6 @@ public class MatchingPostService {
         return savedEmtpyMatchingPost.getId();
     }
 
-    // 매칭포스트 생성 (이건 이제 사용 안 됨)
-    @Deprecated
-    @Transactional
-    public MatchingPostResponse makeNewMatchingPost(Long memberId, AddMatchingPostRequest request) {
-        // Save to DB
-        Member findMember = findMemberById(memberId);
-        MatchingPost savedMatchingPost = matchingPostRepository.save(request.toEntity(findMember));
-
-        // 2. 트랜잭션이 정상적으로 완료된 후 ES에 저장
-        elasticMatchingPostManager.saveToElasticsearchAfterCommit(savedMatchingPost);
-
-        return MatchingPostResponse.from(savedMatchingPost);
-    }
-
     // 매칭 포스트 등록 (수정 작업을 하지만 사실상 등록 로직임)
     @Transactional
     public MatchingPostResponse registerMatchingPost(Long memberId, Long matchingPostId, RegisterMatchingPostRequest request) {
@@ -98,16 +83,21 @@ public class MatchingPostService {
         }
     }
 
+    @Transactional
+    public void updateMatchingPost() {
+
+    }
+
     // 매칭포스트 삭제 (soft deletion) 단, 사진이나 텍스트 파일을 어떻게 처리해야 할지 고려해야 함
     @Transactional
-    public void removeMatchingPost(Long memberId, Long matchingPostId) {
+    public void deleteMatchingPost(Long memberId, Long matchingPostId) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
         if (findMatchingPost.isMyMatchingPost(memberId) == false) {
             throw new AccessDeniedException("매칭 게시글에 접근할 권한이 없습니다");
         }
 
         // 삭제처리하면 게시글에 첨부된 이미지나 텍스트 파일을 어떻게 처리하지? 삭제해야 하나? -> 삭제해야 할 듯
-        findMatchingPost.removeMe();
+        findMatchingPost.deleteMe();
 
         // Delete from ES
         elasticMatchingPostManager.deleteFromElasticsearchAfterCommit(matchingPostId);

@@ -1,8 +1,10 @@
 package com.sparta.taptoon.domain.matchingpost.entity.document;
 
+import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostImageResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
+import com.sparta.taptoon.global.common.enums.Status;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.annotation.Id;
@@ -53,7 +55,7 @@ public class MatchingPostDocument {
     private Long viewCount;
 
     @Field(type = FieldType.Keyword, index = false)
-    private List<String> fileImageUrlList;
+    private List<MatchingPostImageResponse> imageList; // Document가 DTO를 가지고 있는 게 좋아 보이지는 않는다.
 
     // 나중에 정렬할 때 속도가 너무 느리면 `epoch_millis`로 바꾸자
     @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis")
@@ -65,8 +67,9 @@ public class MatchingPostDocument {
 
     @Builder
     public MatchingPostDocument(Long id, Long authorId, ArtistType artistType, String title,
-                                WorkType workType, String description, Long viewCount,
-                                List<String> fileImageUrlList, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                                WorkType workType, String description, Long viewCount, List<MatchingPostImageResponse> imageList,
+                                LocalDateTime createdAt, LocalDateTime updatedAt) {
+
         this.id = id;
         this.authorId = authorId;
         this.artistType = artistType;
@@ -74,7 +77,7 @@ public class MatchingPostDocument {
         this.workType = workType;
         this.description = description;
         this.viewCount = viewCount;
-        this.fileImageUrlList = fileImageUrlList;
+        this.imageList = imageList;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -88,7 +91,12 @@ public class MatchingPostDocument {
                 .workType(matchingPost.getWorkType())
                 .description(matchingPost.getDescription())
                 .viewCount(matchingPost.getViewCount())
-                .fileImageUrlList(matchingPost.getFileUrlList())
+                .imageList(
+                        matchingPost.getMatchingPostImages().stream()
+                                .filter(matchingPostImage -> Status.isRegistered(matchingPostImage.getStatus()))
+                                .map(MatchingPostImageResponse::from)
+                                .toList()
+                )
                 .createdAt(matchingPost.getCreatedAt())
                 .updatedAt(matchingPost.getUpdatedAt())
                 .build();
