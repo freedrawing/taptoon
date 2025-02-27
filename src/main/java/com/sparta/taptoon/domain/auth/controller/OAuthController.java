@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class OAuthController {
     private final NaverAuthService naverAuthService;
-    private final String googleAuthUrl = "http://taptoon.site/oauth2/authorization/google";
+    private final String googleAuthUrl = "https://api.taptoon.site/oauth2/authorization/google";
     private final AuthService authService;
 
     @Operation(summary = "네이버 로그인")
@@ -58,7 +58,7 @@ public class OAuthController {
     ) throws IOException {
         LoginMemberResponse loginResponse = naverAuthService.naverCallback(code, state, httpServletRequest);
         // 프론트엔드로 리디렉션 (토큰을 쿼리 파라미터로 전달)
-        String redirectUrl = "http://localhost:3000/login?access_token=" + URLEncoder.encode(loginResponse.accessToken(), StandardCharsets.UTF_8)
+        String redirectUrl = "https://taptoon.site/login?access_token=" + URLEncoder.encode(loginResponse.accessToken(), StandardCharsets.UTF_8)
                 + "&refresh_token=" + URLEncoder.encode(loginResponse.refreshToken(), StandardCharsets.UTF_8) +
                 "&expires_at=" + URLEncoder.encode(String.valueOf(loginResponse.tokenExpiresAt()), StandardCharsets.UTF_8);
         httpServletResponse.sendRedirect(redirectUrl);

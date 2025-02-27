@@ -30,7 +30,7 @@ public class GoogleAuthHandler implements AuthenticationSuccessHandler {
         response.setContentType("application/json");
 //        response.getWriter().write(objectMapper.writeValueAsString(loginResponse));
         // 프론트엔드로 리디렉션 (토큰을 쿼리 파라미터로 전달)
-        String redirectUrl = "http://taptoon.site/login?access_token=" + URLEncoder.encode(loginResponse.accessToken(), StandardCharsets.UTF_8)
+        String redirectUrl = "https://taptoon.site/login?access_token=" + URLEncoder.encode(loginResponse.accessToken(), StandardCharsets.UTF_8)
                 + "&refresh_token=" + URLEncoder.encode(loginResponse.refreshToken(), StandardCharsets.UTF_8) +
                 "&expires_at=" + URLEncoder.encode(String.valueOf(loginResponse.tokenExpiresAt()), StandardCharsets.UTF_8);
         response.sendRedirect(redirectUrl);
