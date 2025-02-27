@@ -42,8 +42,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**", "/auth/login", "/auth/sign-up",
-                                "/auth/naver/login", "/auth/naver/callback",
+                        .requestMatchers("/**", "/api/auth/**",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -78,7 +77,8 @@ public class SecurityConfig {
                 "http://localhost:8080",
                 "https://nid.naver.com",
                 "http://localhost:*", // 왜 안 되지?
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "http://taptoon-front.s3-website.ap-northeast-2.amazonaws.com"
         ));
 
         // 허용할 HTTP 메서드 설정
@@ -90,7 +90,8 @@ public class SecurityConfig {
                 "Content-Type",
                 "Refresh-Token",
                 "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials"
+                "Access-Control-Allow-Credentials",
+                "X-Auth-Token"
         ));
 
         // 인증 정보 포함 설정

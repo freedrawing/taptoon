@@ -141,18 +141,31 @@ public class ImageServiceImpl implements ImageService {
         return imageUrl;
     }
 
+    @Override
+    public void removeImageFromS3(String url) {
+        String key = url.substring(url.indexOf(".com/")+5);
+        if (key.contains("?")) {
+            key = key.substring(0, key.indexOf("?"));
+        }
+        try{
+            amazonS3.deleteObject(BUCKET,key);
+            log.info("S3에서 이미지 삭제 성공. key : {}",key);
+        } catch (Exception e) {
+            log.info("S3에서 이미지 삭제 실패. key : {}",key);
+            throw new AccessDeniedException(ErrorCode.FAIL_CONNECT_TO_S3);
+        }
+    }
+
     private GeneratePresignedUrlRequest generatePresignedUrlRequest(String directory, String contentType) {
         Date expiration = new Date();
         long expTimeMillis = expiration.getTime();
         expTimeMillis += EXPIRE_TIME;
         expiration.setTime(expTimeMillis);
 
-        GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                new GeneratePresignedUrlRequest(BUCKET, directory)
-                        .withMethod(HttpMethod.PUT)
-                        .withExpiration(expiration)
-                        .withContentType(contentType);
-        return generatePresignedUrlRequest;
+        return new GeneratePresignedUrlRequest(BUCKET, directory)
+                .withMethod(HttpMethod.PUT)
+                .withExpiration(expiration)
+                .withContentType(contentType);
     }
 
     private static String normalizeFolderPath(String folderPath) {
