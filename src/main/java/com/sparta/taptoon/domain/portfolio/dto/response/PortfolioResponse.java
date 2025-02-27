@@ -13,7 +13,7 @@ public record PortfolioResponse(
         String title,
         String content,
         String fileUrl,
-        List<PortfolioImageResponse> portfolioImageResponses,
+        List<PortfolioImageResponse> files,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -37,10 +37,9 @@ public record PortfolioResponse(
                 .title(portfolio.getTitle())
                 .content(portfolio.getContent())
                 .fileUrl(portfolio.getFileUrl())
-                .portfolioImageResponses(portfolioImageResponses)
+                .files(portfolioImageResponses)
                 .createdAt(portfolio.getCreatedAt())
                 .updatedAt(portfolio.getUpdatedAt())
                 .build();
     }
-
 }

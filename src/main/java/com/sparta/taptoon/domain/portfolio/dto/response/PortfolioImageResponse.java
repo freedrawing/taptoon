@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 @Builder
 public record PortfolioImageResponse(
         Long portfolioImageId,
-        String imageUrl,
+        Long portfolioId,
+        String fileUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -17,7 +18,8 @@ public record PortfolioImageResponse(
     public static PortfolioImageResponse from(PortfolioImage portfolioImage) {
         return PortfolioImageResponse.builder()
                 .portfolioImageId(portfolioImage.getId())
-                .imageUrl(portfolioImage.getImageUrl())
+                .portfolioId(portfolioImage.getPortfolio().getId())
+                .fileUrl(portfolioImage.getFileUrl())
                 .createdAt(portfolioImage.getCreatedAt())
                 .updatedAt(portfolioImage.getUpdatedAt())
                 .build();

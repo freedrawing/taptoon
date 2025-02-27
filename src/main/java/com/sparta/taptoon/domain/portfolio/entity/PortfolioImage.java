@@ -18,8 +18,8 @@ public class PortfolioImage extends BaseEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    @Column(name = "image_url", nullable = false, length = 1000)
-    private String imageUrl;
+    @Column(name = "file_url", nullable = false, length = 1000)
+    private String fileUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "portfolio_id", nullable = false, updatable = false)
@@ -30,9 +30,13 @@ public class PortfolioImage extends BaseEntity {
     private Status status;
 
     @Builder
-    public PortfolioImage(String imageUrl, Portfolio portfolio, Status status) {
-        this.imageUrl = imageUrl;
+    public PortfolioImage(String fileUrl, Portfolio portfolio, Status status) {
+        this.fileUrl = fileUrl;
         this.portfolio = portfolio;
         this.status = status;
+    }
+
+    public void updateStatus() {
+        this.status = Status.REGISTERED;
     }
 }

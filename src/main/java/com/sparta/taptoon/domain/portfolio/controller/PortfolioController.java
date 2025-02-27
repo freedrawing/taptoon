@@ -1,8 +1,7 @@
 package com.sparta.taptoon.domain.portfolio.controller;
 
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
-import com.sparta.taptoon.domain.portfolio.dto.request.CreatePortfolioRequest;
-import com.sparta.taptoon.domain.portfolio.dto.request.UpdatePortfolioRequest;
+import com.sparta.taptoon.domain.portfolio.dto.request.PortfolioRequest;
 import com.sparta.taptoon.domain.portfolio.dto.response.PortfolioResponse;
 import com.sparta.taptoon.domain.portfolio.service.PortfolioService;
 import com.sparta.taptoon.global.common.ApiResponse;
@@ -26,19 +25,20 @@ public class PortfolioController {
 
     @Operation(summary =  "포트폴리오 시작하기")
     @PostMapping
-    public ResponseEntity<ApiResponse<Long>> createSkeleton(
+    public ResponseEntity<ApiResponse<Long>> startPortfolio(
             @AuthenticationPrincipal MemberDetail memberDetail) {
-        Long member = portfolioService.makeBasePortfolio(memberDetail.getMember());
-        return ApiResponse.success(member);
+        Long portfolioId = portfolioService.startPortfolio(memberDetail.getMember());
+        return ApiResponse.created(portfolioId);
     }
 
-    @Operation(summary = "포트폴리오 생성")
-    @PostMapping
-    public ResponseEntity<ApiResponse<PortfolioResponse>> createPortfolio(
+    @Operation(summary = "포트폴리오 내용 채우기 (제목, 내용, 파일)")
+    @PutMapping("/{portfolioId}")
+    public ResponseEntity<ApiResponse<PortfolioResponse>> fillInPortfolio(
             @AuthenticationPrincipal MemberDetail memberDetail,
-            @Valid @RequestBody CreatePortfolioRequest portfolioRequest) {
-        PortfolioResponse portfolio = portfolioService.makePortfolio(portfolioRequest, memberDetail.getMember());
-        return ApiResponse.created(portfolio);
+            @Valid @RequestBody PortfolioRequest portfolioRequest,
+            @PathVariable Long portfolioId) {
+        PortfolioResponse portfolio = portfolioService.fillInPortfolio(portfolioRequest, memberDetail.getMember(), portfolioId);
+        return ApiResponse.success(portfolio);
     }
 
     @Operation(summary = "포트폴리오 상세조회")
@@ -46,25 +46,6 @@ public class PortfolioController {
     public ResponseEntity<ApiResponse<PortfolioResponse>> getPortfolio(@PathVariable Long portfolioId) {
         PortfolioResponse portfolio = portfolioService.findPortfolio(portfolioId);
         return ApiResponse.success(portfolio);
-    }
-
-    @Operation(summary = "포트폴리오 전체조회")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<PortfolioResponse>>> getAllPortfolio(
-            @AuthenticationPrincipal MemberDetail memberDetail) {
-        List<PortfolioResponse> portfolios = portfolioService.findAllPortfolio(memberDetail.getMember());
-        return ApiResponse.success(portfolios);
-    }
-
-    @Operation(summary = "포트폴리오 수정")
-    @PutMapping("/{portfolioId}")
-    public ResponseEntity<ApiResponse<Void>> updatePortfolio(
-            @AuthenticationPrincipal MemberDetail memberDetail,
-            @Valid @PathVariable Long portfolioId,
-            @RequestBody UpdatePortfolioRequest updatePortfolioRequest) {
-        // 수정 필요
-        portfolioService.editPortfolio(updatePortfolioRequest, portfolioId, memberDetail.getMember());
-        return ApiResponse.noContent();
     }
 
     @Operation(summary = "포트폴리오 삭제")
