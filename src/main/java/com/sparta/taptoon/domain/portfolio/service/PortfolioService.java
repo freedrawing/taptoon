@@ -40,7 +40,6 @@ public class PortfolioService {
         if (5 <= countPortfolio) {
             throw new CreationLimitExceededException(ErrorCode.CREATION_LIMIT_EXCEEDED);
         }
-
         // 빈 포트폴리오 만들기
         Portfolio portfolio = Portfolio.builder()
                 .member(member)

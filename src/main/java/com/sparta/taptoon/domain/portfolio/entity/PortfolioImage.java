@@ -39,4 +39,8 @@ public class PortfolioImage extends BaseEntity {
     public void updateStatus() {
         this.status = Status.REGISTERED;
     }
+
+    public void removeFile() {
+        this.status = Status.DELETING;
+    }
 }

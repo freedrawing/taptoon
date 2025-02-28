@@ -29,18 +29,14 @@ public class Portfolio extends BaseEntity {
     @Column(name = "content", nullable = false, length = 3000, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "file_url", nullable = false)
-    private String fileUrl;
-
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @Builder
-    public Portfolio(Member member, String title, String content, String fileUrl) {
+    public Portfolio(Member member, String title, String content) {
         this.member = member;
         this.title = title;
         this.content = content;
-        this.fileUrl = fileUrl;
         this.isDeleted = false;
     }
 
