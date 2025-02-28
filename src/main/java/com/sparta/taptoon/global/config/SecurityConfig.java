@@ -83,17 +83,10 @@ public class SecurityConfig {
         ));
 
         // 허용할 HTTP 메서드 설정
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.addAllowedMethod("*");
 
         // 허용할 헤더 설정
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Refresh-Token",
-                "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials",
-                "X-Auth-Token"
-        ));
+        configuration.addAllowedHeader("*");
 
         // 인증 정보 포함 설정
         configuration.setAllowCredentials(true);
