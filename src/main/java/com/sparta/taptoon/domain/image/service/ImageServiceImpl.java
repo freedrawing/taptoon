@@ -8,10 +8,8 @@ import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
 import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
-import com.sparta.taptoon.domain.portfolio.entity.Portfolio;
-import com.sparta.taptoon.domain.portfolio.entity.PortfolioImage;
-import com.sparta.taptoon.domain.portfolio.repository.PortfolioImageRepository;
-import com.sparta.taptoon.domain.portfolio.repository.PortfolioRepository;
+import com.sparta.taptoon.domain.portfolio.enums.FileType;
+import com.sparta.taptoon.domain.portfolio.service.PortfolioService;
 import com.sparta.taptoon.global.common.enums.Status;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
@@ -29,29 +27,28 @@ public class ImageServiceImpl implements ImageService {
 
     private final AwsS3Service awsS3Service;
     private final MatchingPostService matchingPostService;
-    private final PortfolioRepository portfolioRepository;
-    private final PortfolioImageRepository portfolioImageRepository;
+    private final PortfolioService portfolioService;
     private final ChatRoomRepository chatRoomRepository;
     private final MemberRepository memberRepository;
     private final ChatImageMessageRepository chatImageMessageRepository;
 
-    @Transactional // 이것도 나중에는 필요 없음
     @Override
-    public PresignedUrlResponse generatePresignedUrl(String folderPath, Long id, String fileName) {
+    public PresignedUrlResponse generatePresignedUrl(String folderPath, Long id, String fileType, String fileName) {
         String fileNameWithId = String.format("%s-%s", id, fileName);
-        String thumbnailPath = String.format("%s/%s", folderPath, S3_THUMBNAIL_IMAGE_PATH.getStringConstant());
-        String originalPath = String.format("%s/%s", folderPath, S3_ORIGINAL_IMAGE_PATH.getStringConstant());
+        String thumbnailPath = String.format("%s/%s", folderPath, S3_THUMBNAIL_IMAGE_PATH);
+        String originalPath = String.format("%s/%s", folderPath, S3_ORIGINAL_IMAGE_PATH);
 
         String presignedUrl = awsS3Service.generatePresignedUrl(originalPath, fileNameWithId);
 
         String thumbnailImageFullPath = awsS3Service.getFullUrl(thumbnailPath, fileNameWithId);
         String originalImageFullPath = awsS3Service.getFullUrl(originalPath, fileNameWithId);
 
-        return folderPath.contains(S3_MATCHING_POST_IMAGE_PATH.getStringConstant())
+        return folderPath.contains(S3_MATCHING_POST_IMAGE_PATH)
                 ? getMatchingPostPresignedUrl(id, thumbnailImageFullPath, originalImageFullPath, presignedUrl)
-                : savePortfolioImage(id, originalImageFullPath, presignedUrl);
+                : getPortfolioFilePresignedUrl(id, fileType, thumbnailImageFullPath, originalImageFullPath, presignedUrl);
     }
 
+    // `MatchingPostImage` 저장용
     private PresignedUrlResponse getMatchingPostPresignedUrl(Long id, String thumbnailImageFullPath,
                                                              String originalImageFullPath, String presignedUrl) {
 
@@ -59,18 +56,20 @@ public class ImageServiceImpl implements ImageService {
         return new PresignedUrlResponse(presignedUrl, matchingPostImageId);
     }
 
-    private PresignedUrlResponse savePortfolioImage(Long id, String imageFullPath, String presignedUrl) {
-        Portfolio portfolio = portfolioRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.PORTFOLIO_NOT_FOUND));
-        PortfolioImage image = PortfolioImage.builder()
-                .portfolio(portfolio)
-                .fileUrl(imageFullPath)
-                .status(Status.PENDING)
-                .build();
-        PortfolioImage savedImage = portfolioImageRepository.save(image);
-        return new PresignedUrlResponse(presignedUrl, savedImage.getId());
+    // `PortfolioFile` 저장용
+    private PresignedUrlResponse getPortfolioFilePresignedUrl(Long id, String fileType,
+                                                              String thumbnailImageFullPath, String originalFileFullPath,
+                                                              String presignedUrl) {
+
+        // file 타입이면 thumbnailUrl 필요 없음. 있어서도 안 됨. Entity에는 null 저장
+        String filteredThumbnailUrl = FileType.isImageType(fileType) ? thumbnailImageFullPath : null;
+
+        Long portfolioFileId =
+                portfolioService.generateEmptyPortfolioFile(id, fileType, filteredThumbnailUrl, originalFileFullPath);
+        return new PresignedUrlResponse(presignedUrl, portfolioFileId);
     }
 
+    // 여기는 AwsS3Service로 로직을 변경해서 잘 안 될 수도 있을 듯. 진영님한테 확인해달라고 해야할 듯.
     @Override
     @Transactional
     public String generatePresignedUrl(String folderPath, Long chatRoomId, Long memberId, String fileName) {

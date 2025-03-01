@@ -4,6 +4,7 @@ import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
+import com.sparta.taptoon.global.util.ContentTypeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +41,7 @@ public class AwsS3Service {
     }
 
     public String generatePresignedUrl(String filePath, String fileName) {
-        String contentType = getContentType(fileName);
+        String contentType = ContentTypeUtil.getContentType(fileName);
         String fullPath = normalizePath(filePath) + fileName;
         GeneratePresignedUrlRequest request = generatePresignedUrlRequest(fullPath, contentType);
 
@@ -79,15 +80,4 @@ public class AwsS3Service {
         return path.toLowerCase();
     }
 
-    // 그리고 포트폴리오에서 파일 업로드하려면 따로 Type 추가해야 할 듯?
-    // 또한 어떤 타입을 받을 것인가?
-    private String getContentType(String fileName) {
-        String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
-        return switch (extension) {
-            case "jpg", "jpeg" -> "image/jpeg";
-            case "png" -> "image/png";
-            case "gif" -> "image/gif";
-            default -> throw new AccessDeniedException("지원하지 않는 이미지 타입입니다: " + extension);
-        };
-    }
 }
