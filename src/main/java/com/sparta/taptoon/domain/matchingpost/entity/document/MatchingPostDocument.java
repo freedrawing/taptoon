@@ -54,7 +54,7 @@ public class MatchingPostDocument {
     @Field(type = FieldType.Long) // 정렬하려면 인덱싱 돼야 함
     private Long viewCount;
 
-    @Field(type = FieldType.Keyword, index = false)
+    @Field(type = FieldType.Nested, index = false)
     private List<MatchingPostImageResponse> imageList; // Document가 DTO를 가지고 있는 게 좋아 보이지는 않는다.
 
     // 나중에 정렬할 때 속도가 너무 느리면 `epoch_millis`로 바꾸자
