@@ -1,6 +1,7 @@
 package com.sparta.taptoon.domain.matchingpost.entity;
 
 import com.sparta.taptoon.domain.matchingpost.dto.request.RegisterMatchingPostRequest;
+import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostImageResponse;
 import com.sparta.taptoon.domain.matchingpost.enums.ArtistType;
 import com.sparta.taptoon.domain.matchingpost.enums.WorkType;
@@ -101,8 +102,11 @@ public class MatchingPost extends BaseEntity {
         updateCreatedAtToNow();
     }
 
-    public void editMe() {
-
+    public void editMe(UpdateMatchingPostRequest request) {
+        this.title = request.title();
+        this.artistType = ArtistType.of(request.artistType());
+        this.workType = WorkType.of(request.workType());
+        this.description = description;
     }
 
     // 조회수 증가

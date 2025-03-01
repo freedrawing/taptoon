@@ -3,6 +3,7 @@ package com.sparta.taptoon.domain.matchingpost.service;
 import com.sparta.taptoon.domain.image.service.AwsS3Service;
 import com.sparta.taptoon.domain.image.service.ImageService;
 import com.sparta.taptoon.domain.matchingpost.dto.request.RegisterMatchingPostRequest;
+import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
@@ -15,6 +16,7 @@ import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticMatching
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.common.annotation.DistributedLock;
+import com.sparta.taptoon.global.common.enums.Status;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -75,10 +77,9 @@ public class MatchingPostService {
     @Transactional
     public MatchingPostResponse registerMatchingPost(Long memberId, Long matchingPostId, RegisterMatchingPostRequest request) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
-        if (findMatchingPost.isMyMatchingPost(memberId) == false) {
-            throw new AccessDeniedException("매칭 게시글에 접근할 권한이 없습니다.");
-        }
+        validateMatchingPostAccess(memberId, findMatchingPost);
 
+        // `MatchingPost` & `MatchingPostImage` 등록
         findMatchingPost.registerMe(request);
         registerMatchingPostImages(request.matchingPostImageIds());
 
@@ -100,19 +101,30 @@ public class MatchingPostService {
         }
     }
 
+    // MatchingPost 수정 + 이미지 삭제된 것과 추가된 것 각각 상태 변경
     @Transactional
-    public void editMatchingPost() {
+    public void editMatchingPost(Long memberId, Long matchingPostId, UpdateMatchingPostRequest request) {
         // 기존에 연결됐던 이미지 중, update시 ID 값이 안 넘어오면 전부 DELETING으로 바꾸자.
         // PENDING 상태가 몇 시간 이상이 유지되면 DELETING으로 상태를 변경하고, DELETING은 Scheduler 같은 녀석이 1시간마다 삭제하는 걸로
+        MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
+        validateMatchingPostAccess(memberId, findMatchingPost);
+
+        // MatchingPost 수정사항 반영
+        findMatchingPost.editMe(request);
+
+        // 이미지 추가된 것과 삭제된 것 상태 변경
+        matchingPostImageRepository.updateStatusByIds(request.validImageIds(), Status.REGISTERED);
+        matchingPostImageRepository.updateStatusByIds(request.deletedImageIds(), Status.DELETING);
+
+        // Update Elasticsearch
+        elasticMatchingPostManager.upsertToElasticsearchAfterCommit(findMatchingPost);
     }
 
     // 매칭포스트 삭제 (soft deletion) 단, 사진이나 텍스트 파일을 어떻게 처리해야 할지 고려해야 함
     @Transactional
     public void removeMatchingPost(Long memberId, Long matchingPostId) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
-        if (findMatchingPost.isMyMatchingPost(memberId) == false) {
-            throw new AccessDeniedException("매칭 게시글에 접근할 권한이 없습니다");
-        }
+        validateMatchingPostAccess(memberId, findMatchingPost);
 
         findMatchingPost.removeMe();
 
@@ -126,22 +138,6 @@ public class MatchingPostService {
 
         // Delete from Elasticsearch
         elasticMatchingPostManager.deleteFromElasticsearchAfterCommit(matchingPostId);
-    }
-
-    // S3 + MatchingPostImage 삭제
-    private void removeImages(List<MatchingPostImage> matchingPostImages) {
-        // S3에 있는 이미지 삭제 (이건 어쩔 수 없이 여러번 돌려야 한다)
-        matchingPostImages.forEach( matchingPostImage -> {
-            // S3에 있는 이미지 삭제. 그런데 Thumbnail도 삭제해야 하지 않나?
-            // 그런데 Thumbnail 경로는 현재 시점에서 알 방법이 없다.
-            // original과 thumbnail 경로가 구분된다고 하는데 하드 코딩으로 변경하는 게 좋아보이지 않는다.
-            // -> thumbnail_image_url 추가
-            awsS3Service.removeObject(matchingPostImage.getOriginalImageUrl());
-//            matchingPostImageRepository.deleteById(matchingPostImage.getId());
-        });
-
-        // 이미지 삭제가 안 된다.
-        matchingPostImageRepository.deleteAll(matchingPostImages); // 좀 위험한 메서드인 듯
     }
 
     /*
@@ -184,7 +180,7 @@ public class MatchingPostService {
         return MatchingPostResponse.from(findMatchingPost);
     }
 
-    // Private helper method
+    // Find valid MatchingPost
     private MatchingPost findMatchingPostById(Long matchingPostId) {
         MatchingPost matchingPost = matchingPostRepository.findById(matchingPostId)
                 .orElseThrow(() -> new NotFoundException(MATCHING_POST_NOT_FOUND));
@@ -192,6 +188,13 @@ public class MatchingPostService {
         matchingPost.validateIsDeleted();
 
         return matchingPost;
+    }
+
+    // MatchingPost 유효성 검사
+    private void validateMatchingPostAccess(Long memberId, MatchingPost matchingPost) {
+        if (matchingPost.isMyMatchingPost(memberId) == false) {
+            throw new AccessDeniedException("매칭 게시글에 접근할 권한이 없습니다");
+        }
     }
 
     // 임시 메서드 (나중에 교체, 삭제된 사용자인지도 사실 검증해야 함)

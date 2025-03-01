@@ -42,7 +42,7 @@ public class MatchingPostController {
      * `PUT`이지만 사실상 `POST`임
      */
     @Operation(summary = "매칭 게시글 등록")
-    @PutMapping("/{matchingPostId}")
+    @PutMapping("/{matchingPostId}/registration")
     public ResponseEntity<ApiResponse<MatchingPostResponse>> registerMatchingPost(
             @AuthenticationPrincipal MemberDetail memberDetail,
             @PathVariable Long matchingPostId,
@@ -53,14 +53,14 @@ public class MatchingPostController {
     }
 
     @Operation(summary = "매칭 게시글 수정")
-//    @PutMapping("/{matchingPostId}")
-    public ResponseEntity<ApiResponse<MatchingPostResponse>> updateMatchingPost(
+    @PutMapping("/{matchingPostId}")
+    public ResponseEntity<ApiResponse<Void>> updateMatchingPost(
             @AuthenticationPrincipal MemberDetail memberDetail,
             @PathVariable Long matchingPostId,
             @Valid @RequestBody UpdateMatchingPostRequest request
     ) {
-
-        return null;
+        matchingPostService.editMatchingPost(memberDetail.getId(), matchingPostId, request);
+        return ApiResponse.noContent();
     }
 
     @Operation(summary = "매칭 게시글 단건 조회 (deprecated, 진짜 등록할 때는 `PUT`으로 함)")
