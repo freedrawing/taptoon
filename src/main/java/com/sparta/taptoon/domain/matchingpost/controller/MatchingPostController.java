@@ -76,7 +76,7 @@ public class MatchingPostController {
             @AuthenticationPrincipal MemberDetail memberDetail,
             @PathVariable Long matchingPostId) {
 
-        matchingPostService.deleteMatchingPost(memberDetail.getId(), matchingPostId);
+        matchingPostService.removeMatchingPost(memberDetail.getId(), matchingPostId);
         return ApiResponse.noContent();
     }
 

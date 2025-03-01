@@ -1,5 +1,7 @@
 package com.sparta.taptoon.domain.matchingpost.service;
 
+import com.sparta.taptoon.domain.image.service.AwsS3Service;
+import com.sparta.taptoon.domain.image.service.ImageService;
 import com.sparta.taptoon.domain.matchingpost.dto.request.RegisterMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
@@ -37,6 +39,7 @@ public class MatchingPostService {
     private final ElasticMatchingPostManager elasticMatchingPostManager;
     private final ElasticAutocompleteService elasticAutocompleteService;
     private final MemberRepository memberRepository; // 나중에 서비스로 바꿔야 함.
+    private final AwsS3Service awsS3Service;
 
     // 빈 MatchingPost 만들기. 이미지 저장용
     @Transactional
@@ -52,6 +55,20 @@ public class MatchingPostService {
                 .build());
 
         return savedEmtpyMatchingPost.getId();
+    }
+
+    // 빈 MatchingPostImage 만들기. 이미지 저장용 (저장경로 예시: https://taptoon.s3.ap-northeast-2.amazonaws.com/matchingpost/original/117-taptoon-logo-circular.png)
+    @Transactional
+    public Long generateEmptyMatchingPostImage(Long matchingPostId, String thumbnailImageUrl, String originalImageUrl) {
+        MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
+
+        MatchingPostImage savedMatchingPostImage = matchingPostImageRepository.save(MatchingPostImage.builder()
+                .matchingPost(findMatchingPost)
+                .thumbnailImageUrl(thumbnailImageUrl)
+                .originalImageUrl(originalImageUrl)
+                .build());
+
+        return savedMatchingPostImage.getId();
     }
 
     // 매칭 포스트 등록 (수정 작업을 하지만 사실상 등록 로직임)
@@ -84,23 +101,47 @@ public class MatchingPostService {
     }
 
     @Transactional
-    public void updateMatchingPost() {
-
+    public void editMatchingPost() {
+        // 기존에 연결됐던 이미지 중, update시 ID 값이 안 넘어오면 전부 DELETING으로 바꾸자.
+        // PENDING 상태가 몇 시간 이상이 유지되면 DELETING으로 상태를 변경하고, DELETING은 Scheduler 같은 녀석이 1시간마다 삭제하는 걸로
     }
 
     // 매칭포스트 삭제 (soft deletion) 단, 사진이나 텍스트 파일을 어떻게 처리해야 할지 고려해야 함
     @Transactional
-    public void deleteMatchingPost(Long memberId, Long matchingPostId) {
+    public void removeMatchingPost(Long memberId, Long matchingPostId) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
         if (findMatchingPost.isMyMatchingPost(memberId) == false) {
             throw new AccessDeniedException("매칭 게시글에 접근할 권한이 없습니다");
         }
 
-        // 삭제처리하면 게시글에 첨부된 이미지나 텍스트 파일을 어떻게 처리하지? 삭제해야 하나? -> 삭제해야 할 듯
-        findMatchingPost.deleteMe();
+        findMatchingPost.removeMe();
 
-        // Delete from ES
+        // S3 이미지 삭제 후 컬렉션 비우기
+        List<MatchingPostImage> matchingPostImages = findMatchingPost.getMatchingPostImages();
+        matchingPostImages.forEach(img -> {
+//            awsS3Service.removeObject(img.getThumbnailImageUrl()); // delete thumbnail // 그런데 썸네일은 완벽히 저장 로직이 갖춰지지 않은 듯
+            awsS3Service.removeObject(img.getOriginalImageUrl()); // delete original
+        }); // 나중에 thumbnail도 삭제해줘야 함
+        matchingPostImages.clear(); // orphanRemoval로 DB에서 삭제됨
+
+        // Delete from Elasticsearch
         elasticMatchingPostManager.deleteFromElasticsearchAfterCommit(matchingPostId);
+    }
+
+    // S3 + MatchingPostImage 삭제
+    private void removeImages(List<MatchingPostImage> matchingPostImages) {
+        // S3에 있는 이미지 삭제 (이건 어쩔 수 없이 여러번 돌려야 한다)
+        matchingPostImages.forEach( matchingPostImage -> {
+            // S3에 있는 이미지 삭제. 그런데 Thumbnail도 삭제해야 하지 않나?
+            // 그런데 Thumbnail 경로는 현재 시점에서 알 방법이 없다.
+            // original과 thumbnail 경로가 구분된다고 하는데 하드 코딩으로 변경하는 게 좋아보이지 않는다.
+            // -> thumbnail_image_url 추가
+            awsS3Service.removeObject(matchingPostImage.getOriginalImageUrl());
+//            matchingPostImageRepository.deleteById(matchingPostImage.getId());
+        });
+
+        // 이미지 삭제가 안 된다.
+        matchingPostImageRepository.deleteAll(matchingPostImages); // 좀 위험한 메서드인 듯
     }
 
     /*

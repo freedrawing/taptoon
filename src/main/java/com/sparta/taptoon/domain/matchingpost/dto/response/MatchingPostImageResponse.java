@@ -5,14 +5,16 @@ import com.sparta.taptoon.domain.matchingpost.entity.MatchingPostImage;
 public record MatchingPostImageResponse(
         Long id,
         Long matchingPostId,
-        String imageUrl
+        String thumbnailImageUrl,
+        String originalImageUrl
 ) {
 
     public static MatchingPostImageResponse from(MatchingPostImage matchingPostImage) {
         return new MatchingPostImageResponse(
                 matchingPostImage.getId(),
                 matchingPostImage.getMatchingPost().getId(),
-                matchingPostImage.getImageUrl()
+                matchingPostImage.getThumbnailImageUrl(),
+                matchingPostImage.getOriginalImageUrl()
         );
     }
 }
