@@ -62,7 +62,7 @@ public class MatchingPost extends BaseEntity {
     private Status status;
 
     @OneToMany(mappedBy = "matchingPost", cascade = CascadeType.ALL, orphanRemoval = true) // Elasticsearch 용도
-    private List<MatchingPostImage> matchingPostImages = new ArrayList<>();
+    private List<MatchingPostImage>matchingPostImages = new ArrayList<>();
 
 
     @Builder

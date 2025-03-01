@@ -94,7 +94,7 @@ public class ImageServiceImpl implements ImageService {
 
         PortfolioImage image = PortfolioImage.builder()
                 .portfolio(portfolio)
-                .imageUrl(imageFullPath)
+                .fileUrl(imageFullPath)
                 .status(Status.PENDING)
                 .build();
 
