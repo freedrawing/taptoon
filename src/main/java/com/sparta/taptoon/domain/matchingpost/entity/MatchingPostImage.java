@@ -43,14 +43,4 @@ public class MatchingPostImage extends BaseEntity {
         status = Status.REGISTERED;
         updateCreatedAtToNow();
     }
-
-    // Update 시 새로 추가된 이미지
-    public void changeStatusToRegistered() {
-        status = Status.REGISTERED;
-    }
-
-    // 'Deleting' 상태로 변경
-    public void changeStatusToDeleting() {
-        status = Status.DELETING;
-    }
 }

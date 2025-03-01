@@ -90,7 +90,7 @@ public class MatchingPostService {
 
     /*
         * MatchingPost 이미지 ID로 PENDING -> REGISTERED로 변경
-        * `modifyMatchingPost()`의 트랜잭션 하에서 실행됨
+        * `registerMatchingPost()`의 트랜잭션 하에서 실행됨
      */
     private void registerMatchingPostImages(List<Long> matchingPostImageIds) {
         if (matchingPostImageIds.isEmpty()) return;
