@@ -73,7 +73,7 @@ public class UploadImageToS3 {
         when(portfolioRepository.findById(any())).thenReturn(Optional.of(portfolio));
         PortfolioImage portfolioImage = PortfolioImage.builder()
                 .portfolio(portfolio)
-                .imageUrl("https://test-bucket.s3.amazonaws.com/test/test-image.jpg") // 실제 URL은 나중에 설정됨
+                .fileUrl("https://test-bucket.s3.amazonaws.com/test/test-image.jpg") // 실제 URL은 나중에 설정됨
                 .status(Status.PENDING)
                 .build();
         when(portfolioImageRepository.save(any())).thenReturn(portfolioImage);
