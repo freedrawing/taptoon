@@ -44,28 +44,35 @@ public class ImageServiceImpl implements ImageService {
         String originalImageFullPath = awsS3Service.getFullUrl(originalPath, fileNameWithId);
 
         return folderPath.contains(S3_MATCHING_POST_IMAGE_PATH)
-                ? getMatchingPostPresignedUrl(id, thumbnailImageFullPath, originalImageFullPath, presignedUrl)
-                : getPortfolioFilePresignedUrl(id, fileType, thumbnailImageFullPath, originalImageFullPath, presignedUrl);
+                ? getMatchingPostPresignedUrl(id, fileName, thumbnailImageFullPath, originalImageFullPath, presignedUrl)
+                : getPortfolioFilePresignedUrl(id, fileName, fileType, thumbnailImageFullPath, originalImageFullPath, presignedUrl);
     }
 
     // `MatchingPostImage` 저장용
-    private PresignedUrlResponse getMatchingPostPresignedUrl(Long id, String thumbnailImageFullPath,
-                                                             String originalImageFullPath, String presignedUrl) {
+    private PresignedUrlResponse getMatchingPostPresignedUrl(Long id,
+                                                             String fileName,
+                                                             String thumbnailImageFullPath,
+                                                             String originalImageFullPath,
+                                                             String presignedUrl) {
 
-        Long matchingPostImageId = matchingPostService.generateEmptyMatchingPostImage(id, thumbnailImageFullPath, originalImageFullPath);
+        Long matchingPostImageId =
+                matchingPostService.generateEmptyMatchingPostImage(id, fileName, thumbnailImageFullPath, originalImageFullPath);
         return new PresignedUrlResponse(presignedUrl, matchingPostImageId);
     }
 
     // `PortfolioFile` 저장용
-    private PresignedUrlResponse getPortfolioFilePresignedUrl(Long id, String fileType,
-                                                              String thumbnailImageFullPath, String originalFileFullPath,
+    private PresignedUrlResponse getPortfolioFilePresignedUrl(Long id,
+                                                              String fileName,
+                                                              String fileType,
+                                                              String thumbnailImageFullPath,
+                                                              String originalFileFullPath,
                                                               String presignedUrl) {
 
         // file 타입이면 thumbnailUrl 필요 없음. 있어서도 안 됨. Entity에는 null 저장
         String filteredThumbnailUrl = FileType.isImageType(fileType) ? thumbnailImageFullPath : null;
 
         Long portfolioFileId =
-                portfolioService.generateEmptyPortfolioFile(id, fileType, filteredThumbnailUrl, originalFileFullPath);
+                portfolioService.generateEmptyPortfolioFile(id, fileName, fileType, filteredThumbnailUrl, originalFileFullPath);
         return new PresignedUrlResponse(presignedUrl, portfolioFileId);
     }
 

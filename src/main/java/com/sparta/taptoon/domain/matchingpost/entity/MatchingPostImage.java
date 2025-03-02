@@ -21,6 +21,9 @@ public class MatchingPostImage extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private MatchingPost matchingPost;
 
+    @Column(name = "file_name", nullable = false)
+    private String fileName;
+
     @Column(name = "thumbnail_image_url", nullable = false, length = 1000)
     private String thumbnailImageUrl;
 
@@ -32,8 +35,9 @@ public class MatchingPostImage extends BaseEntity {
     private Status status;
 
     @Builder
-    public MatchingPostImage(MatchingPost matchingPost, String thumbnailImageUrl, String originalImageUrl) {
+    public MatchingPostImage(MatchingPost matchingPost, String fileName, String thumbnailImageUrl, String originalImageUrl) {
         this.matchingPost = matchingPost;
+        this.fileName = fileName;
         this.thumbnailImageUrl = thumbnailImageUrl;
         this.originalImageUrl = originalImageUrl;
         this.status = Status.PENDING; // 처음은 이미지 저장 대기 상태

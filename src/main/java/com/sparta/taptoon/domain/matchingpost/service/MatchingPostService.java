@@ -62,11 +62,12 @@ public class MatchingPostService {
 
     // 빈 MatchingPostImage 만들기. 이미지 저장용 (저장경로 예시: https://taptoon.s3.ap-northeast-2.amazonaws.com/matchingpost/original/117-taptoon-logo-circular.png)
     @Transactional
-    public Long generateEmptyMatchingPostImage(Long matchingPostId, String thumbnailImageUrl, String originalImageUrl) {
+    public Long generateEmptyMatchingPostImage(Long matchingPostId, String fileName, String thumbnailImageUrl, String originalImageUrl) {
         MatchingPost findMatchingPost = findMatchingPostById(matchingPostId);
 
         MatchingPostImage savedMatchingPostImage = matchingPostImageRepository.save(MatchingPostImage.builder()
                 .matchingPost(findMatchingPost)
+                .fileName(fileName)
                 .thumbnailImageUrl(thumbnailImageUrl)
                 .originalImageUrl(originalImageUrl)
                 .build());
@@ -90,8 +91,8 @@ public class MatchingPostService {
     }
 
     /*
-        * MatchingPost 이미지 ID로 PENDING -> REGISTERED로 변경
-        * `registerMatchingPost()`의 트랜잭션 하에서 실행됨
+     * MatchingPost 이미지 ID로 PENDING -> REGISTERED로 변경
+     * `registerMatchingPost()`의 트랜잭션 하에서 실행됨
      */
 //    @Transactional
     public void registerMatchingPostImages(List<Long> matchingPostImageIds) {
@@ -150,9 +151,9 @@ public class MatchingPostService {
     }
 
     /*
-        * 매칭 포스트 필터링 다건 검색 (using Elasticsearch)
-        * 예외 처리를 해야 할 것 같지만 검색 중 예외가 발생하면 사실 Elasticsearch 내부에서 발생한 예외일 것이므로,
-        * 그때는 500번대 에러가 맞는 듯하다. 굳이 할 필요 없을 수도?
+     * 매칭 포스트 필터링 다건 검색 (using Elasticsearch)
+     * 예외 처리를 해야 할 것 같지만 검색 중 예외가 발생하면 사실 Elasticsearch 내부에서 발생한 예외일 것이므로,
+     * 그때는 500번대 에러가 맞는 듯하다. 굳이 할 필요 없을 수도?
      */
     public MatchingPostCursorResponse findFilteredMatchingPosts(
             String artistType,
