@@ -70,6 +70,10 @@
             "type": "long",
             "index": false
           },
+          "fileName": {
+            "type": "keyword",
+            "index": false
+          },
           "originalImageUrl": {
             "type": "keyword",
             "index": false
