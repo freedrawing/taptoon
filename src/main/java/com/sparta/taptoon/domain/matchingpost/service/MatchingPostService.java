@@ -141,7 +141,9 @@ public class MatchingPostService {
 //            awsS3Service.removeObject(img.getThumbnailImageUrl()); // delete thumbnail // 그런데 썸네일은 완벽히 저장 로직이 갖춰지지 않은 듯
             awsS3Service.removeObject(img.getOriginalImageUrl()); // delete original
         }); // 나중에 thumbnail도 삭제해줘야 함
-        matchingPostImages.clear(); // orphanRemoval로 DB에서 삭제됨
+
+        // 매칭포스트와 함께 등록된 모든 이미지 삭제
+        matchingPostImageRepository.deleteAllInBatch(matchingPostImages);
 
         // Delete from Elasticsearch
         elasticMatchingPostManager.deleteFromElasticsearchAfterCommit(matchingPostId);

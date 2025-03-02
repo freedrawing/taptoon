@@ -55,9 +55,6 @@ public class MatchingPost extends BaseEntity {
     @Column(name = "view_count", nullable = false)
     private Long viewCount;
 
-    @Column(name = "is_delete", nullable = false)
-    private Boolean isDeleted;
-
     @Enumerated(value = EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Status status;
@@ -78,7 +75,6 @@ public class MatchingPost extends BaseEntity {
         this.fileUrl = fileUrl;
         this.description = description;
         this.viewCount = 0L;
-        this.isDeleted = false;
         this.status = Status.PENDING; // 처음에는 등록 대기 상태
     }
 
@@ -89,7 +85,7 @@ public class MatchingPost extends BaseEntity {
 
     // Soft Deletion
     public void removeMe() {
-        isDeleted = true;
+        status = Status.DELETED;
     }
 
     // 수정처럼 동작하지만 사실상 등록임. 빈 엔티티가 처음에 만들어지므로
@@ -106,7 +102,7 @@ public class MatchingPost extends BaseEntity {
         this.title = request.title();
         this.artistType = ArtistType.of(request.artistType());
         this.workType = WorkType.of(request.workType());
-        this.description = description;
+        this.description = request.description();
     }
 
     // 조회수 증가
@@ -116,7 +112,7 @@ public class MatchingPost extends BaseEntity {
 
     // 삭제된 포스트인지 검증
     public void validateIsDeleted() {
-        if (isDeleted) {
+        if (Status.isDeleted(status)) {
             throw new NotFoundException(MATCHING_POST_NOT_FOUND);
         }
     }
