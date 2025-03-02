@@ -7,9 +7,10 @@ import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
 import com.sparta.taptoon.domain.image.service.ImageServiceImpl;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.portfolio.entity.Portfolio;
-import com.sparta.taptoon.domain.portfolio.entity.PortfolioImage;
-import com.sparta.taptoon.domain.portfolio.repository.PortfolioImageRepository;
+import com.sparta.taptoon.domain.portfolio.entity.PortfolioFile;
+import com.sparta.taptoon.domain.portfolio.repository.PortfolioFileRepository;
 import com.sparta.taptoon.domain.portfolio.repository.PortfolioRepository;
+import com.sparta.taptoon.global.common.Constant;
 import com.sparta.taptoon.global.common.enums.Status;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +35,7 @@ public class UploadImageToS3 {
 
     @InjectMocks
     private ImageServiceImpl imageService;
-    
+
     @Mock
     S3UploadClient s3UploadClient;
 
@@ -45,7 +46,7 @@ public class UploadImageToS3 {
     private PortfolioRepository portfolioRepository;
 
     @Mock
-    private PortfolioImageRepository portfolioImageRepository;
+    private PortfolioFileRepository portfolioFileRepository;
 
     @Test
     void uploadImageUsingFeign() throws IOException {
@@ -66,20 +67,19 @@ public class UploadImageToS3 {
                 .when(s3UploadClient)
                 .uploadFile(eq("image/jpeg"), any(byte[].class));
         Portfolio portfolio = Portfolio.builder()
-                .member(new Member())
+                .owner(new Member())
                 .title("title")
                 .content("content")
                 .build();
         when(portfolioRepository.findById(any())).thenReturn(Optional.of(portfolio));
-        PortfolioImage portfolioImage = PortfolioImage.builder()
+        PortfolioFile portfolioFile = PortfolioFile.builder()
                 .portfolio(portfolio)
                 .fileUrl("https://test-bucket.s3.amazonaws.com/test/test-image.jpg") // 실제 URL은 나중에 설정됨
-                .status(Status.PENDING)
                 .build();
-        when(portfolioImageRepository.save(any())).thenReturn(portfolioImage);
+        when(portfolioFileRepository.save(any())).thenReturn(portfolioFile);
         when(amazonS3.generatePresignedUrl(any())).thenReturn(mockUrl);
         //when
-        PresignedUrlResponse preSignedUrl = imageService.generatePresignedUrl(directory,1L, fileName);
+        PresignedUrlResponse preSignedUrl = imageService.generatePresignedUrl(directory, 1L, Constant.IMAGE_TYPE, fileName);
 
         // 테스트 이미지 로드
         ClassPathResource resource = new ClassPathResource("test-images/test-image.jpg");
