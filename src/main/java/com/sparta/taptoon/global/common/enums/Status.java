@@ -7,12 +7,14 @@ package com.sparta.taptoon.global.common.enums;
  */
 public enum Status {
     PENDING,
-    DELETING,
     REGISTERED,
+    DELETING,
+    DELETED
     ;
 
     // 이미지가 실제로 등록이 되었는지 확인
     public static boolean isRegistered(Status status) {
         return status == REGISTERED;
     }
+    public static boolean isDeleted(Status status) { return status == DELETED; }
 }
