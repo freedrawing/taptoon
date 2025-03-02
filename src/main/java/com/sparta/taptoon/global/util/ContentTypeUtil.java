@@ -21,6 +21,7 @@ public class ContentTypeUtil {
         put("pdf", "application/pdf");
         put("doc", "application/msword");
         put("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        put("md", "text/markdown");
     }});
 
     public static String getContentType(String fileName) {
