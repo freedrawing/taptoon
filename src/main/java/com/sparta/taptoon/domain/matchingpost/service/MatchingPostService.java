@@ -19,6 +19,7 @@ import com.sparta.taptoon.global.common.annotation.DistributedLock;
 import com.sparta.taptoon.global.common.enums.Status;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -92,13 +93,18 @@ public class MatchingPostService {
         * MatchingPost 이미지 ID로 PENDING -> REGISTERED로 변경
         * `registerMatchingPost()`의 트랜잭션 하에서 실행됨
      */
-    private void registerMatchingPostImages(List<Long> matchingPostImageIds) {
+//    @Transactional
+    public void registerMatchingPostImages(List<Long> matchingPostImageIds) {
         if (matchingPostImageIds.isEmpty()) return;
 
         List<MatchingPostImage> uploadedImages = matchingPostImageRepository.findAllById(matchingPostImageIds);
         if (uploadedImages.isEmpty() == false) {
-            uploadedImages.forEach(MatchingPostImage::registerMe);
+            // 업로도된 이미지 REGISTERED 상태로 변경
+            // 아래 방법으로 업데이트 하고 싶은데, 업데이트 과정에서 캐시에 반영이 안 돼서 귀찮음. 추후에 개선하자. 더티 체킹으로 업데이트하면 쿼리가 여러 번 나감
+//            matchingPostImageRepository.updateStatusByIds(matchingPostImageIds, Status.REGISTERED);
+            uploadedImages.forEach(MatchingPostImage::registerMe); // <- 이렇게 하면 간편한 건 맞지만 업데이트 쿼리가 여러번 나간다
         }
+
     }
 
     // MatchingPost 수정 + 이미지 삭제된 것과 추가된 것 각각 상태 변경
@@ -117,6 +123,7 @@ public class MatchingPostService {
         matchingPostImageRepository.updateStatusByIds(request.deletedImageIds(), Status.DELETING);
 
         // Update Elasticsearch
+        // (사실 아래 Elasticsearch 최신화 하는 것도, 처음에 Elasticsearch에는 Image 데이터가 안 들어가는데, 수정 후 바로 상세페이지로 이동해서 최신화가 되는 거임)
         elasticMatchingPostManager.upsertToElasticsearchAfterCommit(findMatchingPost);
     }
 

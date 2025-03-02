@@ -48,6 +48,7 @@ public class MatchingPostController {
             @PathVariable Long matchingPostId,
             @Valid @RequestBody RegisterMatchingPostRequest request) {
 
+//        matchingPostService.registerMatchingPostImages(request.matchingPostImageIds());
         MatchingPostResponse response = matchingPostService.registerMatchingPost(memberDetail.getId(), matchingPostId, request);
         return ApiResponse.success(response);
     }
