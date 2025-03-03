@@ -57,7 +57,12 @@ public class PortfolioService {
 
     // 포트폴리오 파일 판떼기 만들기
     @Transactional
-    public Long generateEmptyPortfolioFile(Long portfolioId, String fileName, String fileType, String thumbnailImageUrl, String fileUrl) {
+    public Long generateEmptyPortfolioFile(Long portfolioId,
+                                           String fileName,
+                                           String fileType,
+                                           String thumbnailImageUrl,
+                                           String fileUrl) {
+
         Portfolio findPortfolio = findPortfolioById(portfolioId);
 
         PortfolioFile savedPortfolioFile = portfolioFileRepository.save(
