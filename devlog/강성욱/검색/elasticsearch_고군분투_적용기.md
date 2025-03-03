@@ -42,11 +42,11 @@ MySQL Full-Text Index 새
 
 ```sql
 CREATE FULLTEXT INDEX ft_idx_post_search ON matching_post (title, description) WITH PARSER ngram;
-INSERT INTO matching_post (title, description) ... ('웹툰작가 구합니다!!', '어디 없나요!', ....);
+INSERT INTO matching_post (title) ... ('웹툰작가 구합니다!!', ....);
 ```
 
 MySQL의 Full-Text Index의 경우 NGram을 Parser로 채택하면 아래와 같이 인덱싱이 된다. 아래 결과에서 볼 수 있는 것처럼 의미 단위가 아닌 Default인 2글자마다 인덱싱이 되며, 불필요한 단어도 인덱싱이 되는 것을 알 수 있다.
-<img width="1132" alt="Image" src="https://github.com/user-attachments/assets/a16da71d-7aa9-407d-afd3-47c383410b79" />
+<img width="1127" alt="Image" src="https://github.com/user-attachments/assets/7d68750a-abe5-479b-8c26-bc3d82784fc1" />
 
 반면, Elasticsearch의 한국어 형태소 분석기인 'Nori Tokenizer'를 사용하면 아래와 같이 역인덱싱이 된다. 결과에서 볼 수 있는 것처럼 형태소 단위로 인덱싱이 되는 것을 알 수 있다. 용언, 조사, 체언, 어간, 어미 등 한국어의 특성에 맞게 토큰화가 되어 MySQL의 인덱싱보다 보다 효율적으로 인덱싱이 된 것을 알 수 있다. (조사나 어미 역시도 설정을 통해 제외할 수 있다)
 
