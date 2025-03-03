@@ -64,7 +64,6 @@ jobs:
           host: ${{ secrets[matrix.instance_info.host_var] }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true
           # SSH 호스트 키 확인 비활성화
           use_insecure_cipher: true
           script: |
@@ -75,20 +74,20 @@ jobs:
             export ECR_REPOSITORY="taptoon"
             export IMAGE_TAG="${{ needs.build_and_push.outputs.image-tag }}"
             export AWS_REGION="ap-northeast-2"
+            export REDIS_HOST=${{secrets.REDIS_HOST}}
             
             # 디버깅용 출력
             echo "IMAGE_TAG is set to: $IMAGE_TAG"
             echo "ECR_REGISTRY: $ECR_REGISTRY"
             echo "ECR_REPOSITORY: $ECR_REPOSITORY"
             echo "Full image path: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-            echo "Using Redis host: ${{secrets.REDIS_HOST}}"
+            echo "REDIS_HOST is set to: $REDIS_HOST"
             
             # EC2에서 Redis 연결 테스트
-            echo "Testing DNS resolution from EC2..."
-            nslookup ${{secrets.REDIS_HOST}} || echo "DNS resolution failed"
+            nslookup $REDIS_HOST || echo "DNS resolution failed"
             echo "Testing Redis connectivity from EC2..."
-            nc -zv ${{secrets.REDIS_HOST}} 6379 || echo "Redis connectivity test failed from EC2"
-      
+            nc -zv $REDIS_HOST 6379 || echo "Redis connectivity test failed from EC2"
+            
             echo "=== Deployment on ${{ matrix.instance_info.name }} started ==="
             echo "Deploying image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             
@@ -126,18 +125,23 @@ jobs:
               unzip -o awscliv2.zip
               sudo ./aws/install --update
               rm -rf aws awscliv2.zip
+            
+              # PATH 확인
               export PATH=$PATH:/usr/local/bin
               echo "AWS CLI installed at: $(which aws)"
             fi
             
             # AWS 자격 증명 설정
-            mkdir -p ~/.aws            
+            mkdir -p ~/.aws
+            
             echo "[default]
             aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
             aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" > ~/.aws/credentials
+            
             echo "[default]
             region=ap-northeast-2
-            output=json" > ~/.aws/config            
+            output=json" > ~/.aws/config
+            
             chmod 600 ~/.aws/credentials ~/.aws/config
             
             # Docker 설치 확인
@@ -190,7 +194,7 @@ jobs:
             else
               echo "Docker network taptoon-network already exists"
             fi          
-                        
+            
             # 새 이미지 다운로드
             echo "Pulling Docker image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             if ! docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG; then
@@ -206,8 +210,17 @@ jobs:
             docker rm taptoon-app &> /dev/null || true
             
             echo "Starting application container..."
-            docker run -d --memory="2g" --memory-swap="2g" --name taptoon-app --network host -p 8080:8080 -v "$CURRENT_DIR:/app/config" -e SPRING_PROFILES_ACTIVE=deploy -e SPRING_CONFIG_LOCATION=file:/app/config/application-deploy.yaml "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+            docker run -d --memory="2g" --memory-swap="2g" --name taptoon-app --network host -p 8080:8080 -v "$CURRENT_DIR:/app/config" \
+              -e SPRING_PROFILES_ACTIVE=deploy \
+              -e SPRING_CONFIG_LOCATION=file:/app/config/application-deploy.yaml \
+              -e SPRING_DATA_REDIS_HOST=$SPRING_DATA_REDIS_HOST \
+              -e SPRING_DATA_REDIS_PORT=6379 \
+              -e SPRING_DATA_REDIS_SSL_ENABLED=false \
+              -e REDISSON_ADDRESS="redis://$REDIS_HOST:6379" \
+              -e SPRING_LOGGING_LEVEL_ORG_REDISSON=DEBUG \
+              "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             
+            # 컨테이너 상태 및 디버깅
             sleep 30
             if ! docker ps | grep taptoon-app &> /dev/null; then
               echo "ERROR: Application container failed to start"
@@ -215,14 +228,14 @@ jobs:
               docker inspect taptoon-app | grep -A 10 "State" || echo "Failed to inspect container"
               exit 1
             fi
-            
+
             echo "Testing Redis connectivity from container with nc..."
-            docker exec taptoon-app nc -zv ${{secrets.REDIS_HOST}} 6379 || echo "nc test failed"
+            docker exec taptoon-app nc -zv $REDIS_HOST 6379 || echo "nc test failed"
             echo "Installing redis-tools in container..."
             docker exec taptoon-app sh -c "apt-get update && apt-get install -y redis-tools" || echo "Failed to install redis-tools"
             echo "Testing Redis with redis-cli..."
-            docker exec taptoon-app redis-cli -h ${{secrets.REDIS_HOST}} -p 6379 PING || echo "redis-cli PING failed"
-            
+            docker exec taptoon-app redis-cli -h $REDIS_HOST -p 6379 PING || echo "redis-cli PING failed"
+
             if ! docker ps | grep taptoon-app &> /dev/null; then
               echo "ERROR: Application container failed to start after tests"
               docker logs taptoon-app || echo "No logs available"
@@ -233,16 +246,6 @@ jobs:
               docker logs taptoon-app
               echo "Checking application health..."
               curl -I http://localhost:8080 || echo "Application not responding"
-            fi
-            
-            # 컨테이너 실행 여부 확인
-            if ! docker ps | grep taptoon-app &> /dev/null; then
-              echo "ERROR: Application container failed to start"
-              docker logs taptoon-app
-              exit 1
-            else
-              echo "Application container started successfully"
-              docker ps | grep taptoon-app
             fi
             
             # 사용하지 않는 이미지 정리
