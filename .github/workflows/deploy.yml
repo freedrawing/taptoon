@@ -81,8 +81,11 @@ jobs:
             echo "ECR_REGISTRY: $ECR_REGISTRY"
             echo "ECR_REPOSITORY: $ECR_REPOSITORY"
             echo "Full image path: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+            echo "Using Redis host: ${{secrets.REDIS_HOST}}"
             
             # EC2에서 Redis 연결 테스트
+            echo "Testing DNS resolution from EC2..."
+            nslookup ${{secrets.REDIS_HOST}} || echo "DNS resolution failed"
             echo "Testing Redis connectivity from EC2..."
             nc -zv ${{secrets.REDIS_HOST}} 6379 || echo "Redis connectivity test failed from EC2"
       
@@ -206,16 +209,23 @@ jobs:
             docker run -d --memory="2g" --memory-swap="2g" --name taptoon-app --network host -p 8080:8080 -v "$CURRENT_DIR:/app/config" -e SPRING_PROFILES_ACTIVE=deploy -e SPRING_CONFIG_LOCATION=file:/app/config/application-deploy.yaml "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             
             sleep 30
-            echo "Testing Redis connectivity from container..."
-            docker exec taptoon-app nc -zv ${{secrets.REDIS_HOST}} 6379 || echo "Redis connectivity test failed from container"
-            echo "Installing redis-tools in container..."
-            docker exec taptoon-app sh -c "apt-get update && apt-get install -y redis-tools"
-            echo "Testing Redis with redis-cli..."
-            docker exec taptoon-app redis-cli -h ${{secrets.REDIS_HOST}} -p 6379 PING || echo "redis-cli PING failed"
-      
             if ! docker ps | grep taptoon-app &> /dev/null; then
               echo "ERROR: Application container failed to start"
-              docker logs taptoon-app
+              docker logs taptoon-app || echo "No logs available"
+              docker inspect taptoon-app | grep -A 10 "State" || echo "Failed to inspect container"
+              exit 1
+            fi
+            
+            echo "Testing Redis connectivity from container with nc..."
+            docker exec taptoon-app nc -zv ${{secrets.REDIS_HOST}} 6379 || echo "nc test failed"
+            echo "Installing redis-tools in container..."
+            docker exec taptoon-app sh -c "apt-get update && apt-get install -y redis-tools" || echo "Failed to install redis-tools"
+            echo "Testing Redis with redis-cli..."
+            docker exec taptoon-app redis-cli -h ${{secrets.REDIS_HOST}} -p 6379 PING || echo "redis-cli PING failed"
+            
+            if ! docker ps | grep taptoon-app &> /dev/null; then
+              echo "ERROR: Application container failed to start after tests"
+              docker logs taptoon-app || echo "No logs available"
               exit 1
             else
               echo "Application container started successfully"
