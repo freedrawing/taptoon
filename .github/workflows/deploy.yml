@@ -213,7 +213,7 @@ jobs:
             docker run -d --memory="2g" --memory-swap="2g" --name taptoon-app --network host -p 8080:8080 -v "$CURRENT_DIR:/app/config" \
               -e SPRING_PROFILES_ACTIVE=deploy \
               -e SPRING_CONFIG_LOCATION=file:/app/config/application-deploy.yaml \
-              -e SPRING_DATA_REDIS_HOST=$SPRING_DATA_REDIS_HOST \
+              -e SPRING_DATA_REDIS_HOST=$REDIS_HOST \
               -e SPRING_DATA_REDIS_PORT=6379 \
               -e SPRING_DATA_REDIS_SSL_ENABLED=false \
               -e REDISSON_ADDRESS="redis://$REDIS_HOST:6379" \
