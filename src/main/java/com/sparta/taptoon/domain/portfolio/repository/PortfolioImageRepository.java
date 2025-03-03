@@ -10,4 +10,6 @@ import java.util.List;
 public interface PortfolioImageRepository extends JpaRepository<PortfolioImage, Long> {
 
     List<PortfolioImage> findByPortfolioId(Long portfolioId);
+
+    List<PortfolioImage> findAllByPortfolioId(Long PortfolioId);
 }

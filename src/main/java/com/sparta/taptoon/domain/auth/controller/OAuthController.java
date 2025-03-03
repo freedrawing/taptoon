@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 
 @Tag(name = "OAuth", description = "소셜 로그인 인증 API")
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class OAuthController {
     private final NaverAuthService naverAuthService;

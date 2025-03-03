@@ -22,7 +22,7 @@ import java.util.List;
 @Tag(name = "matching-posts", description = "매칭보드 게시글 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/matching-posts")
+@RequestMapping("/api/matching-posts")
 public class MatchingPostController {
 
     private final MatchingPostService matchingPostService;
