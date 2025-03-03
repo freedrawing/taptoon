@@ -60,11 +60,11 @@ public class EntityCreatorUtil {
                 .build();
     }
 
-    public static MatchingPostImage createMatchingPostImage(MatchingPost matchingPost) {
-        return MatchingPostImage.builder()
-                .matchingPost(matchingPost)
-                .imageUrl(MessageFormat.format("{0}/{1}", englishFaker.internet().url(), englishFaker.file().fileName()))
-                .build();
-    }
+//    public static MatchingPostImage createMatchingPostImage(MatchingPost matchingPost) {
+//        return MatchingPostImage.builder()
+//                .matchingPost(matchingPost)
+//                .thumbnailImageUrl(MessageFormat.format("{0}/{1}", englishFaker.internet().url(), englishFaker.file().fileName()))
+//                .build();
+//    }
 
 }
