@@ -1,6 +1,7 @@
 package com.sparta.taptoon.domain.matchingpost.controller;
 
 import com.sparta.taptoon.domain.matchingpost.dto.request.RegisterMatchingPostRequest;
+import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.service.ElasticAutocompleteService;
@@ -22,24 +23,11 @@ import java.util.List;
 @Tag(name = "matching-posts", description = "매칭보드 게시글 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/matching-posts")
+@RequestMapping("/api/matching-posts")
 public class MatchingPostController {
 
     private final MatchingPostService matchingPostService;
     private final ElasticAutocompleteService elasticAutocompleteService;
-
-
-
-//    @Operation(summary = "매칭보드에 게시글 등록 Deprecated")
-//    @PostMapping
-//    public ResponseEntity<ApiResponse<MatchingPostResponse>> createMatchingPost(
-//            @AuthenticationPrincipal MemberDetail memberDetail,
-//            @Valid @RequestBody AddMatchingPostRequest request) {
-//
-//        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(memberDetail.getId(), request);
-////        MatchingPostResponse response = matchingPostService.makeNewMatchingPost(1L, request);
-//        return ApiResponse.created(response);
-//    }
 
     @Operation(summary = "MatchingPost 글쓰기 버튼 클릭")
     @PostMapping("/write")
@@ -50,16 +38,30 @@ public class MatchingPostController {
         return ApiResponse.success(id);
     }
 
+    /*
+     * `PUT`이지만 사실상 `POST`임
+     */
     @Operation(summary = "매칭 게시글 등록")
-    @PutMapping("/{matchingPostId}")
-    public ResponseEntity<ApiResponse<MatchingPostResponse>> updateMatchingPost(
+    @PutMapping("/{matchingPostId}/registration")
+    public ResponseEntity<ApiResponse<MatchingPostResponse>> registerMatchingPost(
             @AuthenticationPrincipal MemberDetail memberDetail,
             @PathVariable Long matchingPostId,
             @Valid @RequestBody RegisterMatchingPostRequest request) {
 
+//        matchingPostService.registerMatchingPostImages(request.matchingPostImageIds());
         MatchingPostResponse response = matchingPostService.registerMatchingPost(memberDetail.getId(), matchingPostId, request);
-    //        MatchingPostResponse response = matchingPostService.modifyMatchingPost(1L, matchingPostId, request);
         return ApiResponse.success(response);
+    }
+
+    @Operation(summary = "매칭 게시글 수정")
+    @PutMapping("/{matchingPostId}")
+    public ResponseEntity<ApiResponse<Void>> updateMatchingPost(
+            @AuthenticationPrincipal MemberDetail memberDetail,
+            @PathVariable Long matchingPostId,
+            @Valid @RequestBody UpdateMatchingPostRequest request
+    ) {
+        matchingPostService.editMatchingPost(memberDetail.getId(), matchingPostId, request);
+        return ApiResponse.noContent();
     }
 
     @Operation(summary = "매칭 게시글 단건 조회 (deprecated, 진짜 등록할 때는 `PUT`으로 함)")
@@ -76,7 +78,6 @@ public class MatchingPostController {
             @PathVariable Long matchingPostId) {
 
         matchingPostService.removeMatchingPost(memberDetail.getId(), matchingPostId);
-//        matchingPostService.removeMatchingPost(1L, matchingPostId);
         return ApiResponse.noContent();
     }
 

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "images", description = "이미지 업로드 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/images")
+@RequestMapping("/api/images")
 public class ImageController {
     private final ImageService imageService;
 
@@ -26,7 +26,7 @@ public class ImageController {
     public ResponseEntity<ApiResponse<PresignedUrlResponse>> getPresignedUrl(@Valid @RequestBody PreSignedUrlRequest request) {
 
         PresignedUrlResponse presignedUrlResponse
-                = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileName());
+                = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileType(), request.fileName());
         return ApiResponse.success(presignedUrlResponse);
     }
 

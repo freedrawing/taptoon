@@ -6,7 +6,7 @@ import java.util.List;
 
 // 커서기반 조회할 때 사용되는 plate class
 public record MatchingPostCursorResponse(
-        List<MatchingPostDocumentResponse> content,
+        List<MatchingPostResponse> content,
         Long lastId, // 마지막으로 읽은 문서ID
         Long lastViewCount, // 마지막으로 읽은 viewCount
         Boolean isLastPage

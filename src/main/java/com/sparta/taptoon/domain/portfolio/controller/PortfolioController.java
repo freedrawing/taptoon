@@ -1,7 +1,7 @@
 package com.sparta.taptoon.domain.portfolio.controller;
 
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
-import com.sparta.taptoon.domain.portfolio.dto.request.CreatePortfolioRequest;
+import com.sparta.taptoon.domain.portfolio.dto.request.RegisterPortfolioRequest;
 import com.sparta.taptoon.domain.portfolio.dto.request.UpdatePortfolioRequest;
 import com.sparta.taptoon.domain.portfolio.dto.response.PortfolioResponse;
 import com.sparta.taptoon.domain.portfolio.service.PortfolioService;
@@ -19,18 +19,35 @@ import java.util.List;
 @Tag(name = "Portfolio", description = "포트폴리오 API")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/portfolios")
+@RequestMapping("/api/portfolios")
 public class PortfolioController {
 
     private final PortfolioService portfolioService;
 
-    @Operation(summary = "포트폴리오 생성")
+    @Operation(summary =  "포트폴리오 시작하기")
     @PostMapping
-    public ResponseEntity<ApiResponse<PortfolioResponse>> createPortfolio(
+    public ResponseEntity<ApiResponse<Long>> startPortfolio(@AuthenticationPrincipal MemberDetail memberDetail) {
+
+        // 이렇게 Controller단에서 Entity를 넘겨주는 게 과연 좋은 걸까?
+        Long portfolioId = portfolioService.startPortfolio(memberDetail.getMember());
+        return ApiResponse.created(portfolioId);
+    }
+
+    @Operation(summary = "포트폴리오 내용 채우기 (제목, 내용, 파일)")
+    @PutMapping("/{portfolioId}/registration")
+    public ResponseEntity<ApiResponse<PortfolioResponse>> fillInPortfolio(
             @AuthenticationPrincipal MemberDetail memberDetail,
-            @Valid @RequestBody CreatePortfolioRequest portfolioRequest) {
-        PortfolioResponse portfolio = portfolioService.makePortfolio(portfolioRequest, memberDetail.getMember());
-        return ApiResponse.created(portfolio);
+            @Valid @RequestBody RegisterPortfolioRequest request,
+            @PathVariable Long portfolioId) {
+        PortfolioResponse portfolio = portfolioService.registerPortfolio(request, memberDetail.getMember(), portfolioId);
+        return ApiResponse.success(portfolio);
+    }
+
+    @Operation(summary = "유저 한 명이 등록한 모든 포트폴리오 조회")
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PortfolioResponse>>> getUserPortfolios(@AuthenticationPrincipal MemberDetail memberDetail) {
+        List<PortfolioResponse> myAllPortfolios = portfolioService.findMyAllPortfolios(memberDetail.getMember());
+        return ApiResponse.success(myAllPortfolios);
     }
 
     @Operation(summary = "포트폴리오 상세조회")
@@ -40,22 +57,14 @@ public class PortfolioController {
         return ApiResponse.success(portfolio);
     }
 
-    @Operation(summary = "포트폴리오 전체조회")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<PortfolioResponse>>> getAllPortfolio(
-            @AuthenticationPrincipal MemberDetail memberDetail) {
-        List<PortfolioResponse> portfolios = portfolioService.findAllPortfolio(memberDetail.getMember());
-        return ApiResponse.success(portfolios);
-    }
-
-    @Operation(summary = "포트폴리오 수정")
+    @Operation(summary = "포트폴리오 편집")
     @PutMapping("/{portfolioId}")
     public ResponseEntity<ApiResponse<Void>> updatePortfolio(
             @AuthenticationPrincipal MemberDetail memberDetail,
-            @Valid @PathVariable Long portfolioId,
-            @RequestBody UpdatePortfolioRequest updatePortfolioRequest) {
-        // 수정 필요
-        portfolioService.editPortfolio(updatePortfolioRequest, portfolioId, memberDetail.getMember());
+            @PathVariable Long portfolioId,
+            @Valid @RequestBody UpdatePortfolioRequest request) {
+
+        portfolioService.editPortfolio(portfolioId, memberDetail.getMember(), request);
         return ApiResponse.noContent();
     }
 
