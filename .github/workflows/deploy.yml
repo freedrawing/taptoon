@@ -228,11 +228,10 @@ jobs:
               "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             
             # 컨테이너 상태 및 디버깅
-            sleep 15
-            echo "Installing nc inside container..."
-            docker exec taptoon-app sh -c "apt-get update && apt-get install -y netcat-openbsd" || echo "Failed to install nc"
+            sleep 20  # 더 긴 대기 시간
             echo "Testing Redis connectivity from container..."
-            docker exec taptoon-app nc -zv redis-cluster-uh4hyr.serverless.apn2.cache.amazonaws.com 6379 || echo "Redis connectivity test failed from container"
+            docker exec taptoon-app nc -zv redis-cluster-uh4hyr.serverless.apn2.cache.amazonaws.com 6379 || echo "Redis connectivity test failed from container (nc may not be installed)"
+            
             if ! docker ps | grep taptoon-app &> /dev/null; then
               echo "ERROR: Application container failed to start"
               docker logs taptoon-app | tail -n 100
