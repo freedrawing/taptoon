@@ -18,5 +18,10 @@ public abstract class BaseEntity {
 
   @LastModifiedDate
   private LocalDateTime updatedAt;
+
+  // MatchingPost, Portfolio 생성시간 정상화
+  protected void updateCreatedAtToNow() {
+    createdAt = LocalDateTime.now();
+  }
 }
 

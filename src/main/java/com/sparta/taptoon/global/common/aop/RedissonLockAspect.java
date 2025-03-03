@@ -43,11 +43,11 @@ public class RedissonLockAspect {
             // 락을 시도하는데, 최대 `waitTime`초(분, 시간)까지 대기하고, 락을 획득하면 `leaseTime`초(분, 시간) 후에는 자동 해제 되도록 설정
             boolean locked = lock.tryLock(waitTime, leaseTime, timeUnit);
             if (locked == false) {
-                log.error("Lock 획득 실패");
+                log.error("❌ ({})Lock 획득 실패", key);
                 throw new TooManyRequestsException();
             }
 
-            log.info("Lock 획득");
+            log.info("({}) 🔒Lock 획득", key);
             return joinPoint.proceed();
         } catch (InterruptedException e) {
 //            Thread.currentThread().interrupt();
@@ -63,7 +63,7 @@ public class RedissonLockAspect {
              */
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
-                log.info("Lock 해제");
+                log.info("({}) 🔓Lock 해제", key);
             }
         }
     }

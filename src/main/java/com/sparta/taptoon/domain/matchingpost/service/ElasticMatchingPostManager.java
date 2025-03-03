@@ -25,24 +25,8 @@ public class ElasticMatchingPostManager {
 
     private final ElasticMatchingPostRepository elasticMatchingPostRepository;
 
-    // DB에 Commit 된 이후에 ES에 저장
-    void saveToElasticsearchAfterCommit(MatchingPost newMatchingPost) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                try {
-                    MatchingPostDocument matchingPostDocument = MatchingPostDocument.from(newMatchingPost);
-                    elasticMatchingPostRepository.save(matchingPostDocument);
-                    log.info("✅ ES 저장 성공: matchingPostId={}", newMatchingPost.getId());
-                } catch (Exception e) {
-                    // 예외가 발생하면 로깅
-                    log.error("❌ ES 저장 실패: matchingPostId={}, error={}", newMatchingPost.getId(), e.getMessage(), e);
-                }
-            }
-        });
-    }
 
-    // 없으면 추가
+    // DB에 Commit 된 이후에 ES에 저장. 없으면 추가
     void upsertToElasticsearchAfterCommit(MatchingPost updatedMatchingPost) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override

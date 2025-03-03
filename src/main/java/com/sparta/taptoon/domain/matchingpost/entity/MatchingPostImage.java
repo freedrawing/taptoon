@@ -21,21 +21,30 @@ public class MatchingPostImage extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private MatchingPost matchingPost;
 
-    @Column(name = "image_url", nullable = false, length = 1000)
-    private String imageUrl;
+    @Column(name = "file_name", nullable = false)
+    private String fileName;
+
+    @Column(name = "thumbnail_image_url", nullable = false, length = 1000)
+    private String thumbnailImageUrl;
+
+    @Column(name = "original_image_url", nullable = false, length = 1000)
+    private String originalImageUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Status status;
 
     @Builder
-    public MatchingPostImage(MatchingPost matchingPost, String imageUrl, Status status) {
+    public MatchingPostImage(MatchingPost matchingPost, String fileName, String thumbnailImageUrl, String originalImageUrl) {
         this.matchingPost = matchingPost;
-        this.imageUrl = imageUrl;
-        this.status = status;
+        this.fileName = fileName;
+        this.thumbnailImageUrl = thumbnailImageUrl;
+        this.originalImageUrl = originalImageUrl;
+        this.status = Status.PENDING; // 처음은 이미지 저장 대기 상태
     }
 
     public void registerMe() {
         status = Status.REGISTERED;
+        updateCreatedAtToNow();
     }
 }

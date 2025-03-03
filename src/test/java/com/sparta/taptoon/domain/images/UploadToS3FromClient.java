@@ -3,6 +3,7 @@ package com.sparta.taptoon.domain.images;
 import com.sparta.taptoon.domain.image.S3UploadClient;
 import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
 import com.sparta.taptoon.domain.image.service.ImageService;
+import com.sparta.taptoon.global.common.Constant;
 import feign.Client;
 import feign.Feign;
 import feign.codec.Decoder;
@@ -38,7 +39,7 @@ public class UploadToS3FromClient {
         String directory = directory_t;
         String fileName = "test-image.jpg";
 
-        PresignedUrlResponse presignedUrlResponse = imageService.generatePresignedUrl(directory_m, 1L, fileName);
+        PresignedUrlResponse presignedUrlResponse = imageService.generatePresignedUrl(directory_m, 1L, Constant.IMAGE_TYPE, fileName);
 
         S3UploadClient s3UploadClient = Feign.builder()
                 .contract(new SpringMvcContract())

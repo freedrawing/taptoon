@@ -1,4 +1,3 @@
-
 {
   "settings": {
     "index": {
@@ -60,9 +59,30 @@
           }
         }
       },
-      "fileImageUrlList": {
-        "type": "keyword",
-        "index": false
+      "imageList": {
+        "type": "nested",
+        "properties": {
+          "id": {
+            "type": "long",
+            "index": false
+          },
+          "matchingPostId": {
+            "type": "long",
+            "index": false
+          },
+          "fileName": {
+            "type": "keyword",
+            "index": false
+          },
+          "originalImageUrl": {
+            "type": "keyword",
+            "index": false
+          },
+          "thumbnailImageUrl": {
+            "type": "keyword",
+            "index": false
+          }
+        }
       },
       "id": {
         "type": "long"
@@ -95,4 +115,3 @@
     }
   }
 }
-
