@@ -223,7 +223,7 @@ jobs:
               -e SPRING_REDIS_PORT=6379 \
               -e SPRING_REDIS_TIMEOUT=10000 \
               -e REDISSON_ADDRESS=redis://$SPRING_DATA_REDIS_HOST:6379 \
-              -e REDISSON_CONFIG="singleServerConfig.address=redis://$SPRING_DATA_REDIS_HOST:6379&singleServerConfig.connectTimeout=60000&singleServerConfig.timeout=30000&singleServerConfig.retryAttempts=10&singleServerConfig.retryInterval=5000" \
+              -e REDISSON_CONFIG="singleServerConfig.address=redis://$SPRING_DATA_REDIS_HOST:6379&singleServerConfig.connectTimeout=120000&singleServerConfig.timeout=60000&singleServerConfig.retryAttempts=20&singleServerConfig.retryInterval=5000&singleServerConfig.pingConnectionInterval=30000&singleServerConfig.keepAlive=true&singleServerConfig.tcpNoDelay=true"\
               -e SPRING_LOGGING_LEVEL_ORG_REDISSON=DEBUG \
               "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             
