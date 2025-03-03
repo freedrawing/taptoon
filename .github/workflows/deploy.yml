@@ -86,7 +86,7 @@ jobs:
             
             # EC2에서 Redis 연결 테스트
             echo "Testing Redis connectivity from EC2..."
-            nc -zv redis-cluster-uh4hyr.serverless.apn2.cache.amazonaws.com 6379 || echo "Redis connectivity test failed from EC2"
+            nc -zv ${{secrets.REDIS_HOST}} 6379 || echo "Redis connectivity test failed from EC2"
             
             echo "=== Deployment on ${{ matrix.instance_info.name }} started ==="
             echo "Deploying image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
@@ -222,15 +222,15 @@ jobs:
               -e SPRING_REDIS_HOST=$SPRING_DATA_REDIS_HOST \
               -e SPRING_REDIS_PORT=6379 \
               -e SPRING_REDIS_TIMEOUT=10000 \
-              -e REDISSON_ADDRESS=rediss://$SPRING_DATA_REDIS_HOST:6379 \
+              -e REDISSON_ADDRESS=redis://$SPRING_DATA_REDIS_HOST:6379 \
               -e SPRING_LOGGING_LEVEL_ORG_REDISSON=DEBUG \
-              -e SPRING_REDIS_SSL=true \
+              -e SPRING_REDIS_SSL=false \
               "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             
             # 컨테이너 상태 및 디버깅
             sleep 30  # Redisson 초기화 대기
             echo "Testing Redis connectivity from container..."
-            docker exec taptoon-app nc -zv redis-cluster-uh4hyr.serverless.apn2.cache.amazonaws.com 6379 || echo "Redis connectivity test failed from container (nc may not be installed)"
+            docker exec taptoon-app nc -zv $SPRING_DATA_REDIS_HOST 6379 || echo "Redis connectivity test failed from container (nc may not be installed)"
           
             if ! docker ps | grep taptoon-app &> /dev/null; then
               echo "ERROR: Application container failed to start"
