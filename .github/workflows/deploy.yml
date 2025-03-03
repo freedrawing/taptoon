@@ -77,10 +77,14 @@ jobs:
             export AWS_REGION="ap-northeast-2"
             export SPRING_DATA_REDIS_HOST=${{secrets.REDIS_HOST}}
             export SPRING_DATA_REDIS_PORT=6379
+            export SPRING_REDIS_TIMEOUT=10000
             
             # 디버깅용 출력
             echo "SPRING_DATA_REDIS_HOST is set to: $SPRING_DATA_REDIS_HOST"
             echo "IMAGE_TAG is set to: $IMAGE_TAG"
+            
+            echo "Testing Redis connectivity from EC2..."
+            nc -zv redis-cluster-uh4hyr.serverless.apn2.cache.amazonaws.com 6379 || echo "Redis connectivity test failed from EC2"
             
             echo "=== Deployment on ${{ matrix.instance_info.name }} started ==="
             echo "Deploying image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
