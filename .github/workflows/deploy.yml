@@ -75,6 +75,9 @@ jobs:
             export ECR_REPOSITORY="taptoon"
             export IMAGE_TAG="${{ needs.build_and_push.outputs.image-tag }}"
             export AWS_REGION="ap-northeast-2"
+            export SPRING_DATA_REDIS_HOST=${{secrets.REDIS_HOST}}
+            export SPRING_DATA_REDIS_PORT=6379
+            
             
             echo "=== Deployment on ${{ matrix.instance_info.name }} started ==="
             echo "Deploying image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
@@ -181,29 +184,8 @@ jobs:
               docker network create taptoon-network
             else
               echo "Docker network taptoon-network already exists"
-            fi
-            
-            # Redis 컨테이너 재시작
-            echo "Stopping existing Redis container (if any)..."
-            docker stop redis-container &> /dev/null || true
-            docker rm redis-container &> /dev/null || true
-            
-            echo "Starting Redis container..."
-            docker run -d \
-              --name redis-container \
-              --network taptoon-network \
-              -p 6379:6379 \
-              redis:latest
-            
-            # Redis 컨테이너 실행 확인
-            if ! docker ps | grep redis-container &> /dev/null; then
-              echo "ERROR: Failed to start Redis container"
-              docker logs redis-container
-              exit 1
-            else
-              echo "Redis container started successfully"
-            fi
-            
+            fi          
+                        
             # 새 이미지 다운로드
             echo "Pulling Docker image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             if ! docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG; then
@@ -226,11 +208,11 @@ jobs:
               -v "$CURRENT_DIR:/app/config" \
               -e SPRING_PROFILES_ACTIVE=deploy \
               -e SPRING_CONFIG_LOCATION=file:/app/config/application-deploy.yaml \
-              -e SPRING_DATA_REDIS_HOST=redis-container \
+              -e SPRING_DATA_REDIS_HOST=$SPRING_DATA_REDIS_HOST \
               -e SPRING_DATA_REDIS_PORT=6379 \
-              -e SPRING_REDIS_HOST=redis-container \
+              -e SPRING_REDIS_HOST=$SPRING_DATA_REDIS_HOST \
               -e SPRING_REDIS_PORT=6379 \
-              -e REDISSON_ADDRESS=redis://redis-container:6379 \
+              -e REDISSON_ADDRESS=redis://$SPRING_DATA_REDIS_HOST:6379 \
               "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             
             # 컨테이너 실행 여부 확인
