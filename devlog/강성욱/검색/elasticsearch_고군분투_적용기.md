@@ -39,16 +39,18 @@ Elasticsearch는 역색인(Inverted Index) 방식을 사용하여 텍스트 검�
 MySQL / MariaDB 같은 RDBMS에서 제공하는 Full-Text Index와 Elasticsearch가 어떤 점이 다른지 간단히 짚고 넘어가보자.
 
 MySQL Full-Text Index 새
+
 ```sql
 CREATE FULLTEXT INDEX ft_idx_post_search ON matching_post (title, description) WITH PARSER ngram;
 INSERT INTO matching_post (title, description) ... ('웹툰작가 구합니다!!', '어디 없나요!', ....);
 ```
+
 MySQL의 Full-Text Index의 경우 NGram을 Parser로 채택하면 아래와 같이 인덱싱이 된다. 아래 결과에서 볼 수 있는 것처럼 의미 단위가 아닌 Default인 2글자마다 인덱싱이 되며, 불필요한 단어도 인덱싱이 되는 것을 알 수 있다.
 <img width="1132" alt="Image" src="https://github.com/user-attachments/assets/a16da71d-7aa9-407d-afd3-47c383410b79" />
 
-
 반면, Elasticsearch의 한국어 형태소 분석기인 'Nori Tokenizer'를 사용하면 아래와 같이 역인덱싱이 된다. 결과에서 볼 수 있는 것처럼 형태소 단위로 인덱싱이 되는 것을 알 수 있다. 용언, 조사, 체언, 어간, 어미 등 한국어의 특성에 맞게 토큰화가 되어 MySQL의 인덱싱보다 보다 효율적으로 인덱싱이 된 것을 알 수 있다. (조사나 어미 역시도 설정을 통해 제외할 수 있다)
-```json
+
+```plaintext
 POST _analyze
 {
   "tokenizer": "nori_tokenizer",
@@ -105,10 +107,19 @@ POST _analyze
 }
 ```
 
+Full-Text Index와 Elasticsearch는 모두 역인덱스 방식을 사용하지만 위에서 보는 것처럼 Elasticsearch는 토큰화를 하는 데 있어서 세밀한 조정이 가능하므로 저장공간을 아낌과 동시에 보다
+
+두 방식의 차이점을 간단히 표현하면 아래 표와 같다.
 
 
-
-
+| 비교 항목  | MySQL Full-Text Index | Elasticsearch       |
+|--------|-----------------------|---------------------|
+| 검색 방식  | NGram 기반 단순 토큰화       | 형태소 분석 기반 검색        |
+| 한국어 지원 | ❌ 기본 지원 없음            | ✅ Nori Tokenizer 지원 |
+| 불용어 처리 | ❌ 직접 추가해야 함           | ✅ 기본 제공             |
+| 복합어 처리 | ❌ 띄어쓰기 오류 대응 불가       | ✅ 띄어쓰기 오류에도 검색 가능   |
+| 검색 속도  | ⚠️ 대량 데이터에서 속도 저하     | ✅ 빠른 검색 속도          |
+| 검색 정확도 | ⚠️ 단순 매칭, 검색 정확도 낮음   | ✅ 문맥 기반 검색 가능       |
 
 ## 3. Elasticsearch와 RDBMS를 혼합한 검색 방식의 페이징 한계
 
@@ -178,7 +189,7 @@ POST _analyze
         }
     }
 
---- 
+// -------------------------------------------------------- 
 
  void upsertToElasticsearchAfterCommit(MatchingPost updatedMatchingPost) {
      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -200,8 +211,6 @@ POST _analyze
     }
 ```
 
-
-
 ### ⚠️ 3.1 위 방식 역시 완벽하지 않다. 데이터 정합성 문제는 여전히 남아 있다.
 
 1️⃣ 데이터 동기화 지연 문제
@@ -214,13 +223,96 @@ POST _analyze
 * 만약 Elasticsearch 저장 과정에서 예외(Exception)가 발생하면, RDBMS에는 데이터가 존재하지만 Elasticsearch에는 저장되지 않는 문제가 발생할 수 있다.
 * 이런 경우, 별도의 재시도 로직(Retry Mechanism) 또는 비정상 데이터 동기화 프로세스(Failure Recovery Process) 가 필요하다. 이럴 때를 대비해 RDBMS에 우선적으로 데이터를 저장한 것이지만, 해당 문제가 발생하면 향후 로그 등을 분석해 대응 방법을 고민해야 한다.
 
-## 4. (Sub 이슈) 않이, Document `@Setting`이 왜 않 먹는 거니?
+## 4. (Sub Issue - 1) 않이, Document `@Setting`이 왜 않 먹는 거니? (feat. 해결 못함...)
+
+아래 코드는 Elasticsearch에 저장되는 Document 클래스다. JPA `ddl-auto: create` 옵션이 있는 것처럼 Elasticsearch 역시 Index가 정의되지 않은 상태에서 애플리케이션을 실행하면 자동으로 인덱스가 생성되게 하고 싶었다. `@Setting` 애노테이션을 사용하면 미리 설정된 인덱스 스키마를 자동으로 Elasticsearch에 생성해준다. 그런데, 이것이 아무리 해도 작동을 안 하는 것이었다!!
+
+```java
+@Getter
+@Document(indexName = "matching_post")
+//@Setting(settingPath = "/elastic/matchingpost-setting.json") // Elasticsearch 버전에 오류가 많아서 이 방법은 안 될 듯하다...
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class MatchingPostDocument {
+
+    @Id
+    private Long id;
+
+    @Field(type = FieldType.Long, index = false)
+    private Long authorId;
+
+    @Field(type = FieldType.Keyword, normalizer = "lowercase")
+    private ArtistType artistType;
+
+    @MultiField(
+            mainField = @Field(type = FieldType.Text, analyzer = "nori"),
+            otherFields = {
+                    @InnerField(suffix = "ngram", type = FieldType.Text, analyzer = "ngram_analyzer"), // 이건 ES에 미리 안 만들어지면 서버 동작 안 함
+                    @InnerField(suffix = "english", type = FieldType.Text, analyzer = "english"),
+            }
+    )
+    private String title;
+
+    @Field(type = FieldType.Keyword, normalizer = "lowercase")
+    private WorkType workType;
+
+    @MultiField(
+            mainField = @Field(type = FieldType.Text, analyzer = "nori"),
+            otherFields = {
+                    @InnerField(suffix = "ngram", type = FieldType.Text, analyzer = "ngram_analyzer"),
+                    @InnerField(suffix = "english", type = FieldType.Text, analyzer = "english"),
+            }
+    )
+    private String description;
+
+    @Field(type = FieldType.Long) // 정렬하려면 인덱싱 돼야 함
+    private Long viewCount;
+
+    @Field(type = FieldType.Nested, index = false)
+    private List<MatchingPostImageResponse> imageList; // Document가 DTO를 가지고 있는 게 좋아 보이지는 않는다.
+
+    // 나중에 정렬할 때 속도가 너무 느리면 `epoch_millis`로 바꾸자
+    @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis")
+    private LocalDateTime createdAt;
+
+    @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis")
+    private LocalDateTime updatedAt;
 
 
-## Autocomplete
+    @Builder
+    public MatchingPostDocument(Long id, Long authorId, ArtistType artistType, String title,
+                                WorkType workType, String description, Long viewCount, List<MatchingPostImageResponse> imageList,
+                                LocalDateTime createdAt, LocalDateTime updatedAt) {
 
-Hello World
+        this.id = id;
+        this.authorId = authorId;
+        this.artistType = artistType;
+        this.title = title;
+        this.workType = workType;
+        this.description = description;
+        this.viewCount = viewCount;
+        this.imageList = imageList;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+}
+```
+
+여러 삽질과 Elasticsearch 깃허브 이슈를 뒤져보며 얻은 결론은 현재 사용하고 있는 Elasticsearch가 버그 아닌 버그가 있다는 것이었다... :sob:
+
+스웨거를 사용하기 위해 특정 스프링 버전을 사용하였고, Elasticsearch는 해당 스프링 버전과 갖아 호환이 되는 버전을 사용했는데, 이런 오류가 있을 줄이야. 지금까지 사용하던 라이브러리는 버전별로 이렇게 오류가 있던 적이 없었는데, 알아보니 Elasticsearch는 버전별로 꽤나 버그가 많은 편이라고 한다...
+
+여튼 여러 삽질 끝에 `@Setting` 기능을 이용해 자동으로 인덱스를 생성해주는 건 실패했고, 결국 수동으로 인덱스 관리를 하는 것이 현재 프로젝트의 단점이라면 단점이다. 그러니 앞으로는 라이브러리를 택할 때 버전도 잘 고려를 해야할 듯하다
+
+## 5. (Sub Issue - 2) Autocomplete
+
+... (추후 추가 예정)
 
 ## 결론
 
-사실 Elasticsearch를 사용해서 드라마틱한 성능 향상을 이뤘다고 할 수는 없을 듯하다.
+Elasticsearch를 도입함으로써 검색의 유연성을 확보할 수 있었지만, 현재 개발 중인 도메인과 결합되니 완벽한 해결책이라고 보기는 어려운 듯하다. 기존 RDBMS 기반의 `LIKE '%keyword%'` 방식에 비해 검색의 유연성은 확연히 향상되었지만, 데이터 정합성 문제, 페이징 처리의 어려움, 그리고 동기화 과정에서의 장애 가능성이 남아있었다. 특히, RDBMS와 Elasticsearch를 혼합하여 검색을 수행하는 방식에서는 페이징 시 성능 저하가 주요 이슈로 떠올랐다. IN 절을 이용한 대량 ID 조회 방식이 효율적이지 않았고, Elasticsearch에서 제공하는 기본적인 페이징 방식도 대량 데이터에서는 한계가 있었다. 따라서 Elasticsearch를 메인 DB로 활용하고 RDBMS를 보조적인 백업 역할로 사용하는 방식이 차선책으로 채택했다.
+
+하지만 이러한 방식 역시 완벽하지 않았다. 트랜잭션 후 Elasticsearch에 데이터를 저장하는 과정에서 동기화 지연이 발생할 수 있으며, 장애가 발생할 경우 Elasticsearch에 데이터가 정상적으로 저장되지 않는 문제가 남아 있었다. 이를 해결하기 위해서는 재시도 로직(Retry Mechanism) 및 데이터 정합성 유지 방안을 추가로 고려해야 한다.
+
+궁극적으로 Elasticsearch는 강력한 검색 성능을 제공하지만 RDBMS를 완전히 대체할 수는 없으며, 보완적인 기술로 활용하는 것이 현실적인 접근이라는 결론을 내렸다. 검색 성능을 개선하기 위해 Elasticsearch를 도입하되, 데이터 정합성을 유지하기 위해 RDBMS와의 조화를 유지하는 것이 중요하다.
+
+🚀 Elasticsearch 도입을 통해 얻은 교훈은, 기술 스택을 선택할 때 성능뿐만 아니라 데이터 일관성, 운영 비용, 장애 대응 계획까지 고려해야 한다는 점이다.
