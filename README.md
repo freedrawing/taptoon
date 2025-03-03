@@ -1,6 +1,6 @@
 # TAPTOON
 
-![Image](https://github.com/user-attachments/assets/7a7caada-abed-4ae6-8b42-8bf87aae8560)
+<img width="613" alt="Image" src="https://github.com/user-attachments/assets/11c2cca3-0bd5-44b5-9f3f-ba279c7a7980" />
 
 글과 그림, 서로의 짝을 찾아 나서는 두근두근 설레는 미팅 장소.
 
@@ -14,9 +14,6 @@
 ## 프로젝트 개요
 웹툰 작가 매칭이 목적인 글/그림 작가 매칭 사이트입니다.
 본인의 역량을 마음껏 뽐내고, 마음에 맞는 작가와 컨택하세요!
-
-## Project Architecture
-<img width="900" alt="Image" src="https://github.com/user-attachments/assets/4348bb21-a892-49f6-8e96-5b4b11f4c62b" />
 
 ## 프로젝트 사용 흐름
 1. 사용자는 회원 가입을 먼저 해야 합니다.
@@ -59,7 +56,7 @@
 * 채팅의 읽음 여부도 확인할 수 있습니다.
 
 ## 프로젝트 구조
-이미지 첨부 예정
+<img width="900" alt="Image" src="https://github.com/user-attachments/assets/4348bb21-a892-49f6-8e96-5b4b11f4c62b" />
 
 ## 기능 목록
 * 인증/인가
