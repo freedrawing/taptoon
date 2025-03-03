@@ -82,7 +82,9 @@ jobs:
             # 디버깅용 출력
             echo "SPRING_DATA_REDIS_HOST is set to: $SPRING_DATA_REDIS_HOST"
             echo "IMAGE_TAG is set to: $IMAGE_TAG"
+            echo "REDISSON_ADDRESS will be set to: redis://$SPRING_DATA_REDIS_HOST:6379"
             
+            # EC2에서 Redis 연결 테스트
             echo "Testing Redis connectivity from EC2..."
             nc -zv redis-cluster-uh4hyr.serverless.apn2.cache.amazonaws.com 6379 || echo "Redis connectivity test failed from EC2"
             
@@ -210,7 +212,7 @@ jobs:
             echo "Starting application container..."
             docker run -d \
               --name taptoon-app \
-              --network taptoon-network \
+              --network host \
               -p 0.0.0.0:8080:8080 \
               -v "$CURRENT_DIR:/app/config" \
               -e SPRING_PROFILES_ACTIVE=deploy \
@@ -219,21 +221,25 @@ jobs:
               -e SPRING_DATA_REDIS_PORT=6379 \
               -e SPRING_REDIS_HOST=$SPRING_DATA_REDIS_HOST \
               -e SPRING_REDIS_PORT=6379 \
+              -e SPRING_REDIS_TIMEOUT=10000 \
               -e REDISSON_ADDRESS=redis://$SPRING_DATA_REDIS_HOST:6379 \
+              -e REDISSON_CONFIG="singleServerConfig.address=redis://$SPRING_DATA_REDIS_HOST:6379&singleServerConfig.connectTimeout=60000&singleServerConfig.timeout=30000&singleServerConfig.retryAttempts=10&singleServerConfig.retryInterval=5000" \
+              -e SPRING_LOGGING_LEVEL_ORG_REDISSON=DEBUG \
               "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             
             # 컨테이너 상태 및 디버깅
-            sleep 10
+            sleep 15
+            echo "Installing nc inside container..."
+            docker exec taptoon-app sh -c "apt-get update && apt-get install -y netcat-openbsd" || echo "Failed to install nc"
             echo "Testing Redis connectivity from container..."
             docker exec taptoon-app nc -zv redis-cluster-uh4hyr.serverless.apn2.cache.amazonaws.com 6379 || echo "Redis connectivity test failed from container"
-          
             if ! docker ps | grep taptoon-app &> /dev/null; then
-            echo "ERROR: Application container failed to start"
-            docker logs taptoon-app | tail -n 100
+              echo "ERROR: Application container failed to start"
+              docker logs taptoon-app | tail -n 100
             exit 1
             else
-            echo "Application container started successfully"
-            docker logs taptoon-app | tail -n 50
+              echo "Application container started successfully"
+              docker logs taptoon-app | tail -n 50
             fi
             # 컨테이너 실행 여부 확인
             if ! docker ps | grep taptoon-app &> /dev/null; then
