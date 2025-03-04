@@ -53,7 +53,7 @@ public class ImageCleaner {
         );
         for (MatchingPostImage image : orphanImages) {
             s3Service.removeObject(image.getOriginalImageUrl());
-            matchingPostImageRepository.delete(image);
+            matchingPostImageRepository.deleteAllInBatch(orphanImages);
         }
 
         List<PortfolioFile> orphanPortfolioFiles = portfolioFileRepository.findByStatusAndCreatedAtBefore(
@@ -61,7 +61,7 @@ public class ImageCleaner {
         );
         for (PortfolioFile file : orphanPortfolioFiles) {
             s3Service.removeObject(file.getFileUrl());
-            portfolioFileRepository.delete(file);
+            portfolioFileRepository.deleteAllInBatch(orphanPortfolioFiles);
         }
     }
 }
