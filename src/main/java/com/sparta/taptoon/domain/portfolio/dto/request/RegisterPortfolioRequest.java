@@ -7,7 +7,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record PortfolioRequest(
+public record RegisterPortfolioRequest(
         @NotBlank(message = "제목을 입력해주세요.")
         String title,
 
@@ -16,6 +16,6 @@ public record PortfolioRequest(
         String content,
 
         // 이미지 첨부하기
-        List<Long> fileIds
+        List<Long> portfolioFileIds
 ) {
 }

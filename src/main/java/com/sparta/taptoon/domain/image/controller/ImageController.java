@@ -26,7 +26,7 @@ public class ImageController {
     public ResponseEntity<ApiResponse<PresignedUrlResponse>> getPresignedUrl(@Valid @RequestBody PreSignedUrlRequest request) {
 
         PresignedUrlResponse presignedUrlResponse
-                = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileName());
+                = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileType(), request.fileName());
         return ApiResponse.success(presignedUrlResponse);
     }
 

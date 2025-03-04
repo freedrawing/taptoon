@@ -1,120 +1,91 @@
 package com.sparta.taptoon.domain.image.service;
 
-import com.amazonaws.HttpMethod;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.sparta.taptoon.domain.chat.entity.ChatImageMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
 import com.sparta.taptoon.domain.chat.repository.ChatImageMessageRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomRepository;
 import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
-import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
-import com.sparta.taptoon.domain.matchingpost.entity.MatchingPostImage;
-import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostImageRepository;
-import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
+import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
-import com.sparta.taptoon.domain.portfolio.entity.Portfolio;
-import com.sparta.taptoon.domain.portfolio.entity.PortfolioImage;
-import com.sparta.taptoon.domain.portfolio.repository.PortfolioImageRepository;
-import com.sparta.taptoon.domain.portfolio.repository.PortfolioRepository;
+import com.sparta.taptoon.domain.portfolio.enums.FileType;
+import com.sparta.taptoon.domain.portfolio.service.PortfolioService;
 import com.sparta.taptoon.global.common.enums.Status;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
-import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import static com.sparta.taptoon.global.common.Constant.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImageServiceImpl implements ImageService {
 
-    private static final long EXPIRE_TIME = 1000 * 60 * 5;//5분
-
-    private final AmazonS3 amazonS3;
-    private final MatchingPostImageRepository matchingPostImageRepository;
-    private final MatchingPostRepository matchingPostRepository;
-    private final PortfolioRepository portfolioRepository;
-    private final PortfolioImageRepository portfolioImageRepository;
+    private final AwsS3Service awsS3Service;
+    private final MatchingPostService matchingPostService;
+    private final PortfolioService portfolioService;
     private final ChatRoomRepository chatRoomRepository;
     private final MemberRepository memberRepository;
     private final ChatImageMessageRepository chatImageMessageRepository;
 
-    private final String MATCHING_POST = "matchingpost"; // 여기 있는 것도 따로 CONSTANT 관리하는 걸로 빼면 좋을 듯
-    private final String PORTFOLIO = "portfolio";
-
-    @Value("${cloud.aws.s3.url}")
-    private final String BUCKET_URL;
-
-    @Value("${cloud.aws.s3.bucket}")
-    private String BUCKET;
-
-    @Transactional
     @Override
-    public PresignedUrlResponse generatePresignedUrl(String folderPath, Long id, String fileName) {//id 값을
-        folderPath = normalizeFolderPath(folderPath);
-        String contentType = getContentType(fileName);
-        String directory = folderPath + "original/" + id + "-" + fileName;
-        String imageFullPath = BUCKET_URL + directory;
+    public PresignedUrlResponse generatePresignedUrl(String folderPath, Long id, String fileType, String fileName) {
+        String fileNameWithId = String.format("%s-%s", id, fileName);
+        String thumbnailPath = String.format("%s/%s", folderPath, S3_THUMBNAIL_IMAGE_PATH);
+        String originalPath = String.format("%s/%s", folderPath, S3_ORIGINAL_IMAGE_PATH);
 
-        GeneratePresignedUrlRequest generatePresignedUrlRequest = generatePresignedUrlRequest(directory, contentType);
-        String presignedUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
-        /*
-         * 클라이언트에게 전달할 url 생성, 각 img 테이블에 url, status = PENDING 저장
-         * 반드시 글쓰기 버튼 클릭(빈 객체 생성) 후에 진행해야 합니다!
-         */
-        return folderPath.contains(MATCHING_POST)
-                ? saveMatchingPostImage(id, imageFullPath, presignedUrl)
-                : savePortfolioImage(id, imageFullPath, presignedUrl);
+        String presignedUrl = awsS3Service.generatePresignedUrl(originalPath, fileNameWithId);
+
+        String thumbnailImageFullPath = awsS3Service.getFullUrl(thumbnailPath, fileNameWithId);
+        String originalImageFullPath = awsS3Service.getFullUrl(originalPath, fileNameWithId);
+
+        return folderPath.contains(S3_MATCHING_POST_IMAGE_PATH)
+                ? getMatchingPostPresignedUrl(id, fileName, thumbnailImageFullPath, originalImageFullPath, presignedUrl)
+                : getPortfolioFilePresignedUrl(id, fileName, fileType, thumbnailImageFullPath, originalImageFullPath, presignedUrl);
     }
 
-    private PresignedUrlResponse saveMatchingPostImage(Long id, String imageFullPath, String presignedUrl) {
-        MatchingPost matchingPost = matchingPostRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MATCHING_POST_NOT_FOUND));
+    // `MatchingPostImage` 저장용
+    private PresignedUrlResponse getMatchingPostPresignedUrl(Long id,
+                                                             String fileName,
+                                                             String thumbnailImageFullPath,
+                                                             String originalImageFullPath,
+                                                             String presignedUrl) {
 
-        MatchingPostImage image = MatchingPostImage.builder()
-                .matchingPost(matchingPost)
-                .imageUrl(imageFullPath)
-                .status(Status.PENDING)
-                .build();
-
-        MatchingPostImage savedImage = matchingPostImageRepository.save(image);
-        return new PresignedUrlResponse(presignedUrl, savedImage.getId());
+        Long matchingPostImageId =
+                matchingPostService.generateEmptyMatchingPostImage(id, fileName, thumbnailImageFullPath, originalImageFullPath);
+        return new PresignedUrlResponse(presignedUrl, matchingPostImageId);
     }
 
-    private PresignedUrlResponse savePortfolioImage(Long id, String imageFullPath, String presignedUrl) {
-        Portfolio portfolio = portfolioRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.PORTFOLIO_NOT_FOUND));
+    // `PortfolioFile` 저장용
+    private PresignedUrlResponse getPortfolioFilePresignedUrl(Long id,
+                                                              String fileName,
+                                                              String fileType,
+                                                              String thumbnailImageFullPath,
+                                                              String originalFileFullPath,
+                                                              String presignedUrl) {
 
-        PortfolioImage image = PortfolioImage.builder()
-                .portfolio(portfolio)
-                .fileUrl(imageFullPath)
-                .status(Status.PENDING)
-                .build();
+        // file 타입이면 thumbnailUrl 필요 없음. 있어서도 안 됨. Entity에는 null 저장
+        String filteredThumbnailUrl = FileType.isImageType(fileType) ? thumbnailImageFullPath : null;
 
-        PortfolioImage savedImage = portfolioImageRepository.save(image);
-        return new PresignedUrlResponse(presignedUrl, savedImage.getId());
+        Long portfolioFileId =
+                portfolioService.generateEmptyPortfolioFile(id, fileName, fileType, filteredThumbnailUrl, originalFileFullPath);
+        return new PresignedUrlResponse(presignedUrl, portfolioFileId);
     }
 
+    // 여기는 AwsS3Service로 로직을 변경해서 잘 안 될 수도 있을 듯. 진영님한테 확인해달라고 해야할 듯.
     @Override
     @Transactional
     public String generatePresignedUrl(String folderPath, Long chatRoomId, Long memberId, String fileName) {
         log.info("generatePresignedUrl 호출 - folderPath: {}, roomId: {}, memberId: {}, fileName: {}",
                 folderPath, chatRoomId, memberId, fileName);
-        folderPath = normalizeFolderPath(folderPath);
-        String contentType = getContentType(fileName);
 
-        String directory = folderPath + "original/" + chatRoomId + ":" + memberId + "-" + fileName;
-        String imageFullPath = BUCKET_URL + directory;
-        GeneratePresignedUrlRequest generatePresignedUrlRequest = generatePresignedUrlRequest(directory, contentType);
-
-        String imageUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
+        String directory = folderPath + "original/" + chatRoomId + ":" + memberId + "-";
+        String imageFullPath = awsS3Service.getFullUrl(directory, fileName);
+        String presignedUrl = awsS3Service.generatePresignedUrl(directory, fileName);
 
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CHAT_ROOM_NOT_FOUND));
@@ -138,52 +109,11 @@ public class ImageServiceImpl implements ImageService {
                 throw e;
             }
         }
-        return imageUrl;
+        return presignedUrl;
     }
 
     @Override
     public void removeImageFromS3(String url) {
-        String key = url.substring(url.indexOf(".com/")+5);
-        if (key.contains("?")) {
-            key = key.substring(0, key.indexOf("?"));
-        }
-        try{
-            amazonS3.deleteObject(BUCKET,key);
-            log.info("S3에서 이미지 삭제 성공. key : {}",key);
-        } catch (Exception e) {
-            log.info("S3에서 이미지 삭제 실패. key : {}",key);
-            throw new AccessDeniedException(ErrorCode.FAIL_CONNECT_TO_S3);
-        }
-    }
-
-    private GeneratePresignedUrlRequest generatePresignedUrlRequest(String directory, String contentType) {
-        Date expiration = new Date();
-        long expTimeMillis = expiration.getTime();
-        expTimeMillis += EXPIRE_TIME;
-        expiration.setTime(expTimeMillis);
-
-        return new GeneratePresignedUrlRequest(BUCKET, directory)
-                .withMethod(HttpMethod.PUT)
-                .withExpiration(expiration)
-                .withContentType(contentType);
-    }
-
-    private static String normalizeFolderPath(String folderPath) {
-        if (!folderPath.endsWith("/")) {
-            folderPath += "/";
-        }
-        folderPath = folderPath.toLowerCase();
-        return folderPath;
-    }
-
-    private String getContentType(String fileName) {
-        String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
-
-        return switch (extension) {
-            case "jpg", "jpeg" -> "image/jpeg";
-            case "png" -> "image/png";
-            case "gif" -> "image/gif";
-            default -> throw new AccessDeniedException("지원하지 않는 이미지 타입입니다! " + extension);
-        };
+        awsS3Service.removeObject(url);
     }
 }

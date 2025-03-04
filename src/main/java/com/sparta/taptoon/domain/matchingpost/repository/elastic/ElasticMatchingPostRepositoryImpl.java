@@ -6,7 +6,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import co.elastic.clients.json.JsonData;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
-import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostDocumentResponse;
+import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostResponse;
 import com.sparta.taptoon.domain.matchingpost.entity.document.MatchingPostDocument;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +77,7 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
         );
 
         // 검색 결과 변환
-        List<MatchingPostDocumentResponse> results = searchHits.stream()
+        List<MatchingPostResponse> results = searchHits.stream()
 //                .map(SearchHit::getContent)
                 .map(searchHit -> {
                     MatchingPostDocument document = searchHit.getContent();
@@ -85,16 +85,16 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
                     float score = searchHit.getScore();
                     log.info("{} score: {}", document, score);
 
-                    return MatchingPostDocumentResponse.from(document);
+                    return MatchingPostResponse.from(document);
                 })
                 .toList();
 
         Long nextViewCount = null;
         Long nextId = null;
         if (!results.isEmpty()) {
-            MatchingPostDocumentResponse lastDoc = results.get(results.size() - 1);
+            MatchingPostResponse lastDoc = results.get(results.size() - 1);
             nextViewCount = lastDoc.viewCount();
-            nextId = lastDoc.id();
+            nextId = lastDoc.matchingPostId();
         }
 
         Boolean isLastPage = results.size() < pageSize;
