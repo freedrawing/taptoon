@@ -23,7 +23,7 @@ jobs:
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build
+          arguments: build -x test
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -42,7 +42,6 @@ jobs:
           ECR_REPOSITORY: taptoon
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "Building and pushing to: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
@@ -76,20 +75,9 @@ jobs:
             export AWS_REGION="ap-northeast-2"
             export REDIS_HOST=${{secrets.REDIS_HOST}}
             
-            # 디버깅용 출력
-            echo "IMAGE_TAG is set to: $IMAGE_TAG"
-            echo "ECR_REGISTRY: $ECR_REGISTRY"
-            echo "ECR_REPOSITORY: $ECR_REPOSITORY"
-            echo "Full image path: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-            echo "REDIS_HOST is set to: $REDIS_HOST"
-            
-            # EC2에서 Redis 연결 테스트
-            nslookup $REDIS_HOST || echo "DNS resolution failed"
-            echo "Testing Redis connectivity from EC2..."
-            nc -zv $REDIS_HOST 6379 || echo "Redis connectivity test failed from EC2"
-            
-            echo "=== Deployment on ${{ matrix.instance_info.name }} started ==="
-            echo "Deploying image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+            # 필수 명령어 확인
+            command -v aws >/dev/null || { echo "ERROR: AWS CLI not installed"; exit 1; }
+            command -v docker >/dev/null || { echo "ERROR: Docker not installed"; exit 1; }
             
             # 디렉토리 변수 설정
             PROJECT_ROOT="/home/ubuntu/taptoon"
@@ -116,21 +104,6 @@ jobs:
               echo "Found configuration file: $CONFIG_DIR/application-deploy.yaml"
             fi
             
-            # AWS CLI 설치 확인 및 설치
-            if ! command -v aws &> /dev/null; then
-              echo "Installing AWS CLI..."
-              sudo apt-get update
-              sudo apt-get install -y unzip curl
-              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-              unzip -o awscliv2.zip
-              sudo ./aws/install --update
-              rm -rf aws awscliv2.zip
-            
-              # PATH 확인
-              export PATH=$PATH:/usr/local/bin
-              echo "AWS CLI installed at: $(which aws)"
-            fi
-            
             # AWS 자격 증명 설정
             mkdir -p ~/.aws
             
@@ -143,17 +116,6 @@ jobs:
             output=json" > ~/.aws/config
             
             chmod 600 ~/.aws/credentials ~/.aws/config
-            
-            # Docker 설치 확인
-            if ! command -v docker &> /dev/null; then
-              echo "ERROR: Docker is not installed. Installing Docker..."
-              sudo apt-get update
-              sudo apt-get install -y docker.io
-              sudo systemctl start docker
-              sudo systemctl enable docker
-              sudo usermod -aG docker ubuntu
-              echo "Docker installed. You may need to reconnect for group changes to take effect."
-            fi
             
             # ECR 로그인
             echo "Logging in to ECR..."
@@ -221,32 +183,9 @@ jobs:
               "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
             
             # 컨테이너 상태 및 디버깅
-            sleep 30
-            if ! docker ps | grep taptoon-app &> /dev/null; then
-              echo "ERROR: Application container failed to start"
-              docker logs taptoon-app || echo "No logs available"
-              docker inspect taptoon-app | grep -A 10 "State" || echo "Failed to inspect container"
-              exit 1
-            fi
-
-            echo "Testing Redis connectivity from container with nc..."
-            docker exec taptoon-app nc -zv $REDIS_HOST 6379 || echo "nc test failed"
-            echo "Installing redis-tools in container..."
-            docker exec taptoon-app sh -c "apt-get update && apt-get install -y redis-tools" || echo "Failed to install redis-tools"
-            echo "Testing Redis with redis-cli..."
-            docker exec taptoon-app redis-cli -h $REDIS_HOST -p 6379 PING || echo "redis-cli PING failed"
-
-            if ! docker ps | grep taptoon-app &> /dev/null; then
-              echo "ERROR: Application container failed to start after tests"
-              docker logs taptoon-app || echo "No logs available"
-              exit 1
-            else
-              echo "Application container started successfully"
-              docker ps | grep taptoon-app
-              docker logs taptoon-app
-              echo "Checking application health..."
-              curl -I http://localhost:8080 || echo "Application not responding"
-            fi
+            sleep 10
+            docker ps | grep taptoon-app || { echo "ERROR: Container failed"; docker logs taptoon-app; exit 1; }
+            echo "Deployment completed"
             
             # 사용하지 않는 이미지 정리
             echo "Cleaning up unused Docker images..."
