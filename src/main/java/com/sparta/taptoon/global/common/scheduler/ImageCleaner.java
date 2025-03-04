@@ -31,16 +31,16 @@ public class ImageCleaner {
         );
         for (MatchingPostImage image : orphanImages) {
             image.changeStatusForDelete();
-            matchingPostImageRepository.save(image);
         }
+        matchingPostImageRepository.saveAll(orphanImages);
 
         List<PortfolioFile> orphanPortfolioFiles = portfolioFileRepository.findByStatusAndCreatedAtBefore(
                 Status.PENDING, targetTime
         );
         for (PortfolioFile file : orphanPortfolioFiles) {
             file.removeFile();
-            portfolioFileRepository.save(file);
         }
+        portfolioFileRepository.saveAll(orphanPortfolioFiles);
     }
 
     // 매일 자정 실행 (DELETING 상태 정리)
