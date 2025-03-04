@@ -19,6 +19,7 @@ import com.sparta.taptoon.global.common.enums.Status;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
+import com.sparta.taptoon.global.handler.NotificationService;
 import com.sparta.taptoon.global.redis.RedisPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +48,7 @@ public class ChatMessageService {
     private final StringRedisTemplate redisTemplate;
     private final SlackAlarmService slackAlarmService;
     private final ChatImageMessageRepository chatImageMessageRepository;
+    private final NotificationService notificationService;
 
     /**
      * 메시지 전송 & 저장, Redis와 Slack으로 알림을 발행합니다.
@@ -72,6 +74,7 @@ public class ChatMessageService {
 //                chatRoomId, senderId, chatMessage.getId());
 
         publishMessage(chatRoom.getId(), response, sender, request.message());
+        notificationService.notifyNewMessage(chatRoomId, senderId, request.message());
         return response;
     }
 
@@ -218,12 +221,6 @@ public class ChatMessageService {
                 .stream()
                 .map(ChatMessageResponse::from)
                 .toList();
-    }
-
-    // unread count 계산 메서드 추가
-    public int calculateUnreadCount(ChatRoom chatRoom, Long memberId) {
-        Long lastReadMessageId = getLastReadMessageId(chatRoom.getId(), memberId);
-        return chatMessageRepository.countUnreadMessagesExcludingSender(chatRoom, lastReadMessageId, memberId);
     }
 
 }

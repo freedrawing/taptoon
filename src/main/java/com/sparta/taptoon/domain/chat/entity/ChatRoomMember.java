@@ -30,4 +30,6 @@ public class ChatRoomMember {
         this.chatRoom = chatRoom;
         this.member = member;
     }
+
+    public Long getMemberId() { return member.getId(); }
 }

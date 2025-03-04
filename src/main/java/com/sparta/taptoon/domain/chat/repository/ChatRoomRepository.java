@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
-    List<ChatRoom> findByMembers_MemberIdAndIsDeletedFalse(Long memberId);
+    List<ChatRoom> findByMembers_Member_IdAndIsDeletedFalse(Long memberId);
 
     @Query("SELECT c.id FROM ChatRoom c WHERE c.isDeleted = false ")
     List<Long> findChatRoomIds();
