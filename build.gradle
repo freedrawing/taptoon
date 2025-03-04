@@ -91,7 +91,7 @@ dependencies {
 	implementation 'javax.xml.bind:jaxb-api:2.3.1' // XML document와 Java 객체 간 매핑 자동화
 
 	// Redisson
-	implementation 'org.redisson:redisson-spring-boot-starter:3.44.0'
+	implementation 'org.redisson:redisson-spring-boot-starter:3.45.0'
 
 	// Swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
@@ -123,6 +123,9 @@ dependencies {
 	//s3
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 	implementation 'com.amazonaws:aws-java-sdk-s3'
+
+	//헬스체크 경로 설정
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 tasks.named('test') {
