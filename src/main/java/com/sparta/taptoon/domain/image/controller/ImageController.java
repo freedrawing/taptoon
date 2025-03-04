@@ -30,10 +30,10 @@ public class ImageController {
         return ApiResponse.success(presignedUrlResponse);
     }
 
-    @Operation(summary = "S3에서 이미지 삭제")
+    @Operation(summary = "S3에서 파일 삭제")
     @PostMapping("/delete")
-    public ResponseEntity<ApiResponse<Void>> deleteImage(@Valid String imageUrl) {
-        imageService.removeImageFromS3(imageUrl);
+    public ResponseEntity<ApiResponse<Void>> deleteFile(@Valid String imageUrl) {
+        imageService.removeFileFromS3(imageUrl);
         return ApiResponse.noContent();
     }
 }

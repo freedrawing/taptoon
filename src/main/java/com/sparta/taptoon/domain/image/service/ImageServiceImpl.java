@@ -113,7 +113,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public void removeImageFromS3(String url) {
+    public void removeFileFromS3(String url) {
         awsS3Service.removeObject(url);
     }
 }
