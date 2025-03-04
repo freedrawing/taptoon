@@ -15,6 +15,27 @@
 웹툰 작가 매칭이 목적인 글/그림 작가 매칭 사이트입니다.
 본인의 역량을 마음껏 뽐내고, 마음에 맞는 작가와 컨택하세요!
 
+### 작업 기간
+2025.02.10 - 2025.03.16
+
+### 사용 기술
+- SpringBoot
+- Redis
+- ElasticSearch
+- Websocket
+- Oauth
+- AWS
+  - EC2
+  - RDS
+  - Route53
+  - CloudFront
+  - ELB
+  - Lambda
+  - S3
+  - ElasticCache
+  - ECR(Elastic Container Registry)
+
+
 ## Project Architecture
 <img width="900" alt="Image" src="https://github.com/user-attachments/assets/4348bb21-a892-49f6-8e96-5b4b11f4c62b" />
 
