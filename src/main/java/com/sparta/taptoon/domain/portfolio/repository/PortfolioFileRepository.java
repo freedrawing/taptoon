@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PortfolioFileRepository extends JpaRepository<PortfolioFile, Long> {
@@ -20,4 +21,5 @@ public interface PortfolioFileRepository extends JpaRepository<PortfolioFile, Lo
     @Modifying
     @Query("UPDATE PortfolioFile pf SET pf.status = :newStatus, pf.updatedAt = NOW() WHERE pf.id IN :ids")
     void updateStatusByIds(@Param("ids") List<Long> ids, @Param("newStatus") Status newStatus);
+    List<PortfolioFile> findByStatusAndCreatedAtBefore(Status status, LocalDateTime createdAt);
 }
