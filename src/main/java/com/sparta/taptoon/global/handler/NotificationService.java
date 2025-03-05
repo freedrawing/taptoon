@@ -21,7 +21,7 @@ public class NotificationService {
     private final ChatRoomService chatRoomService;
     private final ChatRoomMemberService chatRoomMemberService;
 
-    public void notifyNewMessage(Long chatRoomId, Long senderId, String message) {
+    public void notifyNewMessage(String chatRoomId, Long senderId, String message) {
         ChatRoom chatRoom = chatRoomService.findChatRoom(chatRoomId);
         List<Long> memberIds = chatRoomMemberService.getChatRoomMembers(chatRoomId);
 
@@ -35,7 +35,7 @@ public class NotificationService {
             notification.put("unread_count", unreadCount);
             notification.put("timestamp", System.currentTimeMillis());
 
-            ChatRoomListResponse chatRoomResponse = ChatRoomListResponse.of(chatRoom, message,
+            ChatRoomListResponse chatRoomResponse = ChatRoomListResponse.from(chatRoom, message,
                     String.valueOf(System.currentTimeMillis()), unreadCount);
             notification.put("chatRoom", chatRoomResponse);
 

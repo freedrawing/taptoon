@@ -1,13 +1,13 @@
 package com.sparta.taptoon.domain.chat.event;
 
 public class ChatRoomCreatedEvent {
-    private final Long chatRoomId;
+    private final String chatRoomId;
 
-    public ChatRoomCreatedEvent(Long chatRoomId) {
+    public ChatRoomCreatedEvent(String chatRoomId) {
         this.chatRoomId = chatRoomId;
     }
 
-    public Long getChatRoomId() {
+    public String getChatRoomId() {
         return chatRoomId;
     }
 }

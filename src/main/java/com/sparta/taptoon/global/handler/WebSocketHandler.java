@@ -37,7 +37,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // 채팅방별 WebSocket 세션 관리
-    private static final Map<Long, Set<WebSocketSession>> chatRoomSessions = new ConcurrentHashMap<>();
+    private static final Map<String, Set<WebSocketSession>> chatRoomSessions = new ConcurrentHashMap<>();
 
     /**
      * WebSocket 연결이 성공하면 실행
@@ -46,7 +46,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        Long chatRoomId = extractChatRoomId(session);
+        String chatRoomId = extractChatRoomId(session);
         Long senderId = getSenderIdFromSession(session);
 
         if (chatRoomId == null || senderId == null) {
@@ -73,7 +73,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         try {
             MessagePayload messagePayload = parseMessagePayload(payload);
-            Long chatRoomId = extractChatRoomId(session);
+            String chatRoomId = extractChatRoomId(session);
 
             chatMessageService.sendMessage(messagePayload.senderId(), chatRoomId,
                     new SendChatMessageRequest(messagePayload.message()));
@@ -143,11 +143,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
     /**
      * WebSocket의 URL에서 채팅방 ID를 추출하는 메서드
      */
-    private Long extractChatRoomId(WebSocketSession session) {
+    private String extractChatRoomId(WebSocketSession session) {
         try {
             String path = session.getUri().getPath();
             String chatRoomIdStr = path.substring(path.indexOf(CHAT_ROOM_ID_PATH_INDEX) + CHAT_ROOM_ID_PATH_INDEX.length());
-            return Long.parseLong(chatRoomIdStr);
+            return chatRoomIdStr;
         } catch (Exception e) {
             log.warn("❌ WebSocket URL에서 채팅방 ID 추출 실패: {}", session.getUri().getPath(), e);
             return null;
@@ -187,7 +187,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     // 초기 접속 시 읽음 처리
-    private void updateLastReadMessageId(Long chatRoomId, Long senderId) {
+    private void updateLastReadMessageId(String chatRoomId, Long senderId) {
         Optional<ChatMessage> latestMessage = chatMessageService.findLatestMessage(chatRoomId);
         if (latestMessage.isPresent()) {
             String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);

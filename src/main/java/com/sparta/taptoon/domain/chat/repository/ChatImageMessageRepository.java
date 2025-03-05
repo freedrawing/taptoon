@@ -1,15 +1,16 @@
 package com.sparta.taptoon.domain.chat.repository;
 
 import com.sparta.taptoon.domain.chat.entity.ChatImageMessage;
-import com.sparta.taptoon.domain.chat.entity.ChatRoom;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ChatImageMessageRepository extends JpaRepository<ChatImageMessage, Long> {
+public interface ChatImageMessageRepository extends MongoRepository<ChatImageMessage, String> {
 
-    Optional<ChatImageMessage> findByIdAndChatRoom(Long id, ChatRoom chatRoom);
-    List<ChatImageMessage> findByChatRoomOrderByCreatedAtAsc(ChatRoom chatRoom);
-    List<ChatImageMessage> findByChatRoomAndIdGreaterThan(ChatRoom chatRoom, Long id);
+    Optional<ChatImageMessage> findByIdAndChatRoomId(String id, String chatRoomId);
+
+    List<ChatImageMessage> findByChatRoomIdOrderByCreatedAtAsc(String chatRoomId);
+
+    List<ChatImageMessage> findByChatRoomIdAndIdGreaterThan(String chatRoomId, String id);
 }

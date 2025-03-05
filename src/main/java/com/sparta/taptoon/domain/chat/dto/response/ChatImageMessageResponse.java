@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 @Builder
 public record ChatImageMessageResponse(
-        Long id,
-        Long chatRoomId,
+        String id,
+        String chatRoomId,
         Long senderId,
         String imageUrl,
         Integer unreadCount,
@@ -19,8 +19,8 @@ public record ChatImageMessageResponse(
     public static ChatImageMessageResponse from(ChatImageMessage chatImageMessage) {
         return ChatImageMessageResponse.builder()
                 .id(chatImageMessage.getId())
-                .chatRoomId(chatImageMessage.getChatRoom().getId())
-                .senderId(chatImageMessage.getSender().getId())
+                .chatRoomId(chatImageMessage.getChatRoomId())
+                .senderId(chatImageMessage.getSenderId())
                 .imageUrl(chatImageMessage.getImageUrl())
                 .unreadCount(chatImageMessage.getUnreadCount())
                 .status(Status.PENDING)

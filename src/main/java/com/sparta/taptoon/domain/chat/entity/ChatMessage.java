@@ -1,53 +1,62 @@
 package com.sparta.taptoon.domain.chat.entity;
 
-import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.global.common.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.time.LocalDateTime;
+
 
 @Getter
-@NoArgsConstructor
-@Entity
-@Table(name = "chat_message")
-public class ChatMessage extends BaseEntity {
+@Document(collection = "chat_message")
+public class ChatMessage {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false, updatable = false)
-    private Long id;
+    private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "room_id", nullable = false)
-    private ChatRoom chatRoom;
+    @Field(name = "chat_room_id")
+    @Indexed
+    private String chatRoomId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id", nullable = false)
-    private Member sender;
+    @Field(name = "sender_id")
+    private Long senderId;
 
-    @Column(name = "message", nullable = false)
+    @Field(name = "message")
     private String message;
 
-    @Column(name = "unread_count", nullable = false)
+    @Field(name = "unread_count")
     private int unreadCount;
 
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
+    @CreatedDate
+    @Field(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Field(name = "is_deleted")
+    private boolean isDeleted;
 
     @Builder
-    public ChatMessage(ChatRoom chatRoom, Member sender, String message, int unreadCount) {
-        this.chatRoom = chatRoom;
-        this.sender = sender;
+    public ChatMessage(String chatRoomId, Long senderId, String message, int unreadCount) {
+        if (unreadCount < 0) {
+            throw new IllegalArgumentException("읽지 않은 수는 음수가 될 수 없습니다.");
+        }
+        this.chatRoomId = chatRoomId;
+        this.senderId = senderId;
         this.message = message;
         this.unreadCount = unreadCount;
         this.isDeleted = false;
     }
 
-    /** 특정 사용자가 메시지를 읽었을 때 호출 */
     public void decrementUnreadCount() {
         if (this.unreadCount > 0) {
             this.unreadCount--;
         }
+    }
+
+    public void delete() {
+        this.isDeleted = true;
     }
 }

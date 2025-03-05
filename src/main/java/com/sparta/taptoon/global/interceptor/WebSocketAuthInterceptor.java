@@ -49,7 +49,7 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             String path = httpRequest.getRequestURI();
 
             if (path.startsWith(CHAT_PATH_PREFIX)) {
-                Long chatRoomId = extractChatRoomId(path);
+                String chatRoomId = extractChatRoomId(path);
                 if(!isValidChatRoomMember(chatRoomId, senderId)){
                     log.warn("❌ WebSocket 연결 거부 - 사용자가 채팅방 멤버가 아님 (chatRoomId: {}, senderId: {})", chatRoomId, senderId);
                     return false;
@@ -99,17 +99,17 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
     }
 
     // URL에서 chatRoomId 추출
-    private Long extractChatRoomId(String path) {
+    private String extractChatRoomId(String path) {
         try {
             String chatRoomIdStr = path.substring(path.indexOf(CHAT_PATH_PREFIX) + CHAT_PATH_PREFIX.length());
-            return Long.parseLong(chatRoomIdStr);
+            return chatRoomIdStr;
         } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
             throw new NotFoundException(); // 채팅방 ID가 유효하지 않거나 경로에서 추출 불가
         }
     }
 
     // 사용자가 채팅방 멤버인지 확인
-    private boolean isValidChatRoomMember(Long chatRoomId, Long senderId) {
+    private boolean isValidChatRoomMember(String chatRoomId, Long senderId) {
         return chatRoomMemberService.isMemberOfChatRoom(chatRoomId, senderId);
     }
 

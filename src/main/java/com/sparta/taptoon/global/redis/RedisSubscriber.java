@@ -31,7 +31,7 @@ public class RedisSubscriber {
         try {
             webSocketHandler.broadcastMessage(message);
             Map<String, Object> data = objectMapper.readValue(message, Map.class);
-            Long chatRoomId = data.get("chat_room_id") != null ? Long.valueOf(data.get("chat_room_id").toString()) : null;
+            String chatRoomId = data.get("chat_room_id") != null ? data.get("chat_room_id").toString() : null;
             Long senderId = data.get("sender_id") != null ? Long.valueOf(data.get("sender_id").toString()) : null;
             String content = (String) data.get("message");
 

@@ -1,27 +1,21 @@
 package com.sparta.taptoon.domain.chat.repository;
 
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
+public interface ChatRoomRepository extends MongoRepository<ChatRoom, String> {
 
-    List<ChatRoom> findByMembers_Member_IdAndIsDeletedFalse(Long memberId);
+    List<ChatRoom> findByMemberIdsContainsAndIsDeletedFalse(Long memberId);
 
-    @Query("SELECT c.id FROM ChatRoom c WHERE c.isDeleted = false ")
-    List<Long> findChatRoomIds();
+    @Query(value = "{ 'isDeleted': false }", fields = "{ '_id': 1 }")
+    List<String> findChatRoomIds();
 
-    @Query("SELECT cr FROM ChatRoom cr JOIN cr.members crm " +
-            "WHERE cr.isDeleted = false " +
-            "GROUP BY cr " +
-            "HAVING COUNT(crm.member) = :memberCount " +
-            "AND SUM(CASE WHEN crm.member.id IN :memberIds THEN 1 ELSE 0 END) = :memberCount " +
-            "AND SUM(CASE WHEN crm.member.id NOT IN :memberIds THEN 1 ELSE 0 END) = 0")
-    Optional<ChatRoom> findByExactMembers(@Param("memberIds") List<Long> memberIds, @Param("memberCount") int memberCount);
+    @Query("{ 'isDeleted': false, 'memberIds': { $size: ?1, $all: ?0 } }")
+    Optional<ChatRoom> findByExactMembers(List<Long> memberIds, int memberCount);
 }
