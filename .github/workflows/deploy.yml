@@ -178,6 +178,11 @@ jobs:
             echo "Stopping and removing existing containers..."
             docker-compose down || true
             
+            # 혹시 남아있는 컨테이너 직접 제거
+            echo "Forcefully removing any remaining container with name taptoon-app..."
+            docker stop taptoon-app 2>/dev/null || true
+            docker rm -f taptoon-app 2>/dev/null || true
+            
             # Docker Compose 실행
             echo "Pulling Docker image and starting container with Docker Compose..."
             docker-compose pull
