@@ -11,14 +11,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
-
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
@@ -41,9 +42,13 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: taptoon
           IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        run: |# Docker 빌드 캐시 사용
+          docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
+                      --cache-from $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+                      -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+                      -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
   deploy:
     needs: build_and_push
@@ -55,7 +60,7 @@ jobs:
           - { host_var: EC2_HOST_2, name: "Instance 2" }
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3  # 저장소를 체크아웃하여 docker-compose.yml 파일에 접근할 수 있게 함
+      - uses: actions/checkout@v3
 
       - name: Copy Docker Compose file to EC2
         uses: appleboy/scp-action@master
@@ -78,98 +83,36 @@ jobs:
             set -e  # 스크립트 오류 발생 시 즉시 중단
             
             # 환경 변수 설정
-            export ECR_REGISTRY="120569645336.dkr.ecr.ap-northeast-2.amazonaws.com"
+            export ECR_REGISTRY=${{secrets.ECR_REGISTRY}}
             export ECR_REPOSITORY="taptoon"
             export IMAGE_TAG="${{ needs.build_and_push.outputs.image-tag }}"
             export AWS_REGION="ap-northeast-2"
             export REDIS_HOST=${{secrets.REDIS_HOST}}
             
-            # 필수 명령어 확인
-            command -v aws >/dev/null || { echo "ERROR: AWS CLI not installed"; exit 1; }
-            command -v docker >/dev/null || { echo "ERROR: Docker not installed"; exit 1; }
-            command -v docker-compose >/dev/null || { 
-              echo "Docker Compose not installed. Installing..."
-              sudo apt-get update && sudo apt-get install -y docker-compose; 
-            }
-            
             # 디렉토리 변수 설정
             PROJECT_ROOT="/home/ubuntu/taptoon"
-            CURRENT_DIR="$PROJECT_ROOT/current"
-            BACKUP_DIR="$PROJECT_ROOT/backup"
             CONFIG_DIR="$PROJECT_ROOT/config"
             
             # 설정 디렉토리 확인
             mkdir -p "$CONFIG_DIR"
             
-            # 설정 파일 존재 확인
-            if [ ! -f "$CONFIG_DIR/application-deploy.yaml" ]; then
-              echo "WARNING: application-deploy.yaml not found in $CONFIG_DIR"
-              # 백업에서 복구 시도
-              if [ -d "$BACKUP_DIR/current_backup" ] && [ -f "$BACKUP_DIR/current_backup/application-deploy.yaml" ]; then
-                echo "Recovering application-deploy.yaml from backup..."
-                cp "$BACKUP_DIR/current_backup/application-deploy.yaml" "$CONFIG_DIR/"
-              else
-                echo "WARNING: No application-deploy.yaml found in backup either."
-                echo "Creating an empty file as a placeholder. Please update with proper configuration."
-                touch "$CONFIG_DIR/application-deploy.yaml"
-              fi
-            else
-              echo "Found configuration file: $CONFIG_DIR/application-deploy.yaml"
-            fi
+            # application-deploy.yaml 파일 생성 (GitHub Secrets에서 가져옴)
+            echo "${{ secrets.APPLICATION_DEPLOY_YAML }}" > "$CONFIG_DIR/application-deploy.yaml"
+            chmod 600 "$CONFIG_DIR/application-deploy.yaml"
             
-            # AWS 자격 증명 설정
-            mkdir -p ~/.aws
-            
-            echo "[default]
-            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" > ~/.aws/credentials
-            
-            echo "[default]
-            region=ap-northeast-2
-            output=json" > ~/.aws/config
-            
-            chmod 600 ~/.aws/credentials ~/.aws/config
+             # AWS 자격 증명 및 ECR 로그인
+            aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws configure set region $AWS_REGION
+            aws configure set output json
             
             # ECR 로그인
             echo "Logging in to ECR..."
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
             
-            # 로그인 결과 확인
-            if [ $? -ne 0 ]; then
-              echo "ECR login failed. Cannot continue."
-              exit 1
-            else
-              echo "ECR login successful."
-            fi
-            
-            # 백업 디렉토리 관리
-            mkdir -p "$BACKUP_DIR"
-            if [ -d "$BACKUP_DIR/current_backup" ]; then
-              echo "Removing old backup..."
-              rm -rf "$BACKUP_DIR/current_backup"
-            fi
-            
-            # 현재 디렉토리 백업
-            if [ -d "$CURRENT_DIR" ]; then
-              echo "Backing up current directory..."
-              mv "$CURRENT_DIR" "$BACKUP_DIR/current_backup"
-            fi
-            
-            # 새 current 디렉토리 생성 및 설정 파일 복사
-            echo "Creating new current directory..."
-            mkdir -p "$CURRENT_DIR"
-            
-            echo "Copying application-deploy.yaml from config directory..."
-            cp "$CONFIG_DIR/application-deploy.yaml" "$CURRENT_DIR/"
-            
-            # Docker 네트워크 존재 확인 및 생성
-            if ! docker network inspect taptoon-network &> /dev/null; then
-              echo "Creating Docker network: taptoon-network"
-              docker network create taptoon-network
-            else
-              echo "Docker network taptoon-network already exists"
-            fi          
-            
+            # Docker 네트워크 생성 (없는 경우)
+            docker network inspect taptoon-network &>/dev/null || docker network create taptoon-network
+                        
             # Docker Compose 업데이트
             echo "Setting up Docker Compose..."
             cd "$PROJECT_ROOT"
@@ -177,10 +120,6 @@ jobs:
             # 기존 컨테이너 중지 및 제거
             echo "Stopping and removing existing containers..."
             docker-compose down || true
-            
-            # 혹시 남아있는 컨테이너 직접 제거
-            echo "Forcefully removing any remaining container with name taptoon-app..."
-            docker stop taptoon-app 2>/dev/null || true
             docker rm -f taptoon-app 2>/dev/null || true
             
             # Docker Compose 실행
@@ -189,11 +128,7 @@ jobs:
             docker-compose up -d
             
             # 컨테이너 상태 확인
-            sleep 10
-            docker-compose ps
-            
-            # 컨테이너 로그 확인 
-            docker-compose logs --tail=50 taptoon-app
+            docker-compose ps            
             
             # 사용하지 않는 이미지 정리
             echo "Cleaning up unused Docker images..."
@@ -221,23 +156,19 @@ jobs:
           ECR_REPOSITORY: taptoon
         run: |
           echo "Cleaning up old ECR images..."
-          # 이미지 목록 가져오기 (최신 이미지 제외)
+          # 최신 5개 이미지만 유지하도록 수정
           IMAGES_TO_DELETE=$(aws ecr describe-images \
             --repository-name $ECR_REPOSITORY \
-            --query 'imageDetails[?imageTags!=null]|sort_by(@, &imagePushedAt)[:-1].imageDigest' \
+            --query 'sort_by(imageDetails,& imagePushedAt)[:-5].imageDigest' \
             --output json)
           
-          # 삭제할 이미지가 있는지 확인
           if [ "$IMAGES_TO_DELETE" != "[]" ] && [ "$IMAGES_TO_DELETE" != "" ]; then
-            echo "Found old images to delete: $IMAGES_TO_DELETE"
-            # 이미지 삭제
-          for digest in $(echo $IMAGES_TO_DELETE | jq -r '.[]'); do
-            echo "Deleting image with digest: $digest"
-            aws ecr batch-delete-image \
-            --repository-name $ECR_REPOSITORY \
-            --image-ids imageDigest=$digest
-          done
+            for digest in $(echo $IMAGES_TO_DELETE | jq -r '.[]'); do
+              aws ecr batch-delete-image \
+              --repository-name $ECR_REPOSITORY \
+              --image-ids imageDigest=$digest
+            done
             echo "Old ECR images cleaned up successfully"
           else
-            echo "No old ECR images to clean up or only the latest image exists"
+            echo "No old ECR images to clean up"
           fi
