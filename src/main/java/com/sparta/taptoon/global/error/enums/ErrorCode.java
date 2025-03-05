@@ -1,6 +1,5 @@
 package com.sparta.taptoon.global.error.enums;
 
-import co.elastic.clients.elasticsearch.nodes.Http;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -19,6 +18,7 @@ public enum ErrorCode {
   TOO_MANY_REQUEST(HttpStatus.TOO_MANY_REQUESTS, "GENERAL_429", "현재 요청이 많아 처리할 수 없습니다. 잠시 후 다시 시도해주세요."),
 
   // S3
+  INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "S3_400", "유효한 파일 타입이 아닙니다."),
   FAIL_CONNECT_TO_S3(HttpStatus.FORBIDDEN,"S3_403","S3와 연결에 실패했습니다."),
 
   // Member
@@ -41,11 +41,13 @@ public enum ErrorCode {
   MATCHING_POST_NOT_FOUND(HttpStatus.NOT_FOUND, "MATCHING_POST_404", "존재하지 않는 매칭 포스트입니다."),
 
   // Portfolio
+  PORTFOLIO_INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "PORTFOLIO_400", "잘못된 파일 타입입니다."),
   PORTFOLIO_NOT_FOUND(HttpStatus.NOT_FOUND,"PORTFOLIO_404", "존재하지 않는 포트폴리오입니다."),
   PORTFOLIO_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND,"PORTFOLIO_404", "존재하지 않는 포트폴리오 이미지입니다."),
   PORTFOLIO_ACCESS_DENIED(HttpStatus.FORBIDDEN, "PORTFOLIO_403", "포트폴리오 접근 권한이 없습니다."),
   PORTFOLIO_IMAGE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "PORTFOLIO_403", "선택하신 이미지가 포트폴리오에 속해있지 않습니다."),
   CREATION_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "PORTFOLIO_400", "허용된 개수를 초과하였습니다."),
+
 
   //Comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"COMMENT_404", "존재하지 않는 댓글입니다."),
