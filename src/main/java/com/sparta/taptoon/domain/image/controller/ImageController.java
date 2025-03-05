@@ -29,11 +29,4 @@ public class ImageController {
                 = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileType(), request.fileName());
         return ApiResponse.success(presignedUrlResponse);
     }
-
-    @Operation(summary = "S3에서 파일 삭제")
-    @PostMapping("/delete")
-    public ResponseEntity<ApiResponse<Void>> deleteFile(@Valid String imageUrl) {
-        imageService.removeFileFromS3(imageUrl);
-        return ApiResponse.noContent();
-    }
 }
