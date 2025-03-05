@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "images", description = "이미지 업로드 API")
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/api/images")
 public class ImageController {
     private final ImageService imageService;
@@ -27,6 +29,7 @@ public class ImageController {
 
         PresignedUrlResponse presignedUrlResponse
                 = imageService.generatePresignedUrl(request.directory(), request.id(), request.fileType(), request.fileName());
+        log.info("preSignedUrl: {}",presignedUrlResponse.uploadingImageUrl());
         return ApiResponse.success(presignedUrlResponse);
     }
 
