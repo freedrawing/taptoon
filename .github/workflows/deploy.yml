@@ -173,15 +173,10 @@ jobs:
             # Docker Compose 업데이트
             echo "Setting up Docker Compose..."
             cd "$PROJECT_ROOT"
-            
-            # 환경 변수를 .env 파일로 내보내기 (Docker Compose에서 사용)
-            cat > .env << EOF
-            ECR_REGISTRY=$ECR_REGISTRY
-            ECR_REPOSITORY=$ECR_REPOSITORY
-            IMAGE_TAG=$IMAGE_TAG
-            CONFIG_DIR=$CURRENT_DIR
-            REDIS_HOST=$REDIS_HOST
-            EOF
+                      
+            # 기존 컨테이너 중지 및 제거
+            echo "Stopping and removing existing containers..."
+            docker-compose down || true
             
             # Docker Compose 실행
             echo "Pulling Docker image and starting container with Docker Compose..."
