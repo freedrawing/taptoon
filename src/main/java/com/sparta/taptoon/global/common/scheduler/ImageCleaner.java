@@ -22,7 +22,7 @@ public class ImageCleaner {
     private final AwsS3Service s3Service;
 
     // 매시간 실행 (1시간 이상 지난 PENDING -> DELETING)
-    @Scheduled(cron = "0 0 * * * *") // 매시간 0분에 실행
+    @Scheduled(cron = "0 0 */6 * * *") // 매 6시간 마다 실행
     @Transactional
     public void updatePendingToDeleting() {
         LocalDateTime targetTime = LocalDateTime.now().minusHours(1);//생성된지 1시간 이상 지난 객체만 타게팅
