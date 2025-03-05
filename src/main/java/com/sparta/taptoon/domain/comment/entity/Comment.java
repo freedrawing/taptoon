@@ -12,7 +12,7 @@ import org.hibernate.annotations.Where;
 
 import java.util.Optional;
 
-@Where(clause = "is_deleted = false")
+@Where(clause = "is_deleted = false") // 삭제된 댓글 조회에서 제외
 @Getter
 @Entity
 @NoArgsConstructor
