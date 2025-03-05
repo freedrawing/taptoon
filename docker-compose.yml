@@ -1,70 +1,30 @@
 version: '3.8'
 
 services:
-  app:
-    build: .
+  taptoon-app:
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+    container_name: taptoon-app
+    restart: always
     ports:
       - "8080:8080"
+    networks:
+      - taptoon-network
+    volumes:
+      - ${CONFIG_DIR}:/app/config
     environment:
-      - SPRING_PROFILES_ACTIVE=local
-      # Redis 설정
-      - SPRING_REDIS_HOST=redis
-      - SPRING_REDIS_PORT=6379
-      # Elasticsearch 설정
-      - ELASTICSEARCH_HOST=elasticsearch
-      - ELASTICSEARCH_PORT=9200
-      # DB 설정 (로컬)
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/taptoon
-      - SPRING_DATASOURCE_USERNAME=taptoon
-      - SPRING_DATASOURCE_PASSWORD=taptoon
-    depends_on:
-      - redis
-      - elasticsearch
-      - mysql
-    networks:
-      - app-network
-
-  mysql:
-    image: mysql:8.0
-    environment:
-      - MYSQL_DATABASE=taptoon
-      - MYSQL_ROOT_PASSWORD=taptoon
-      - MYSQL_USER=taptoon
-      - MYSQL_PASSWORD=taptoon
-    ports:
-      - "3307:3306"
-    networks:
-      - app-network
-
-  redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
-    networks:
-      - app-network
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-    networks:
-      - app-network
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.17.10
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    networks:
-      - app-network
+      - SPRING_PROFILES_ACTIVE=deploy
+      - SPRING_CONFIG_LOCATION=file:/app/config/application-deploy.yaml
+      - SPRING_DATA_REDIS_HOST=${REDIS_HOST}
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_SSL_ENABLED=false
+      - REDISSON_ADDRESS=redis://${REDIS_HOST}:6379
+      - SPRING_LOGGING_LEVEL_ORG_REDISSON=DEBUG
+    deploy:
+      resources:
+        limits:
+          memory: 2G
 
 networks:
-  app-network:
-    driver: bridge
+  taptoon-network:
+    name: taptoon-network
+    external: true
