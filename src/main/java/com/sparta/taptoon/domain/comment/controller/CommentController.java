@@ -26,30 +26,30 @@ public class CommentController {
     private final CommentService commentService;
 
     @Operation(summary = "댓글 생성")
-    @PostMapping("/matching-post/{matchingPostId}")
+    @PostMapping
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
             @AuthenticationPrincipal MemberDetail memberDetail,
-            @PathVariable Long matchingPostId,
+            @RequestParam Long matchingPostId,
             @Valid @RequestBody CommentRequest commentRequest) {
         CommentResponse comment = commentService.makeComment(commentRequest, memberDetail.getMember(), matchingPostId);
         return ApiResponse.created(comment);
     }
 
     @Operation(summary = "답글 생성")
-    @PostMapping("/reply/{commentId}")
+    @PostMapping("/{parentId}")
     public ResponseEntity<ApiResponse<CommentResponse>> createReply(
             @AuthenticationPrincipal MemberDetail memberDetail,
-            @PathVariable Long commentId,
+            @PathVariable Long parentId,
             @Valid @RequestBody CommentRequest commentRequest) {
-        CommentResponse reply = commentService.makeReply(commentRequest, memberDetail.getMember(),commentId);
+        CommentResponse reply = commentService.makeReply(commentRequest, memberDetail.getMember(),parentId);
         return ApiResponse.created(reply);
     }
 
-    @Operation(summary = "댓글 수정")
-    @PutMapping("/matching-post/{matchingPostId}/comment/{commentId}")
+    @Operation(summary = "댓글과 답글 수정")
+    @PutMapping("/{commentId}")
     public ResponseEntity<ApiResponse<Void>> updateComment(
             @AuthenticationPrincipal MemberDetail memberDetail,
-            @PathVariable Long matchingPostId,
+            @RequestParam Long matchingPostId,
             @PathVariable Long commentId,
             @Valid @RequestBody CommentRequest commentRequest) {
         commentService.editComment(commentRequest,memberDetail.getMember(), matchingPostId, commentId);
@@ -57,22 +57,22 @@ public class CommentController {
     }
 
     @Operation(summary = "특정 포스트의 모든 댓글 조회 (답글 제외)")
-    @GetMapping("/matching-post/{matchingPostId}")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<CommentResponse>>> getAllCommentsFromMatchingPost(
-            @PathVariable Long matchingPostId) {
+            @RequestParam Long matchingPostId) {
         List<CommentResponse> commentsFromMatchingPost = commentService.findAllCommentsFromMatchingPost(matchingPostId);
         return ApiResponse.success(commentsFromMatchingPost);
     }
 
     @Operation(summary = "특정 댓글과 답글 조회")
-    @GetMapping("/reply/{commentId}")
+    @GetMapping("/replies/{parentId}")
     public ResponseEntity<ApiResponse<CommentResponse>> getAllRepliesWithParentComment(
-            @PathVariable Long commentId) {
-        CommentResponse repliesWithParentComment = commentService.findAllRepliesWithParentComment(commentId);
+            @PathVariable Long parentId) {
+        CommentResponse repliesWithParentComment = commentService.findAllRepliesWithParentComment(parentId);
         return ApiResponse.success(repliesWithParentComment);
     }
 
-    @Operation(summary = "댓글 삭제")
+    @Operation(summary = "댓글과 답글 삭제")
     @DeleteMapping("/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(
             @AuthenticationPrincipal MemberDetail memberDetail,
