@@ -170,6 +170,9 @@ jobs:
             PROJECT_ROOT="/home/ubuntu/taptoon"
             CONFIG_DIR="$PROJECT_ROOT/config"
             
+            # 환경 변수로 내보내기 (docker-compose에서 사용하기 위함)
+            export CONFIG_DIR
+            
             # 설정 디렉토리 확인
             mkdir -p "$CONFIG_DIR"
             
