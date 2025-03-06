@@ -209,47 +209,36 @@ jobs:
             echo "=== Deployment to ${{ needs.determine_target.outputs.target_env }} environment completed ==="
 
   health_check:
-    needs: [determine_target, deploy_to_target]
+    needs: [ determine_target, deploy_to_target ]
     runs-on: ubuntu-latest
     steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
-
-      - name: Set target IP
-        id: set-ip
+      - name: Set target host
         run: |
           if [ "${{ needs.determine_target.outputs.target_env }}" == "blue" ]; then
-            echo "TARGET_IP=${{ secrets.EC2_HOST_1 }}" >> $GITHUB_ENV
+            echo "TARGET_HOST=${{ secrets.EC2_HOST_1 }}" >> $GITHUB_ENV
           else
-            echo "TARGET_IP=${{ secrets.EC2_HOST_2 }}" >> $GITHUB_ENV
+            echo "TARGET_HOST=${{ secrets.EC2_HOST_2 }}" >> $GITHUB_ENV
           fi
-          echo "Health check will run against: ${{ env.TARGET_IP }}"
 
-      - name: Wait for application to be ready
-        id: health-check
-        run: |          
-          HEALTH_ENDPOINT="http://${TARGET_IP}:8080/health"
-          MAX_RETRIES=30
-          COUNTER=0
-          
-          echo "Checking health of ${{ needs.determine_target.outputs.target_env }} environment at ${HEALTH_ENDPOINT}"
-          
-          until $(curl --output /dev/null --silent --head --fail ${HEALTH_ENDPOINT}); do
-            if [ ${COUNTER} -eq ${MAX_RETRIES} ]; then
-              echo "Health check failed after ${MAX_RETRIES} attempts"
+      - name: SSH health check
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.TARGET_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          use_insecure_cipher: true
+          script: |
+            # 로컬에서 헬스체크
+            HEALTH_RESPONSE=$(curl -s http://localhost:8080/health)
+            echo "Health response: $HEALTH_RESPONSE"
+
+            if echo "$HEALTH_RESPONSE" | grep -q "UP"; then
+              echo "Application is healthy!"
+              exit 0
+            else
+              echo "Application is not healthy!"
               exit 1
             fi
-          
-            echo "Health check attempt ${COUNTER}/${MAX_RETRIES}"
-            COUNTER=$((COUNTER+1))
-            sleep 10
-          done
-          
-          echo "Application is healthy!"
 
   switch_traffic:
     needs: [ determine_target, health_check ]
