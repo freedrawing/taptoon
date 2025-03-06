@@ -3,7 +3,7 @@ version: '3.8'
 services:
   taptoon-app:
     image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
-    container_name: taptoon-app
+    container_name: taptoon-app-${DEPLOYMENT_ENV}
     restart: always
     ports:
       - "8080:8080"

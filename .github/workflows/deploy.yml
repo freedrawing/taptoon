@@ -228,7 +228,13 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           use_insecure_cipher: true
           script: |
-            # 로컬에서 헬스체크
+            echo "Checking Docker container status..."
+            docker ps
+
+            echo "Container logs:"
+            docker logs taptoon-app | tail -n 50
+
+            echo "Attempting health check..."
             HEALTH_RESPONSE=$(curl -s http://localhost:8080/health)
             echo "Health response: $HEALTH_RESPONSE"
 
