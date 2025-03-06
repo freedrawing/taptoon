@@ -147,10 +147,17 @@ jobs:
             export IMAGE_TAG="${{ needs.build_and_push.outputs.image-tag }}"
             export AWS_REGION="ap-northeast-2"
             export REDIS_HOST=${{secrets.REDIS_HOST}}
-            # 현재 인스턴스가 속한 Auto Scaling Group을 확인하여 환경(blue/green) 자동 감지
-            INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-            ASG_NAME=$(aws ec2 describe-tags --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=aws:autoscaling:groupName" --query "Tags[0].Value" --output text)
             
+            # 명시적으로 DEPLOYMENT_ENV 설정
+            export DEPLOYMENT_ENV="${{ needs.determine_target.outputs.target_env }}"
+            echo "Setting DEPLOYMENT_ENV to $DEPLOYMENT_ENV"
+            
+            # 현재 인스턴스가 속한 Auto Scaling Group을 확인하여 환경(blue/green) 자동 감지
+            if command -v curl &> /dev/null; then
+            INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id || echo "")
+            if [ ! -z "$INSTANCE_ID" ]; then
+            ASG_NAME=$(aws ec2 describe-tags --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=aws:autoscaling:groupName" --query "Tags[0].Value" --output text || echo "")
+        
             if [[ $ASG_NAME == *"blue"* ]]; then
               export DEPLOYMENT_ENV="blue"
             elif [[ $ASG_NAME == *"green"* ]]; then
