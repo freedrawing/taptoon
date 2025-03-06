@@ -113,6 +113,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Debug target environment
+        run: |
+          echo "Target environment: ${{ needs.determine_target.outputs.target_env }}"
+          echo "Blue host: ${{ needs.determine_target.outputs.blue_host }}"
+          echo "Green host: ${{ needs.determine_target.outputs.green_host }}"
+          echo "Host to connect: ${{ needs.determine_target.outputs.target_env == 'blue' && needs.determine_target.outputs.blue_host || needs.determine_target.outputs.green_host }}"
+
       - name: Deploy to Target Environment (${{ needs.determine_target.outputs.target_env }})
         uses: appleboy/ssh-action@master
         with:
