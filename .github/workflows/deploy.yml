@@ -219,10 +219,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
+      - name: Set target IP
+        id: set-ip
+        run: |
+          if [ "${{ needs.determine_target.outputs.target_env }}" == "blue" ]; then
+            echo "TARGET_IP=${{ secrets.EC2_HOST_1 }}" >> $GITHUB_ENV
+          else
+            echo "TARGET_IP=${{ secrets.EC2_HOST_2 }}" >> $GITHUB_ENV
+          fi
+          echo "Health check will run against: ${{ env.TARGET_IP }}"
+
       - name: Wait for application to be ready
         id: health-check
-        run: |
-          TARGET_IP=${{ needs.determine_target.outputs.target_env == 'blue' && needs.determine_target.outputs.blue_host || needs.determine_target.outputs.green_host }}
+        run: |          
           HEALTH_ENDPOINT="http://${TARGET_IP}:8080/health"
           MAX_RETRIES=30
           COUNTER=0
