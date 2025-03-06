@@ -247,7 +247,7 @@ jobs:
             HEALTH_RESPONSE=$(curl -s http://localhost:8080/health)
             echo "Health response: $HEALTH_RESPONSE"
             
-            f echo "$HEALTH_RESPONSE" | grep -q "UP"; then
+            if echo "$HEALTH_RESPONSE" | grep -q "UP"; then
               echo "애플리케이션이 정상 작동 중입니다!"
               exit 0
             else
