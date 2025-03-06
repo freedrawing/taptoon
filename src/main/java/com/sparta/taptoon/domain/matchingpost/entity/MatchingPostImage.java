@@ -47,4 +47,12 @@ public class MatchingPostImage extends BaseEntity {
         status = Status.REGISTERED;
         updateCreatedAtToNow();
     }
+
+    public void changeStatusForDelete() {
+        this.status = Status.DELETING;
+    }
+
+    public void changeStatusForRollback() {
+        this.status = Status.REGISTERED;
+    }
 }
