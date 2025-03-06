@@ -78,7 +78,7 @@ jobs:
           GREEN_TG_ARN="${{ secrets.GREEN_TARGET_GROUP_ARN }}"
           
           # 현재 리스너 규칙 구성 가져오기
-          LISTENER_CONFIG=$(aws elbv2 describe-listener \
+          LISTENER_CONFIG=$(aws elbv2 describe-listeners \
             --listener-arn $LISTENER_ARN \
             --query "Listeners[0].DefaultActions[0].ForwardConfig.TargetGroups" \
             --output json)
