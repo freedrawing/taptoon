@@ -147,26 +147,24 @@ jobs:
             export IMAGE_TAG="${{ needs.build_and_push.outputs.image-tag }}"
             export AWS_REGION="ap-northeast-2"
             export REDIS_HOST=${{secrets.REDIS_HOST}}
+            export DEPLOYMENT_ENV="${{ needs.determine_target.outputs.target_env }}"            
             
-            # 명시적으로 DEPLOYMENT_ENV 설정
-            export DEPLOYMENT_ENV="${{ needs.determine_target.outputs.target_env }}"
-            echo "Setting DEPLOYMENT_ENV to $DEPLOYMENT_ENV"
+            # Auto Scaling Group에서 환경 감지
+            INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+            echo "Instance ID: $INSTANCE_ID"
             
-            # 현재 인스턴스가 속한 Auto Scaling Group을 확인하여 환경(blue/green) 자동 감지
-            if command -v curl &> /dev/null; then
-            INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id || echo "")
-            if [ ! -z "$INSTANCE_ID" ]; then
-            ASG_NAME=$(aws ec2 describe-tags --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=aws:autoscaling:groupName" --query "Tags[0].Value" --output text || echo "")
-        
-            if [[ $ASG_NAME == *"blue"* ]]; then
+            # ASG 태그 확인
+            ASG_NAME=$(aws ec2 describe-tags --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=aws:autoscaling:groupName" --query "Tags[0].Value" --output text)
+            echo "ASG Name: $ASG_NAME"
+            
+            # 환경 판단
+            if echo "$ASG_NAME" | grep -q "blue"; then
               export DEPLOYMENT_ENV="blue"
-            elif [[ $ASG_NAME == *"green"* ]]; then
+            elif echo "$ASG_NAME" | grep -q "green"; then
               export DEPLOYMENT_ENV="green"
-            else
-              export DEPLOYMENT_ENV="${{ needs.determine_target.outputs.target_env }}"
             fi
             
-            echo "Detected deployment environment: $DEPLOYMENT_ENV"
+            echo "Deployment Environment: $DEPLOYMENT_ENV"
             
             # 디렉토리 변수 설정
             PROJECT_ROOT="/home/ubuntu/taptoon"
