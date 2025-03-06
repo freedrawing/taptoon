@@ -8,7 +8,6 @@ import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -23,11 +22,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
-    private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String CHAT_PATH_PREFIX = "/ws/chat/";
     private static final String NOTIFICATION_PATH_PREFIX = "/notifications/";
-    public final MongoTemplate mongoTemplate;
 
     private final JwtUtil jwtUtil;
     private final ChatRoomMemberService chatRoomMemberService;
