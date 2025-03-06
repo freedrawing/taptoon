@@ -183,6 +183,13 @@ public class ChatRoomService {
 
     @Transactional
     public void updateUnreadMessages(ChatRoom chatRoom, Long memberId) {
+
+        if (!chatRoomRepository.existsById(chatRoom.getId())) {
+            throw new NotFoundException(ErrorCode.CHAT_ROOM_NOT_FOUND);
+        }
+        if (!memberRepository.existsById(memberId)) {
+            throw new NotFoundException(ErrorCode.MEMBER_NOT_FOUND);
+        }
         String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoom.getId(), memberId);
         String lastReadMessageIdStr = redisTemplate.opsForValue().get(key);
         ObjectId lastReadMessageId = lastReadMessageIdStr != null ? new ObjectId(lastReadMessageIdStr) : null;
