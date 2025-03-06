@@ -42,7 +42,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: taptoon
           IMAGE_TAG: ${{ github.sha }}
-        run: |# Docker 빌드 캐시 사용
+        run: |
           docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
                       --cache-from $ECR_REGISTRY/$ECR_REPOSITORY:latest \
                       -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
@@ -50,34 +50,75 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-  deploy:
+  determine_target:
     needs: build_and_push
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        instance_info:
-          - { host_var: EC2_HOST_1, name: "Instance 1" }
-          - { host_var: EC2_HOST_2, name: "Instance 2" }
-      fail-fast: false
+    outputs:
+      current_env: ${{ steps.check-production.outputs.current_env }}
+      target_env: ${{ steps.check-production.outputs.target_env }}
+      blue_host: ${{ steps.check-production.outputs.blue_host }}
+      green_host: ${{ steps.check-production.outputs.green_host }}
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Check current production environment
+        id: check-production
+        run: |
+          # AWS CLI를 사용하여 로드 밸런서의 대상 그룹 가중치 확인
+          LB_ARN="${{ secrets.LB_ARN }}"
+          
+          # 현재 트래픽을 받고 있는 환경(blue/green) 확인 - 리스너 규칙에서 가중치 확인
+          LISTENER_ARN="${{ secrets.LB_LISTENER_ARN }}"
+          BLUE_TG_ARN="${{ secrets.BLUE_TARGET_GROUP_ARN }}"
+          GREEN_TG_ARN="${{ secrets.GREEN_TARGET_GROUP_ARN }}"
+          
+          # 현재 리스너 규칙 구성 가져오기
+          LISTENER_CONFIG=$(aws elbv2 describe-listener \
+            --listener-arn $LISTENER_ARN \
+            --query "Listeners[0].DefaultActions[0].ForwardConfig.TargetGroups" \
+            --output json)
+          
+          # 타겟 그룹에서 가중치 추출
+          BLUE_WEIGHT=$(echo $LISTENER_CONFIG | jq -r "map(select(.TargetGroupArn == \"$BLUE_TG_ARN\")) | .[0].Weight")
+          GREEN_WEIGHT=$(echo $LISTENER_CONFIG | jq -r "map(select(.TargetGroupArn == \"$GREEN_TG_ARN\")) | .[0].Weight")
+          
+          echo "Current weights - Blue: $BLUE_WEIGHT, Green: $GREEN_WEIGHT"
+          
+          # 가중치에 따라 현재 환경과 대상 환경 결정
+          if [ "$BLUE_WEIGHT" == "100" ] || [ "$BLUE_WEIGHT" -gt "$GREEN_WEIGHT" ]; then
+            echo "current_env=blue" >> $GITHUB_OUTPUT
+            echo "target_env=green" >> $GITHUB_OUTPUT
+            echo "blue_host=${{ secrets.EC2_HOST_1 }}" >> $GITHUB_OUTPUT
+            echo "green_host=${{ secrets.EC2_HOST_2 }}" >> $GITHUB_OUTPUT
+          else
+            echo "current_env=green" >> $GITHUB_OUTPUT
+            echo "target_env=blue" >> $GITHUB_OUTPUT
+            echo "blue_host=${{ secrets.EC2_HOST_1 }}" >> $GITHUB_OUTPUT
+            echo "green_host=${{ secrets.EC2_HOST_2 }}" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "Current environment is ${{ steps.check-production.outputs.current_env }}"
+          echo "Target environment for deployment is ${{ steps.check-production.outputs.target_env }}"
+  
+  
+
+  deploy_to_target:
+    needs: [ build_and_push, determine_target ]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Copy Docker Compose file to EC2
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets[matrix.instance_info.host_var] }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml"
-          target: "/home/ubuntu/taptoon"
-
-      - name: Deploy to ${{ matrix.instance_info.name }}
+      - name: Deploy to Target Environment (${{ needs.determine_target.outputs.target_env }})
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets[matrix.instance_info.host_var] }}
+          host: ${{ needs.determine_target.outputs.target_env == 'blue' && needs.determine_target.outputs.blue_host || needs.determine_target.outputs.green_host }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          # SSH 호스트 키 확인 비활성화
           use_insecure_cipher: true
           script: |
             set -e  # 스크립트 오류 발생 시 즉시 중단
@@ -88,6 +129,19 @@ jobs:
             export IMAGE_TAG="${{ needs.build_and_push.outputs.image-tag }}"
             export AWS_REGION="ap-northeast-2"
             export REDIS_HOST=${{secrets.REDIS_HOST}}
+            # 현재 인스턴스가 속한 Auto Scaling Group을 확인하여 환경(blue/green) 자동 감지
+            INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+            ASG_NAME=$(aws ec2 describe-tags --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=aws:autoscaling:groupName" --query "Tags[0].Value" --output text)
+            
+            if [[ $ASG_NAME == *"blue"* ]]; then
+              export DEPLOYMENT_ENV="blue"
+            elif [[ $ASG_NAME == *"green"* ]]; then
+              export DEPLOYMENT_ENV="green"
+            else
+              export DEPLOYMENT_ENV="${{ needs.determine_target.outputs.target_env }}"
+            fi
+            
+            echo "Detected deployment environment: $DEPLOYMENT_ENV"
             
             # 디렉토리 변수 설정
             PROJECT_ROOT="/home/ubuntu/taptoon"
@@ -100,7 +154,7 @@ jobs:
             echo "${{ secrets.APPLICATION_DEPLOY_YAML }}" > "$CONFIG_DIR/application-deploy.yaml"
             chmod 600 "$CONFIG_DIR/application-deploy.yaml"
             
-             # AWS 자격 증명 및 ECR 로그인
+            # AWS 자격 증명 및 ECR 로그인
             aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
             aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
             aws configure set region $AWS_REGION
@@ -112,11 +166,11 @@ jobs:
             
             # Docker 네트워크 생성 (없는 경우)
             docker network inspect taptoon-network &>/dev/null || docker network create taptoon-network
-                        
+            
             # Docker Compose 업데이트
             echo "Setting up Docker Compose..."
             cd "$PROJECT_ROOT"
-                      
+            
             # 기존 컨테이너 중지 및 제거
             echo "Stopping and removing existing containers..."
             docker-compose down || true
@@ -128,16 +182,82 @@ jobs:
             docker-compose up -d
             
             # 컨테이너 상태 확인
-            docker-compose ps            
+            docker-compose ps
             
             # 사용하지 않는 이미지 정리
             echo "Cleaning up unused Docker images..."
             docker image prune -f
             
-            echo "=== Deployment on ${{ matrix.instance_info.name }} completed ==="
+            echo "=== Deployment to ${{ needs.determine_target.outputs.target_env }} environment completed ==="
+
+  health_check:
+    needs: [determine_target, deploy_to_target]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Wait for application to be ready
+        id: health-check
+        run: |
+          TARGET_IP=${{ needs.determine_target.outputs.target_env == 'blue' && needs.determine_target.outputs.blue_host || needs.determine_target.outputs.green_host }}
+          HEALTH_ENDPOINT="http://${TARGET_IP}:8080/health"
+          MAX_RETRIES=30
+          COUNTER=0
+          
+          echo "Checking health of ${{ needs.determine_target.outputs.target_env }} environment at ${HEALTH_ENDPOINT}"
+          
+          until $(curl --output /dev/null --silent --head --fail ${HEALTH_ENDPOINT}); do
+            if [ ${COUNTER} -eq ${MAX_RETRIES} ]; then
+              echo "Health check failed after ${MAX_RETRIES} attempts"
+              exit 1
+            fi
+          
+            echo "Health check attempt ${COUNTER}/${MAX_RETRIES}"
+            COUNTER=$((COUNTER+1))
+            sleep 10
+          done
+          
+          echo "Application is healthy!"
+
+  switch_traffic:
+    needs: [ determine_target, health_check ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Switch traffic to target environment
+        run: |
+          LB_NAME="taptoon-lb"
+          TARGET_ENV="${{ needs.determine_target.outputs.target_env }}"
+          CURRENT_ENV="${{ needs.determine_target.outputs.current_env }}"
+          
+          echo "Switching traffic from ${CURRENT_ENV} to ${TARGET_ENV} environment"
+          
+          # 트래픽을 새 환경으로 전환 (Blue/Green 스왑)
+          if [ "${TARGET_ENV}" == "blue" ]; then
+            # Blue로 트래픽 100% 전환
+            aws elbv2 modify-listener --listener-arn ${{ secrets.LB_LISTENER_ARN }} \
+              --default-actions Type=forward,ForwardConfig='{TargetGroups=[{TargetGroupArn=${{ secrets.BLUE_TARGET_GROUP_ARN }},Weight=100},{TargetGroupArn=${{ secrets.GREEN_TARGET_GROUP_ARN }},Weight=0}]}'
+          else
+            # Green으로 트래픽 100% 전환
+            aws elbv2 modify-listener --listener-arn ${{ secrets.LB_LISTENER_ARN }} \
+              --default-actions Type=forward,ForwardConfig='{TargetGroups=[{TargetGroupArn=${{ secrets.BLUE_TARGET_GROUP_ARN }},Weight=0},{TargetGroupArn=${{ secrets.GREEN_TARGET_GROUP_ARN }},Weight=100}]}'
+          fi
+          
+          echo "Traffic successfully switched to ${TARGET_ENV} environment"
 
   cleanup_ecr:
-    needs: deploy
+    needs: [deploy_to_target, switch_traffic]
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS credentials
