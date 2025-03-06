@@ -45,6 +45,15 @@ public class ChatMessageController {
         return ApiResponse.success(messages);
     }
 
+    @Operation(summary = "읽지 않은 메시지 수 조회")
+    @GetMapping("/{chatRoomId}/unread")
+    public ResponseEntity<ApiResponse<Integer>> getUnreadCount(
+            @AuthenticationPrincipal MemberDetail memberDetail,
+            @PathVariable String chatRoomId) {
+        int unreadCount = chatMessageService.calculateUnreadCount(chatRoomId, memberDetail.getId());
+        return ApiResponse.success(unreadCount);
+    }
+
 //    @Operation(summary = "채팅 이미지 업로드를 위한 pre-signed URL 생성")
 //    @PostMapping("/{chatRoomId}/image-upload")
 //    public ResponseEntity<ApiResponse<String>> getImagePresignedUrl(
