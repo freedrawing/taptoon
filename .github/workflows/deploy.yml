@@ -96,7 +96,7 @@ jobs:
               docker-compose down || true
               docker-compose pull
               docker-compose up -d
-            ENDSSH
+          ENDSSH
           done
       - name: Monitor Instance Refresh
         run: |
@@ -115,7 +115,7 @@ jobs:
             echo "Instance Refresh failed with status: $STATUS"
             exit 1
           fi
-          echo "Rolling update completed successfully!"
+            echo "Rolling update completed successfully!"
 
   health_check:
     needs: deploy_with_rolling
