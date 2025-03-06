@@ -15,6 +15,7 @@ import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -163,12 +164,53 @@ public class ChatRoomService {
     public int calculateUnreadCount(ChatRoom chatRoom, Long memberId) {
         String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoom.getId(), memberId);
         String lastReadMessageIdStr = redisTemplate.opsForValue().get(key);
-        String lastReadMessageId = lastReadMessageIdStr != null ? lastReadMessageIdStr : null;
-        int unreadCount = lastReadMessageId == null
-                ? chatMessageRepository.countByChatRoomIdAndIdGreaterThan(chatRoom.getId(), "0") // 초기값으로 "0" 사용
-                : chatMessageRepository.countByChatRoomIdAndIdGreaterThan(chatRoom.getId(), lastReadMessageId);
-        log.info("✅ calculateUnreadCount - chatRoomId: {}, memberId: {}, lastReadMessageId: {}, unreadCount: {}",
-                chatRoom.getId(), memberId, lastReadMessageId, unreadCount);
+        ObjectId lastReadMessageId = lastReadMessageIdStr != null ? new ObjectId(lastReadMessageIdStr) : null;
+
+        int unreadCount;
+        if (lastReadMessageId == null) {
+            unreadCount = chatMessageRepository.countByChatRoomId(chatRoom.getId());
+            log.info("No last read message for memberId: {}, counting all messages: {}", memberId, unreadCount);
+        } else {
+            // senderId 조건 제거하고 전체 unread 계산
+            unreadCount = chatMessageRepository.countUnreadMessagesExcludingSender(
+                    chatRoom.getId(), lastReadMessageId, memberId
+            );
+            log.info("Counting unread - chatRoomId: {}, memberId: {}, lastReadMessageId: {}, unreadCount: {}",
+                    chatRoom.getId(), memberId, lastReadMessageId, unreadCount);
+        }
         return unreadCount;
+    }
+
+    @Transactional
+    public void updateUnreadMessages(ChatRoom chatRoom, Long memberId) {
+        String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoom.getId(), memberId);
+        String lastReadMessageIdStr = redisTemplate.opsForValue().get(key);
+        ObjectId lastReadMessageId = lastReadMessageIdStr != null ? new ObjectId(lastReadMessageIdStr) : null;
+
+        List<ChatMessage> unreadMessages = lastReadMessageId == null
+                ? chatMessageRepository.findByChatRoomIdOrderByCreatedAtAsc(chatRoom.getId())
+                : chatMessageRepository.findByChatRoomIdAndIdGreaterThan(chatRoom.getId(), lastReadMessageId);
+
+        if (!unreadMessages.isEmpty()) {
+            unreadMessages.forEach(message -> {
+                if (message.getUnreadCount() > 0 && !message.getSenderId().equals(memberId)) {
+                    message.decrementUnreadCount();
+                }
+            });
+            chatMessageRepository.saveAll(unreadMessages);
+
+            String latestMessageId = unreadMessages.get(unreadMessages.size() - 1).getId();
+            redisTemplate.opsForValue().set(key, latestMessageId);
+            log.info("✅ 읽음 처리 완료 - chatRoomId: {}, memberId: {}, latestMessageId: {}",
+                    chatRoom.getId(), memberId, latestMessageId);
+        } else {
+            log.info("No unread messages to update - chatRoomId: {}, memberId: {}, lastReadMessageId: {}",
+                    chatRoom.getId(), memberId, lastReadMessageId);
+        }
+    }
+
+    // 채팅방 멤버인지 검증
+    public boolean isMemberOfChatRoom(String chatRoomId, Long memberId) {
+        return chatRoomRepository.existsByIdAndMemberId(chatRoomId, memberId);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,13 +33,23 @@ public class RedisSubscriptionManager {
      */
     @PostConstruct
     public void resubscribeExistingChatRooms(){
-        List<String> chatRoomIds = chatRoomRepository.findChatRoomIds();
-
-        for (String chatRoomId : chatRoomIds){
+        List<ChatRoomRepository.IdProjection> projections = chatRoomRepository.findChatRoomIds();
+        List<String> chatRoomIds = projections.stream()
+                .map(ChatRoomRepository.IdProjection::getId)
+                .collect(Collectors.toList());
+        log.info("재구독할 채팅방 목록: {}", chatRoomIds);
+        if (chatRoomIds.isEmpty()) {
+            log.warn("⚠️ 재구독할 채팅방이 없습니다. ChatRoomRepository 확인 필요.");
+        }
+        for (String chatRoomId : chatRoomIds) {
             subscribeChatRoom(chatRoomId);
         }
-        log.info("✅ 서버 재시작후 기존 {} 개의 채팅방을 재구독 성공!!", chatRoomIds.size());
-
+        // 구독 후 컨테이너 시작
+        if (!redisMessageListenerContainer.isRunning()) {
+            redisMessageListenerContainer.start();
+            log.info("✅ RedisMessageListenerContainer 시작 완료! Active: {}", redisMessageListenerContainer.isRunning());
+        }
+        log.info("✅ 서버 재시작 후 기존 {} 개의 채팅방 재구독 성공", chatRoomIds.size());
     }
 
     /**

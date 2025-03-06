@@ -29,9 +29,9 @@ public class RedisSubscriber {
         log.info("📥 Redis 메시지 수신: {}", message);  // 메시지 수신 확인 로그
 
         try {
-            webSocketHandler.broadcastMessage(message);
             Map<String, Object> data = objectMapper.readValue(message, Map.class);
             String chatRoomId = data.get("chat_room_id") != null ? data.get("chat_room_id").toString() : null;
+            webSocketHandler.broadcastMessage(chatRoomId, message);
             Long senderId = data.get("sender_id") != null ? Long.valueOf(data.get("sender_id").toString()) : null;
             String content = (String) data.get("message");
 

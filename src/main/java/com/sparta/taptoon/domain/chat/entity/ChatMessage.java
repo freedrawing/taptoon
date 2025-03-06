@@ -40,9 +40,6 @@ public class ChatMessage {
 
     @Builder
     public ChatMessage(String chatRoomId, Long senderId, String message, int unreadCount) {
-        if (unreadCount < 0) {
-            throw new IllegalArgumentException("읽지 않은 수는 음수가 될 수 없습니다.");
-        }
         this.chatRoomId = chatRoomId;
         this.senderId = senderId;
         this.message = message;

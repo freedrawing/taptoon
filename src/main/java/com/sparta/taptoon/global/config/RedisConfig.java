@@ -48,7 +48,7 @@ public class RedisConfig {
             RedisConnectionFactory connectionFactory) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        log.info("✅ MessageListenerContainer 생성 완료!");
+        log.info("✅ MessageListenerContainer 생성 완료! Active: {}", container.isRunning());
         return container;
     }
 
@@ -60,7 +60,9 @@ public class RedisConfig {
      */
     @Bean
     public MessageListenerAdapter messageListenerAdapter(RedisSubscriber redisSubscriber) {
-        return new MessageListenerAdapter(redisSubscriber, "onMessage"); // 한 번만 생성
+        org.springframework.data.redis.listener.adapter.MessageListenerAdapter adapter = new org.springframework.data.redis.listener.adapter.MessageListenerAdapter(redisSubscriber, "onMessage");
+        log.info("✅ MessageListenerAdapter 생성 완료! Delegate: {}", redisSubscriber.getClass().getName());
+        return adapter;
     }
 
     @Bean

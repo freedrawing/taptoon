@@ -10,7 +10,6 @@ import com.sparta.taptoon.domain.chat.entity.ChatMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
 import com.sparta.taptoon.domain.chat.repository.ChatImageMessageRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatMessageRepository;
-import com.sparta.taptoon.domain.chat.repository.ChatRoomMemberRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
@@ -39,13 +38,13 @@ public class ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
-    private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final MemberRepository memberRepository;
     private final RedisPublisher redisPublisher;
     private final ObjectMapper objectMapper;
     private final StringRedisTemplate redisTemplate;
     private final SlackAlarmService slackAlarmService;
     private final ChatImageMessageRepository chatImageMessageRepository;
+    private final ChatRoomService chatRoomService;
     private final NotificationService notificationService;
 
     /**
@@ -56,7 +55,6 @@ public class ChatMessageService {
      * @param request 메시지 내용이 담긴 요청
      * @return 저장된 메시지의 응답 DTO
      */
-    @Transactional
     public ChatMessageResponse sendMessage(Long senderId, String chatRoomId, SendChatMessageRequest request) {
         ChatRoom chatRoom = findChatRoom(chatRoomId);
         Member sender = findMember(senderId);
@@ -66,10 +64,10 @@ public class ChatMessageService {
         ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
 
         // 내가 보낸 메시지 읽음 처리
-//        String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);
-//        redisTemplate.opsForValue().set(key, String.valueOf(chatMessage.getId()));
-//        log.info("✅ 메시지 전송 및 읽음 처리 완료 - chatRoomId: {}, senderId: {}, messageId: {}",
-//                chatRoomId, senderId, chatMessage.getId());
+        String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);
+        redisTemplate.opsForValue().set(key, chatMessage.getId());
+        log.info("✅ 메시지 전송 및 읽음 처리 완료 - chatRoomId: {}, senderId: {}, messageId: {}",
+                chatRoomId, senderId, chatMessage.getId());
 
         publishMessage(chatRoom.getId(), response, sender, request.message());
         notificationService.notifyNewMessage(chatRoomId, senderId, request.message());
@@ -120,14 +118,11 @@ public class ChatMessageService {
         Member member = findMember(memberId);
         validateChatRoomMembership(chatRoom, member);
 
-        String lastReadMessageId = getLastReadMessageId(chatRoomId, memberId);
-        updateUnreadMessages(chatRoom, memberId,lastReadMessageId);
+        chatRoomService.updateUnreadMessages(chatRoom, memberId); // ChatRoomService로 이동
 
-        // 텍스트와 이미지 메시지 조회
         List<ChatMessage> textMessages = chatMessageRepository.findByChatRoomIdOrderByCreatedAtAsc(chatRoomId);
         List<ChatImageMessage> imageMessages = chatImageMessageRepository.findByChatRoomIdOrderByCreatedAtAsc(chatRoomId);
 
-        // 통합 및 시간순 정렬
         return Stream.concat(
                         textMessages.stream().map(ChatCombinedMessageResponse::from),
                         imageMessages.stream().map(ChatCombinedMessageResponse::from)
@@ -165,7 +160,9 @@ public class ChatMessageService {
                 .message(request.message())
                 .unreadCount(chatRoom.getMemberIds().size() - 1)
                 .build();
-        return chatMessageRepository.save(chatMessage);
+
+        ChatMessage saved = chatMessageRepository.save(chatMessage);
+        return saved;
     }
 
     // Redis로 메시지를 발행하고 Slack으로 알림을 전송
@@ -175,7 +172,7 @@ public class ChatMessageService {
             redisPublisher.publish(chatRoomId, jsonMessage);
             log.info("📤 Redis에 메시지 발행 완료: {}", response);
 
-            String slackMessage = String.format("📢 [채팅방 %d] %s: %s", chatRoomId, sender.getNickname(), message);
+            String slackMessage = String.format("📢 [채팅방 %s] %s: %s", chatRoomId, sender.getNickname(), message);
             slackAlarmService.sendSlackMessage(slackMessage);
         } catch (Exception e) {
             log.error("❌ Redis 메시지 발행 중 오류 발생", e);
@@ -207,21 +204,21 @@ public class ChatMessageService {
         return lastReadMessageIdStr != null ? lastReadMessageIdStr : null;
     }
 
-    // 읽지 않은 메시지의 unreadCount를 감소시키고 Redis에 최신 읽은 메시지 ID를 업데이트
-    private void updateUnreadMessages(ChatRoom chatRoom, Long memberId, String lastReadMessageId) {
-        List<ChatMessage> unreadMessages = lastReadMessageId == null
-                ? chatMessageRepository.findByChatRoomIdOrderByCreatedAtAsc(chatRoom.getId())
-                : chatMessageRepository.findByChatRoomIdAndIdGreaterThan(chatRoom.getId(), lastReadMessageId);
-        if (!unreadMessages.isEmpty()) {
-            unreadMessages.forEach(ChatMessage::decrementUnreadCount);
-            chatMessageRepository.saveAll(unreadMessages);
-
-            String latestMessageId = unreadMessages.get(unreadMessages.size() - 1).getId();
-            String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoom.getId(), memberId);
-            redisTemplate.opsForValue().set(key, latestMessageId);
-            log.info("✅ 읽음 처리 완료 - chatRoomId: {}, memberId: {}, latestMessageId: {}", chatRoom.getId(), memberId, latestMessageId);
-        }
-    }
+//    // 읽지 않은 메시지의 unreadCount를 감소시키고 Redis에 최신 읽은 메시지 ID를 업데이트
+//    private void updateUnreadMessages(ChatRoom chatRoom, Long memberId, String lastReadMessageId) {
+//        List<ChatMessage> unreadMessages = lastReadMessageId == null
+//                ? chatMessageRepository.findByChatRoomIdOrderByCreatedAtAsc(chatRoom.getId())
+//                : chatMessageRepository.findByChatRoomIdAndIdGreaterThan(chatRoom.getId(), lastReadMessageId);
+//        if (!unreadMessages.isEmpty()) {
+//            unreadMessages.forEach(ChatMessage::decrementUnreadCount);
+//            chatMessageRepository.saveAll(unreadMessages);
+//
+//            String latestMessageId = unreadMessages.get(unreadMessages.size() - 1).getId();
+//            String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoom.getId(), memberId);
+//            redisTemplate.opsForValue().set(key, latestMessageId);
+//            log.info("✅ 읽음 처리 완료 - chatRoomId: {}, memberId: {}, latestMessageId: {}", chatRoom.getId(), memberId, latestMessageId);
+//        }
+//    }
 
     // 채팅방의 모든 메시지를 시간순으로 조회하여 응답 DTO 리스트로 변환
     private List<ChatMessageResponse> fetchAllMessages(ChatRoom chatRoom) {

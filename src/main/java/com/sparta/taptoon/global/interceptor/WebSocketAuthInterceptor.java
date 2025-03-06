@@ -1,12 +1,14 @@
 package com.sparta.taptoon.global.interceptor;
 
 import com.sparta.taptoon.domain.chat.service.ChatRoomMemberService;
+import com.sparta.taptoon.domain.chat.service.ChatRoomService;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import com.sparta.taptoon.global.util.JwtUtil;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -25,9 +27,11 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String CHAT_PATH_PREFIX = "/ws/chat/";
     private static final String NOTIFICATION_PATH_PREFIX = "/notifications/";
+    public final MongoTemplate mongoTemplate;
 
     private final JwtUtil jwtUtil;
     private final ChatRoomMemberService chatRoomMemberService;
+    private final ChatRoomService chatRoomService;
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
@@ -50,7 +54,7 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
             if (path.startsWith(CHAT_PATH_PREFIX)) {
                 String chatRoomId = extractChatRoomId(path);
-                if(!isValidChatRoomMember(chatRoomId, senderId)){
+                if(!chatRoomService.isMemberOfChatRoom(chatRoomId, senderId)){
                     log.warn("❌ WebSocket 연결 거부 - 사용자가 채팅방 멤버가 아님 (chatRoomId: {}, senderId: {})", chatRoomId, senderId);
                     return false;
                 }
