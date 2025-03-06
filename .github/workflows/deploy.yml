@@ -120,10 +120,21 @@ jobs:
           echo "Green host: ${{ needs.determine_target.outputs.green_host }}"
           echo "Host to connect: ${{ needs.determine_target.outputs.target_env == 'blue' && needs.determine_target.outputs.blue_host || needs.determine_target.outputs.green_host }}"
 
+      # 호스트 값을 환경 변수로 설정
+      - name: Set host variable
+        id: set-host
+        run: |
+          if [ "${{ needs.determine_target.outputs.target_env }}" == "blue" ]; then
+          echo "TARGET_HOST=${{ secrets.EC2_HOST_1 }}" >> $GITHUB_ENV
+          else
+          echo "TARGET_HOST=${{ secrets.EC2_HOST_2 }}" >> $GITHUB_ENV
+          fi
+          echo "Will connect to $TARGET_HOST"
+
       - name: Deploy to Target Environment (${{ needs.determine_target.outputs.target_env }})
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ needs.determine_target.outputs.target_env == 'blue' && needs.determine_target.outputs.blue_host || needs.determine_target.outputs.green_host }}
+          host: ${{ env.TARGET_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           use_insecure_cipher: true
