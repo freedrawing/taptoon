@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 @Builder
 public record ChatCombinedMessageResponse(
-        Long id,
-        Long chatRoomId,
+        String id,
+        String chatRoomId,
         Long senderId,
         String message, // 텍스트 메시지용, 이미지면 null
         String imageUrl, // 이미지 메시지용, 텍스트면 null
@@ -21,11 +21,11 @@ public record ChatCombinedMessageResponse(
     public static ChatCombinedMessageResponse from(ChatMessage chatMessage) {
         return ChatCombinedMessageResponse.builder()
                 .id(chatMessage.getId())
-                .chatRoomId(chatMessage.getChatRoom().getId())
-                .senderId(chatMessage.getSender().getId())
+                .chatRoomId(chatMessage.getChatRoomId())
+                .senderId(chatMessage.getSenderId())
                 .message(chatMessage.getMessage())
                 .unreadCount(chatMessage.getUnreadCount())
-                .status("SENT") // ChatMessage는 상태 없으므로 기본값
+                .status("SENT")
                 .type("TEXT")
                 .createdAt(chatMessage.getCreatedAt())
                 .build();
@@ -34,8 +34,8 @@ public record ChatCombinedMessageResponse(
     public static ChatCombinedMessageResponse from(ChatImageMessage chatImageMessage) {
         return ChatCombinedMessageResponse.builder()
                 .id(chatImageMessage.getId())
-                .chatRoomId(chatImageMessage.getChatRoom().getId())
-                .senderId(chatImageMessage.getSender().getId())
+                .chatRoomId(chatImageMessage.getChatRoomId())
+                .senderId(chatImageMessage.getSenderId())
                 .imageUrl(chatImageMessage.getImageUrl())
                 .unreadCount(chatImageMessage.getUnreadCount())
                 .status(chatImageMessage.getStatus().toString())

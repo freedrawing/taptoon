@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 
 @Builder
 public record ChatMessageResponse(
-        Long id,
-        Long chatRoomId,
+        String id,
+        String chatRoomId,
         Long senderId,
         String message,
         Integer unreadCount,
@@ -17,8 +17,8 @@ public record ChatMessageResponse(
     public static ChatMessageResponse from(ChatMessage chatMessage) {
         return ChatMessageResponse.builder()
                 .id(chatMessage.getId())
-                .chatRoomId(chatMessage.getChatRoom().getId())
-                .senderId(chatMessage.getSender().getId())
+                .chatRoomId(chatMessage.getChatRoomId())
+                .senderId(chatMessage.getSenderId())
                 .message(chatMessage.getMessage())
                 .unreadCount(chatMessage.getUnreadCount())
                 .createdAt(chatMessage.getCreatedAt())

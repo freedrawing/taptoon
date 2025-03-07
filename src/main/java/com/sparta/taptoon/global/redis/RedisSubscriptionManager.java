@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,20 +26,30 @@ public class RedisSubscriptionManager {
     private final ChatRoomRepository chatRoomRepository; // 서버 재시작시에 재구독할때 필요
 
     // 각 채팅방별 Redis 채널을 관리하는 Map
-    private final Map<Long, ChannelTopic> chatRoomTopics = new ConcurrentHashMap<>();
+    private final Map<String, ChannelTopic> chatRoomTopics = new ConcurrentHashMap<>();
 
     /**
      * 서버 재시작시에 기존 채팅방을 재구독
      */
     @PostConstruct
     public void resubscribeExistingChatRooms(){
-        List<Long> chatRoomIds = chatRoomRepository.findChatRoomIds();
-
-        for (Long chatRoomId : chatRoomIds){
+        List<ChatRoomRepository.IdProjection> projections = chatRoomRepository.findChatRoomIds();
+        List<String> chatRoomIds = projections.stream()
+                .map(ChatRoomRepository.IdProjection::getId)
+                .collect(Collectors.toList());
+        log.info("재구독할 채팅방 목록: {}", chatRoomIds);
+        if (chatRoomIds.isEmpty()) {
+            log.warn("⚠️ 재구독할 채팅방이 없습니다. ChatRoomRepository 확인 필요.");
+        }
+        for (String chatRoomId : chatRoomIds) {
             subscribeChatRoom(chatRoomId);
         }
-        log.info("✅ 서버 재시작후 기존 {} 개의 채팅방을 재구독 성공!!", chatRoomIds.size());
-
+        // 구독 후 컨테이너 시작
+        if (!redisMessageListenerContainer.isRunning()) {
+            redisMessageListenerContainer.start();
+            log.info("✅ RedisMessageListenerContainer 시작 완료! Active: {}", redisMessageListenerContainer.isRunning());
+        }
+        log.info("✅ 서버 재시작 후 기존 {} 개의 채팅방 재구독 성공", chatRoomIds.size());
     }
 
     /**
@@ -46,7 +57,7 @@ public class RedisSubscriptionManager {
      * 
      * ChatRoomService 에서 채팅방 만들때 호출
      */
-    public void subscribeChatRoom(Long chatRoomId) {
+    public void subscribeChatRoom(String chatRoomId) {
         // 채널이름
         // ex) chatroom-1
         validateChatRoomId(chatRoomId);
@@ -76,7 +87,7 @@ public class RedisSubscriptionManager {
     }
 
     // 채팅방 ID 유효성 검사
-    private void validateChatRoomId(Long chatRoomId) {
+    private void validateChatRoomId(String chatRoomId) {
         if (chatRoomId == null) {
             throw new IllegalArgumentException("채팅방 ID는 null일 수 없습니다.");
         }

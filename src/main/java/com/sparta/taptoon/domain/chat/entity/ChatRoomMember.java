@@ -1,33 +1,33 @@
 package com.sparta.taptoon.domain.chat.entity;
 
-import com.sparta.taptoon.domain.member.entity.Member;
-import jakarta.persistence.*;
+import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 @Getter
 @NoArgsConstructor
-@Entity
-@Table(name = "chat_room_member")
+@Document(collection = "chat_room_member")
 public class ChatRoomMember {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false, updatable = false)
-    private Long id;
+    private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chat_room_id", nullable = false)
-    private ChatRoom chatRoom;
+    @Field(name = "chat_room_id")
+    private String chatRoomId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    @Field(name = "member_id")
+    private Long memberId;
 
     @Builder
-    public ChatRoomMember(ChatRoom chatRoom, Member member) {
-        this.chatRoom = chatRoom;
-        this.member = member;
+    public ChatRoomMember(String chatRoomId, Long memberId) {
+        this.chatRoomId = chatRoomId;
+        this.memberId = memberId;
+    }
+
+    public Long getMemberId() {
+        return memberId;
     }
 }
