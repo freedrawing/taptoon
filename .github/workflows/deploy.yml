@@ -108,8 +108,8 @@ jobs:
           chmod 600 /tmp/ec2-ssh-key.pem
 
           # 인스턴스 초기화를 위한 시간 제공
-          echo "Waiting for instances to initialize (3 minutes)..."
-          sleep 180
+          echo "Waiting for instances to initialize (5 minutes)..."
+          sleep 300
 
           INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
             --auto-scaling-group-name "asg-taptoon" \
