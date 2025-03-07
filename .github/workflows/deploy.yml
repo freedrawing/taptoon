@@ -65,112 +65,78 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      - name: Check and Cancel Existing Instance Refresh
+      - name: Monitor Rolling Deployment Progress
         run: |
-          echo "Checking for existing Instance Refresh..."
-          MAX_CANCEL_ATTEMPTS=3
-          for attempt in $(seq 1 $MAX_CANCEL_ATTEMPTS); do
-            STATUS=$(aws autoscaling describe-instance-refreshes \
+          echo "Monitoring individual instance transitions..."
+          START_TIME=$(date +%s)
+          MAX_DURATION=1800  # 30분
+          LAST_INSTANCES=""
+
+          while [ $(($(date +%s) - START_TIME)) -lt $MAX_DURATION ]; do
+            # 현재 인스턴스 상태 확인
+            CURRENT_INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
               --auto-scaling-group-name "asg-taptoon" \
-              --query "InstanceRefreshes[?Status=='InProgress'].Status" \
-              --output text 2>/dev/null || echo "None")
+              --query "AutoScalingGroups[0].Instances[*].[InstanceId,LifecycleState]" \
+              --output json)
 
-            if [ "$STATUS" == "InProgress" ]; then
-              echo "Instance Refresh in progress, attempting to cancel (attempt $attempt/$MAX_CANCEL_ATTEMPTS)..."
-              aws autoscaling cancel-instance-refresh --auto-scaling-group-name "asg-taptoon"
+            # 이전과 다른 경우 변경 사항 출력
+            if [ "$CURRENT_INSTANCES" != "$LAST_INSTANCES" ]; then
+              echo "Instance state change detected at $(date)"
+              echo "$CURRENT_INSTANCES" | jq -r '.[] | "Instance \(.[0]): \(.[1])"'
 
-              for i in {1..20}; do  # 더 길게 기다림
-                sleep 10
-                STATUS=$(aws autoscaling describe-instance-refreshes \
-                  --auto-scaling-group-name "asg-taptoon" \
-                  --query "InstanceRefreshes[0].Status" --output text)
-                if [ "$STATUS" != "InProgress" ]; then
-                  echo "Instance Refresh cancelled or completed: $STATUS"
-                  sleep 10  # 취소 후 추가 대기
-                  break
+              # 새롭게 InService 상태가 된 인스턴스 확인
+              NEW_INSTANCES=$(echo "$CURRENT_INSTANCES" | jq -r '.[] | select(.[1] == "InService") | .[0]')
+
+              # 새로운 인스턴스의 헬스 체크
+              for INSTANCE_ID in $NEW_INSTANCES; do
+                # 이전 목록에 없는 새 인스턴스인지 확인
+                if ! echo "$LAST_INSTANCES" | jq -r '.[] | select(.[1] == "InService") | .[0]' | grep -q "$INSTANCE_ID"; then
+                  IP=$(aws ec2 describe-instances \
+                    --instance-ids $INSTANCE_ID \
+                    --query "Reservations[0].Instances[0].PublicIpAddress" \
+                    --output text)
+
+                  echo "Verifying new instance $INSTANCE_ID ($IP)..."
+                  # 헬스 체크 최대 5회 시도
+                  for i in {1..5}; do
+                    HEALTH=$(ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl -s localhost:80/health || echo 'DOWN'" 2>/dev/null)
+
+                    if echo "$HEALTH" | grep -q "UP"; then
+                      echo "✅ New instance $INSTANCE_ID is healthy and serving traffic"
+                      break
+                    else
+                      echo "Attempt $i: Instance $INSTANCE_ID not yet healthy, waiting..."
+                      if [ $i -eq 5 ]; then
+                        echo "⚠️ Warning: New instance $INSTANCE_ID may not be healthy, but rolling update continues"
+                      fi
+                      sleep 15
+                    fi
+                  done
                 fi
-                echo "Waiting for cancellation ($i/20)..."
               done
 
-              if [ "$STATUS" != "InProgress" ]; then
-                break  # 취소 성공하면 루프 종료
-              elif [ $attempt -eq $MAX_CANCEL_ATTEMPTS ]; then
-                echo "Failed to cancel Instance Refresh after multiple attempts"
-                exit 1
-              fi
-            else
-              echo "No active Instance Refresh found: $STATUS"
-              break
+              LAST_INSTANCES="$CURRENT_INSTANCES"
             fi
-          done
 
-      - name: Start Instance Refresh
-        run: |
-          aws autoscaling start-instance-refresh \
-            --auto-scaling-group-name "asg-taptoon" \
-            --strategy "Rolling" \
-            --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":300,"MaxHealthyPercentage":110}'
-
-      - name: Wait for instances to initialize and verify containers
-        run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/ec2-ssh-key.pem
-          chmod 600 /tmp/ec2-ssh-key.pem
-
-          # 인스턴스 초기화를 위한 시간 제공
-          echo "Waiting for instances to initialize (5 minutes)..."
-          sleep 300
-
-          INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
-            --auto-scaling-group-name "asg-taptoon" \
-            --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId" \
-            --output json)
-
-          for INSTANCE_ID in $(echo "$INSTANCES" | jq -r '.[]'); do
-            IP=$(aws ec2 describe-instances \
-              --instance-ids $INSTANCE_ID \
-              --query "Reservations[0].Instances[0].PublicIpAddress" \
-              --output text)
-
-            echo "Connecting to $INSTANCE_ID ($IP)..."
-
-            # 컨테이너 상태 확인 (재시도 로직)
-            for i in {1..10}; do
-              echo "Attempt $i: Checking container status..."
-              HEALTH=$(ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl -s localhost:8080/health || echo 'DOWN'")
-
-              if echo "$HEALTH" | grep -q "UP"; then
-                echo "Container is healthy on $IP"
-                break
-              else
-                echo "Container is not yet healthy, waiting and retrying..."
-                if [ $i -eq 10 ]; then
-                  echo "Failed to get container healthy after 10 attempts"
-                  ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "cd /home/ubuntu/taptoon && docker-compose logs"
-                  exit 1
-                fi
-                sleep 30
-              fi
-            done
-          done
-          rm -f /tmp/ec2-ssh-key.pem
-
-      - name: Monitor Instance Refresh
-        run: |
-          echo "Monitoring Instance Refresh..."
-          MAX_ATTEMPTS=60  # 최대 10분 (10초 간격으로 60번)
-          for i in $(seq 1 $MAX_ATTEMPTS); do
+            # 인스턴스 리프레시 상태 확인
             STATUS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name "asg-taptoon" \
               --query "InstanceRefreshes[0].Status" --output text)
-            echo "Attempt $i/$MAX_ATTEMPTS: Status is $STATUS"
-            if [ "$STATUS" == "Successful" ] || [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
+            PROGRESS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "asg-taptoon" \
+              --query "InstanceRefreshes[0].PercentageComplete" --output text)
+
+            echo "Overall progress: $PROGRESS% ($STATUS)"
+
+            if [ "$STATUS" == "Successful" ]; then
+              echo "✅ Rolling deployment completed successfully!"
               break
-            fi
-            if [ $i -eq $MAX_ATTEMPTS ]; then
-              echo "Timed out waiting for instance refresh to complete"
+            elif [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
+              echo "❌ Rolling deployment failed: $STATUS"
               exit 1
             fi
-            sleep 10
+
+            sleep 15
           done
 
   health_check:
