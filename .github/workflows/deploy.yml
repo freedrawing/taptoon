@@ -64,14 +64,14 @@ jobs:
       - name: Start Instance Refresh
         run: |
           aws autoscaling start-instance-refresh \
-            --auto-scaling-group-name "as-taptoon" \
+            --auto-scaling-group-name "asg-taptoon" \
             --strategy "Rolling" \
             --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":300,"MaxHealthyPercentage":110}'
       - name: Configure instances with Secrets
         run: |
           # 새 인스턴스 목록 가져오기
           INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
-            --auto-scaling-group-name "as-taptoon" \
+            --auto-scaling-group-name "asg-taptoon" \
             --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId" \
             --output json)
           for INSTANCE_ID in $(echo "$INSTANCES" | jq -r '.[]'); do
@@ -104,7 +104,7 @@ jobs:
           echo "Monitoring Instance Refresh..."
           while true; do
             STATUS=$(aws autoscaling describe-instance-refreshes \
-              --auto-scaling-group-name "as-taptoon" \
+              --auto-scaling-group-name "asg-taptoon" \
               --query "InstanceRefreshes[0].Status" --output text)
             echo "Current status: $STATUS"
             if [ "$STATUS" == "Successful" ] || [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
@@ -132,7 +132,7 @@ jobs:
       - name: Check ASG instance health
         run: |
           INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
-            --auto-scaling-group-name "as-taptoon" \
+            --auto-scaling-group-name "asg-taptoon" \
             --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId" \
             --output json)
           for INSTANCE_ID in $(echo "$INSTANCES" | jq -r '.[]'); do
