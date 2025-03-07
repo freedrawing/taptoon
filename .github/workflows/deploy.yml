@@ -141,7 +141,7 @@ jobs:
                         echo "SSH connection to $IP successful, checking health..."
 
                         # 헬스 체크 (HTTP 요청)
-                        HEALTH=$(ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl -s localhost:80/health" 2>/dev/null || echo "DOWN")
+                        HEALTH=$(ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl -s localhost:8080/health" 2>/dev/null || echo "DOWN")
 
                         if echo "$HEALTH" | grep -q "UP"; then
                           echo "✅ Instance $INSTANCE_ID is healthy"
