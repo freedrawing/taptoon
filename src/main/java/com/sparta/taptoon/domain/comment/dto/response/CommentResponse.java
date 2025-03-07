@@ -7,12 +7,11 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-@Builder
 public record CommentResponse(
         Long commentId,
         Long matchingPostId,
         Long memberId,
-        String memberNickname,
+        String memberName,
         Long parentId,
         String content,
         LocalDateTime createdAt,
@@ -20,34 +19,22 @@ public record CommentResponse(
         List<CommentResponse> replies
 ) {
     // 공통적으로 사용하는 생성자(특정 댓글과 답글 조회 제외)
-    @Builder
-    public static CommentResponse from(Comment comment) {
-        return CommentResponse.builder()
-                .commentId(comment.getId())
-                .matchingPostId(comment.getMatchingPost().getId())
-                .memberId(comment.getMember().getId())
-                .memberNickname(comment.getMember().getNickname())
-                .parentId(getParentId(comment)) // null checked
-                .content(comment.getContent())
-                .createdAt(comment.getCreatedAt())
-                .updatedAt(comment.getUpdatedAt())
-                .replies(Collections.emptyList())
-                .build();
-    }
-    // 특정 댓글과 답글 조회시에만 적용
-    @Builder
     public static CommentResponse from(Comment comment, List<CommentResponse> replies) {
-        return CommentResponse.builder()
-                .commentId(comment.getId())
-                .matchingPostId(comment.getMatchingPost().getId())
-                .memberId(comment.getMember().getId())
-                .memberNickname(comment.getMember().getNickname())
-                .parentId(getParentId(comment)) // null checked
-                .content(comment.getContent())
-                .createdAt(comment.getCreatedAt())
-                .updatedAt(comment.getUpdatedAt())
-                .replies(replies)
-                .build();
+        return new CommentResponse(
+                comment.getId(),
+                comment.getMatchingPost().getId(),
+                comment.getMember().getId(),
+                comment.getMember().getName(),
+                getParentId(comment), // null checked
+                comment.getContent(),
+                comment.getCreatedAt(),
+                comment.getUpdatedAt(),
+                replies != null ? replies : Collections.emptyList() // 엔티티에 없기 때문에 responseDto에서 null check\
+        );
+    }
+    // 생성자 하나로 합치면서 헬퍼메서드로 기존 매개변수 문제 해결
+    public static CommentResponse from(Comment comment) {
+        return from(comment, null);
     }
 
     // Optional ParentId null check logic

@@ -17,12 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -160,17 +157,17 @@ public class CommentService {
     @Transactional(readOnly = true)
     public Page<CommentResponse> findCommentsPagination(Long matchingPostId, int page) {
         PageRequest pageable = PageRequest.of(page, 10); // 10개씩 조회
-        Page<Comment> allComments = commentRepository.findAllCommentsByMatchingPostId(matchingPostId, pageable);
-        return allComments.map(CommentResponse::from);
+        return commentRepository.findAllCommentsByMatchingPostId(matchingPostId, pageable);
     }
 
     // 답글 페이지네이션
     @Transactional(readOnly = true)
     public Page<CommentResponse> findRepliesPagination(Long parentId, int page) {
         PageRequest pageable = PageRequest.of(page, 10); // 10개씩 조회
-        Page<Comment> allReplies = commentRepository.findAllRepliesByParentId(parentId, pageable);
-        return allReplies.map(CommentResponse::from);
+        return commentRepository.findAllRepliesByParentId(parentId, pageable);
     }
 }
 
-          // 포스트에서 댓글만 조회할때 답글 유무 (개수) 알려주기
+          /*
+          포스트에서 댓글만 조회할때 답글 유무 (개수) 알려주기
+           */
