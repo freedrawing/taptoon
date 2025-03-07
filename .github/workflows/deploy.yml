@@ -61,6 +61,36 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
+      - name: Check and Cancel Existing Instance Refresh
+        run: |
+          echo "Checking for existing Instance Refresh..."
+          STATUS=$(aws autoscaling describe-instance-refreshes \
+            --auto-scaling-group-name "as-taptoon" \
+            --query "InstanceRefreshes[?Status=='InProgress'].Status" \
+            --output text 2>/dev/null || echo "None")
+          if [ "$STATUS" == "InProgress" ]; then
+            echo "Instance Refresh in progress, cancelling..."
+            aws autoscaling cancel-instance-refresh \
+              --auto-scaling-group-name "as-taptoon"
+            for i in {1..10}; do
+              STATUS=$(aws autoscaling describe-instance-refreshes \
+                --auto-scaling-group-name "as-taptoon" \
+                --query "InstanceRefreshes[0].Status" --output text)
+              if [ "$STATUS" != "InProgress" ]; then
+                echo "Instance Refresh cancelled or completed: $STATUS"
+                break
+              fi
+              echo "Waiting for cancellation ($i/10)..."
+              sleep 10
+            done
+            if [ "$STATUS" == "InProgress" ]; then
+              echo "Failed to cancel Instance Refresh in time"
+              exit 1
+            fi
+          else
+            echo "No active Instance Refresh found: $STATUS"
+          fi
+
       - name: Start Instance Refresh
         run: |
           aws autoscaling start-instance-refresh \
