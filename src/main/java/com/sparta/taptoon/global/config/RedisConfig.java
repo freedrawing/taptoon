@@ -1,6 +1,5 @@
 package com.sparta.taptoon.global.config;
 
-import com.sparta.taptoon.global.handler.WebSocketHandler;
 import com.sparta.taptoon.global.redis.RedisSubscriber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +23,10 @@ public class RedisConfig {
      * Redis에서 수신한 메시지를 WebSocket을 통해 클라이언트에게 전달하는 역할
      * WebSocketHandler를 주입받아 메시지를 WebSocket으로 전송할 수 있도록 설정
      */
-    @Bean
-    public RedisSubscriber redisSubscriber(WebSocketHandler webSocketHandler) {
-        return new RedisSubscriber(webSocketHandler); // Bean 생성 시 직접 주입
-    }
+//    @Bean
+//    public RedisSubscriber redisSubscriber(WebSocketHandler webSocketHandler) {
+//        return new RedisSubscriber(webSocketHandler); // Bean 생성 시 직접 주입
+//    }
 
     /**
      * Redis 서버와 연결을 설정하는 역할
@@ -49,7 +48,7 @@ public class RedisConfig {
             RedisConnectionFactory connectionFactory) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        log.info("✅ MessageListenerContainer 생성 완료!");
+        log.info("✅ MessageListenerContainer 생성 완료! Active: {}", container.isRunning());
         return container;
     }
 
@@ -61,7 +60,9 @@ public class RedisConfig {
      */
     @Bean
     public MessageListenerAdapter messageListenerAdapter(RedisSubscriber redisSubscriber) {
-        return new MessageListenerAdapter(redisSubscriber, "onMessage"); // 한 번만 생성
+        org.springframework.data.redis.listener.adapter.MessageListenerAdapter adapter = new org.springframework.data.redis.listener.adapter.MessageListenerAdapter(redisSubscriber, "onMessage");
+        log.info("✅ MessageListenerAdapter 생성 완료! Delegate: {}", redisSubscriber.getClass().getName());
+        return adapter;
     }
 
     @Bean
