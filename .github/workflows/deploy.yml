@@ -33,6 +33,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
+      - name: Upload config file to S3
+        run: |
+          echo "${{ secrets.APPLICATION_DEPLOY_YAML }}" > application-deploy.yaml
+          aws s3 cp application-deploy.yaml s3://taptoon-config/application-deploy.yaml --sse AES256
+          rm application-deploy.yaml
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -65,16 +71,16 @@ jobs:
         run: |
           echo "Checking for existing Instance Refresh..."
           STATUS=$(aws autoscaling describe-instance-refreshes \
-            --auto-scaling-group-name "as-taptoon" \
+            --auto-scaling-group-name "asg-taptoon" \
             --query "InstanceRefreshes[?Status=='InProgress'].Status" \
             --output text 2>/dev/null || echo "None")
           if [ "$STATUS" == "InProgress" ]; then
             echo "Instance Refresh in progress, cancelling..."
             aws autoscaling cancel-instance-refresh \
-              --auto-scaling-group-name "as-taptoon"
+              --auto-scaling-group-name "asg-taptoon"
             for i in {1..10}; do
               STATUS=$(aws autoscaling describe-instance-refreshes \
-                --auto-scaling-group-name "as-taptoon" \
+                --auto-scaling-group-name "asg-taptoon" \
                 --query "InstanceRefreshes[0].Status" --output text)
               if [ "$STATUS" != "InProgress" ]; then
                 echo "Instance Refresh cancelled or completed: $STATUS"
@@ -102,7 +108,7 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/ec2-ssh-key.pem
           chmod 600 /tmp/ec2-ssh-key.pem
           INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
-            --auto-scaling-group-name "as-taptoon" \
+            --auto-scaling-group-name "asg-taptoon" \
             --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId" \
             --output json)
           for INSTANCE_ID in $(echo "$INSTANCES" | jq -r '.[]'); do
