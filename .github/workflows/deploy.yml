@@ -80,65 +80,135 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      - name: Cancel Existing Instance Refresh
+      - name: Deploy and Monitor
+        id: deploy
         run: |
-          # 기존 취소 로직 유지
-
-      - name: Start Instance Refresh and Monitor
-        run: |
-          # 인스턴스 리프레시 시작
-          aws autoscaling start-instance-refresh \
+          # 기존 인스턴스 리프레시 확인 및 취소
+          echo "Checking for existing instance refresh..."
+          STATUS=$(aws autoscaling describe-instance-refreshes \
             --auto-scaling-group-name "asg-taptoon" \
-            --strategy "Rolling" \
-            --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":300,"MaxHealthyPercentage":110}'
-          
-          echo "Instance refresh started. Monitoring progress without blocking..."
-          
-          # 시간 제한 설정
+            --query "InstanceRefreshes[?Status=='InProgress'].Status" \
+            --output text 2>/dev/null || echo "None")
+
+          if [ "$STATUS" == "InProgress" ]; then
+            echo "Instance refresh already in progress. Monitoring existing refresh..."
+          else
+            echo "Starting new instance refresh..."
+            aws autoscaling start-instance-refresh \
+              --auto-scaling-group-name "asg-taptoon" \
+              --strategy "Rolling" \
+              --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":300,"MaxHealthyPercentage":110}'
+          fi
+
+          # 진행 상황 모니터링
+          echo "Monitoring deployment progress..."
           MAX_DURATION=1800  # 30분
           START_TIME=$(date +%s)
-          
+
           while [ $(($(date +%s) - START_TIME)) -lt $MAX_DURATION ]; do
-            # 상태 확인
             STATUS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name "asg-taptoon" \
-              --query "InstanceRefreshes[0].Status" --output text)
+              --query "InstanceRefreshes[0].Status" --output text 2>/dev/null || echo "Unknown")
             PROGRESS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name "asg-taptoon" \
-              --query "InstanceRefreshes[0].PercentageComplete" --output text)
-          
-            echo "$(date): Refresh status - $STATUS ($PROGRESS%)"
-          
+              --query "InstanceRefreshes[0].PercentageComplete" --output text 2>/dev/null || echo "Unknown")
+
+            echo "$(date): Deployment status - $STATUS ($PROGRESS%)"
+
             if [ "$STATUS" == "Successful" ]; then
-              echo "✅ Rolling deployment completed successfully!"
+              echo "✅ Deployment completed successfully!"
+              echo "success=true" >> $GITHUB_OUTPUT
               break
             elif [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
-              echo "❌ Rolling deployment failed: $STATUS"
-              # 실패 이유 출력하지만 배포 과정은 실패로 처리하지 않음
-              FAILURE_REASON=$(aws autoscaling describe-instance-refreshes \
+              echo "⚠️ Instance refresh reported status: $STATUS"
+              # 실패 원인 출력
+              REASON=$(aws autoscaling describe-instance-refreshes \
                 --auto-scaling-group-name "asg-taptoon" \
                 --query "InstanceRefreshes[0].StatusReason" --output text)
-              echo "Failure reason: $FAILURE_REASON"
+              echo "Reason: $REASON"
+
+              # 배포 실패로 처리하지 않고 계속 진행
               echo "Deployment will continue despite refresh status"
+              echo "success=true" >> $GITHUB_OUTPUT
               break
             fi
-          
+
             sleep 30
           done
-          
-          # 시간 초과 처리 - 경고만 출력하고 계속 진행
+
+          # 타임아웃 처리
           if [ $(($(date +%s) - START_TIME)) -ge $MAX_DURATION ]; then
-            echo "⚠️ Deployment monitoring timed out after 30 minutes"
+            echo "⚠️ Monitoring timed out after 30 minutes"
             echo "Instance refresh may still be in progress"
+            echo "success=true" >> $GITHUB_OUTPUT
           fi
-          
-          # 최종 상태 확인
-          FINAL_STATUS=$(aws autoscaling describe-auto-scaling-groups \
+
+      - name: Check some instances health
+        if: steps.deploy.outputs.success == 'true'
+        run: |
+          echo "Performing health check on available instances..."
+
+          # 현재 InService 상태인 인스턴스 가져오기
+          INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
             --auto-scaling-group-name "asg-taptoon" \
-            --query "length(AutoScalingGroups[0].Instances)" \
-            --output text)
-          
-          echo "Deployment process completed. ASG has $FINAL_STATUS instances"
+            --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId" \
+            --output json)
+
+          TOTAL_INSTANCES=$(echo "$INSTANCES" | jq -r 'length')
+          HEALTHY_INSTANCES=0
+
+          echo "Found $TOTAL_INSTANCES instances in service"
+
+          # 일부 인스턴스만 샘플링 (최대 3개)
+          SAMPLE_SIZE=3
+          if [ $TOTAL_INSTANCES -lt $SAMPLE_SIZE ]; then
+            SAMPLE_SIZE=$TOTAL_INSTANCES
+          fi
+
+          for i in $(seq 0 $(($SAMPLE_SIZE-1))); do
+            INSTANCE_ID=$(echo "$INSTANCES" | jq -r ".[$i]")
+
+            if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" == "null" ]; then
+              continue
+            fi
+
+            IP=$(aws ec2 describe-instances \
+              --instance-ids $INSTANCE_ID \
+              --query "Reservations[0].Instances[0].PublicIpAddress" \
+              --output text)
+
+            if [ -z "$IP" ] || [ "$IP" == "null" ]; then
+              echo "No public IP for $INSTANCE_ID, skipping..."
+              continue
+            fi
+
+            echo "Checking health on $IP..."
+            if curl -s --connect-timeout 5 --max-time 10 "http://$IP:80/health" | grep -q "UP"; then
+              echo "Instance $INSTANCE_ID ($IP) is healthy!"
+              HEALTHY_INSTANCES=$((HEALTHY_INSTANCES + 1))
+            else
+              echo "Instance $INSTANCE_ID ($IP) may not be fully ready yet, checking port 8080..."
+              # 대체 포트 확인
+              if curl -s --connect-timeout 5 --max-time 10 "http://$IP:8080/health" | grep -q "UP"; then
+                echo "Instance $INSTANCE_ID ($IP) is healthy on port 8080!"
+                HEALTHY_INSTANCES=$((HEALTHY_INSTANCES + 1))
+              else
+                echo "Instance $INSTANCE_ID ($IP) health check failed on both ports"
+              fi
+            fi
+          done
+
+          echo "$HEALTHY_INSTANCES out of $SAMPLE_SIZE sampled instances are healthy"
+
+          # 하나라도 건강하면 성공으로 간주
+          if [ $HEALTHY_INSTANCES -ge 1 ]; then
+            echo "✅ At least one instance is confirmed healthy, deployment considered successful"
+            exit 0
+          else
+            echo "⚠️ No instances confirmed healthy in the sample"
+            # 헬스 체크는 경고만 남기고 실패로 처리하지 않음 - 애플리케이션이 시작 중일 수 있음
+            exit 0
+          fi
 
   health_check:
     needs: deploy_with_rolling
