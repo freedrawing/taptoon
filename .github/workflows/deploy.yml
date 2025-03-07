@@ -68,32 +68,41 @@ jobs:
       - name: Check and Cancel Existing Instance Refresh
         run: |
           echo "Checking for existing Instance Refresh..."
-          STATUS=$(aws autoscaling describe-instance-refreshes \
-            --auto-scaling-group-name "asg-taptoon" \
-            --query "InstanceRefreshes[?Status=='InProgress'].Status" \
-            --output text 2>/dev/null || echo "None")
-          if [ "$STATUS" == "InProgress" ]; then
-            echo "Instance Refresh in progress, cancelling..."
-            aws autoscaling cancel-instance-refresh \
-              --auto-scaling-group-name "asg-taptoon"
-            for i in {1..10}; do
-              STATUS=$(aws autoscaling describe-instance-refreshes \
-                --auto-scaling-group-name "asg-taptoon" \
-                --query "InstanceRefreshes[0].Status" --output text)
-              if [ "$STATUS" != "InProgress" ]; then
-                echo "Instance Refresh cancelled or completed: $STATUS"
-                break
-              fi
-              echo "Waiting for cancellation ($i/10)..."
-              sleep 10
-            done
+          MAX_CANCEL_ATTEMPTS=3
+          for attempt in $(seq 1 $MAX_CANCEL_ATTEMPTS); do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "asg-taptoon" \
+              --query "InstanceRefreshes[?Status=='InProgress'].Status" \
+              --output text 2>/dev/null || echo "None")
+
             if [ "$STATUS" == "InProgress" ]; then
-              echo "Failed to cancel Instance Refresh in time"
-              exit 1
+              echo "Instance Refresh in progress, attempting to cancel (attempt $attempt/$MAX_CANCEL_ATTEMPTS)..."
+              aws autoscaling cancel-instance-refresh --auto-scaling-group-name "asg-taptoon"
+
+              for i in {1..20}; do  # 더 길게 기다림
+                sleep 10
+                STATUS=$(aws autoscaling describe-instance-refreshes \
+                  --auto-scaling-group-name "asg-taptoon" \
+                  --query "InstanceRefreshes[0].Status" --output text)
+                if [ "$STATUS" != "InProgress" ]; then
+                  echo "Instance Refresh cancelled or completed: $STATUS"
+                  sleep 10  # 취소 후 추가 대기
+                  break
+                fi
+                echo "Waiting for cancellation ($i/20)..."
+              done
+
+              if [ "$STATUS" != "InProgress" ]; then
+                break  # 취소 성공하면 루프 종료
+              elif [ $attempt -eq $MAX_CANCEL_ATTEMPTS ]; then
+                echo "Failed to cancel Instance Refresh after multiple attempts"
+                exit 1
+              fi
+            else
+              echo "No active Instance Refresh found: $STATUS"
+              break
             fi
-          else
-            echo "No active Instance Refresh found: $STATUS"
-          fi
+          done
 
       - name: Start Instance Refresh
         run: |
