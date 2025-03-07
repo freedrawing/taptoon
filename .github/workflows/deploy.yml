@@ -69,9 +69,10 @@ jobs:
             --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":300,"MaxHealthyPercentage":110}'
       - name: Configure instances with Secrets
         run: |
-          # 새 인스턴스 목록 가져오기
+          echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/ec2-ssh-key.pem
+          chmod 600 /tmp/ec2-ssh-key.pem
           INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
-            --auto-scaling-group-name "asg-taptoon" \
+            --auto-scaling-group-name "as-taptoon" \
             --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId" \
             --output json)
           for INSTANCE_ID in $(echo "$INSTANCES" | jq -r '.[]'); do
@@ -79,26 +80,10 @@ jobs:
               --instance-ids $INSTANCE_ID \
               --query "Reservations[0].Instances[0].PublicIpAddress" \
               --output text)
-            if [ -z "$IP" ]; then
-              echo "No public IP for $INSTANCE_ID, skipping..."
-              continue
-            fi
-            echo "Configuring instance $INSTANCE_ID ($IP)..."
-            ssh -o StrictHostKeyChecking=no -i "${{ secrets.EC2_SSH_KEY }}" ubuntu@$IP << 'ENDSSH'
-              aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin "${{ secrets.ECR_REGISTRY }}"
-              echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> /etc/environment
-              source /etc/environment
-              cd /home/ec2-user/taptoon
-              sed -i "s|ECR_REGISTRY|${{ secrets.ECR_REGISTRY }}|g" docker-compose.yml
-              sed -i "s|IMAGE_TAG|${{ needs.build_and_push.outputs.image-tag }}|g" docker-compose.yml
-              sed -i "s|REDIS_HOST|${{ secrets.REDIS_HOST }}|g" docker-compose.yml
-              echo "${{ secrets.APPLICATION_DEPLOY_YAML }}" > config/application-deploy.yaml
-              chmod 600 config/application-deploy.yaml
-              docker-compose down || true
-              docker-compose pull
-              docker-compose up -d
-          ENDSSH
+            echo "Connecting to $INSTANCE_ID ($IP)..."
+            ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl localhost:8080/health"
           done
+          rm -f /tmp/ec2-ssh-key.pem
       - name: Monitor Instance Refresh
         run: |
           echo "Monitoring Instance Refresh..."
