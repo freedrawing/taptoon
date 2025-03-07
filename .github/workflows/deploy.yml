@@ -33,11 +33,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      - name: Upload config file to S3
+      - name: Upload docker-compose file to S3
         run: |
-          echo "${{ secrets.APPLICATION_DEPLOY_YAML }}" > application-deploy.yaml
-          aws s3 cp application-deploy.yaml s3://taptoon-config/application-deploy.yaml --sse AES256
-          rm application-deploy.yaml
+          aws s3 cp docker-compose.yml s3://taptoon-config/docker-compose.yml --sse AES256
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -150,21 +148,21 @@ jobs:
       - name: Monitor Instance Refresh
         run: |
           echo "Monitoring Instance Refresh..."
-          while true; do
+          MAX_ATTEMPTS=60  # 최대 10분 (10초 간격으로 60번)
+          for i in $(seq 1 $MAX_ATTEMPTS); do
             STATUS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name "asg-taptoon" \
               --query "InstanceRefreshes[0].Status" --output text)
-            echo "Current status: $STATUS"
+            echo "Attempt $i/$MAX_ATTEMPTS: Status is $STATUS"
             if [ "$STATUS" == "Successful" ] || [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
               break
             fi
+            if [ $i -eq $MAX_ATTEMPTS ]; then
+              echo "Timed out waiting for instance refresh to complete"
+              exit 1
+            fi
             sleep 10
           done
-          if [ "$STATUS" != "Successful" ]; then
-            echo "Instance Refresh failed with status: $STATUS"
-            exit 1
-          fi
-            echo "Rolling update completed successfully!"
 
   health_check:
     needs: deploy_with_rolling

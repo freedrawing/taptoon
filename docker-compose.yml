@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   taptoon-app:
-    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+    image: ${ECR_REGISTRY}:${IMAGE_TAG}
     container_name: taptoon-app
     restart: always
     ports:
-      - "8080:8080"
+      - "80:8080"
     networks:
       - taptoon-network
     volumes:
@@ -23,8 +21,6 @@ services:
       resources:
         limits:
           memory: 2G
-
 networks:
   taptoon-network:
     name: taptoon-network
-    external: true
