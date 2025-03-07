@@ -103,23 +103,50 @@ jobs:
             --auto-scaling-group-name "asg-taptoon" \
             --strategy "Rolling" \
             --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":300,"MaxHealthyPercentage":110}'
-      - name: Configure instances with Secrets
+
+      - name: Wait for instances to initialize and verify containers
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/ec2-ssh-key.pem
           chmod 600 /tmp/ec2-ssh-key.pem
+
+          # 인스턴스 초기화를 위한 시간 제공
+          echo "Waiting for instances to initialize (2 minutes)..."
+          sleep 120
+
           INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
             --auto-scaling-group-name "asg-taptoon" \
             --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId" \
             --output json)
+
           for INSTANCE_ID in $(echo "$INSTANCES" | jq -r '.[]'); do
             IP=$(aws ec2 describe-instances \
               --instance-ids $INSTANCE_ID \
               --query "Reservations[0].Instances[0].PublicIpAddress" \
               --output text)
+
             echo "Connecting to $INSTANCE_ID ($IP)..."
-            ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl localhost:8080/health"
+
+            # 컨테이너 상태 확인 (재시도 로직)
+            for i in {1..10}; do
+              echo "Attempt $i: Checking container status..."
+              HEALTH=$(ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl -s localhost:8080/health || echo 'DOWN'")
+
+              if echo "$HEALTH" | grep -q "UP"; then
+                echo "Container is healthy on $IP"
+                break
+              else
+                echo "Container is not yet healthy, waiting and retrying..."
+                if [ $i -eq 10 ]; then
+                  echo "Failed to get container healthy after 10 attempts"
+                  ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "cd /home/ubuntu/taptoon && docker-compose logs"
+                  exit 1
+                fi
+                sleep 30
+              fi
+            done
           done
           rm -f /tmp/ec2-ssh-key.pem
+
       - name: Monitor Instance Refresh
         run: |
           echo "Monitoring Instance Refresh..."
