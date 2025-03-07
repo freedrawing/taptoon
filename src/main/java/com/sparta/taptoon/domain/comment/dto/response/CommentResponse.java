@@ -4,6 +4,7 @@ import com.sparta.taptoon.domain.comment.entity.Comment;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Builder
@@ -30,6 +31,7 @@ public record CommentResponse(
                 .content(comment.getContent())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
+                .replies(Collections.emptyList())
                 .build();
     }
     // 특정 댓글과 답글 조회시에만 적용
