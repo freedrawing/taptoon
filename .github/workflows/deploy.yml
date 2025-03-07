@@ -67,12 +67,46 @@ jobs:
 
       - name: Monitor Rolling Deployment Progress
         run: |
+          # 기존 인스턴스 리프레시 취소 로직
+          echo "Checking for existing Instance Refresh..."
+          STATUS=$(aws autoscaling describe-instance-refreshes \
+            --auto-scaling-group-name "asg-taptoon" \
+            --query "InstanceRefreshes[?Status=='InProgress'].Status" \
+            --output text 2>/dev/null || echo "None")
+          if [ "$STATUS" == "InProgress" ]; then
+            echo "Instance Refresh in progress, cancelling..."
+            aws autoscaling cancel-instance-refresh --auto-scaling-group-name "asg-taptoon"
+            sleep 30  # 취소 작업이 반영될 시간 제공
+          fi
+
+          # 새 인스턴스 리프레시 시작
+          echo "Starting new instance refresh..."
+          aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name "asg-taptoon" \
+            --strategy "Rolling" \
+            --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":300,"MaxHealthyPercentage":110}'
+
+          # SSH 키 준비
+          echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/ec2-ssh-key.pem
+          chmod 600 /tmp/ec2-ssh-key.pem
+
+          # 롤링 배포 모니터링 로직
           echo "Monitoring individual instance transitions..."
           START_TIME=$(date +%s)
           MAX_DURATION=1800  # 30분
           LAST_INSTANCES=""
 
           while [ $(($(date +%s) - START_TIME)) -lt $MAX_DURATION ]; do
+            # 인스턴스 리프레시 상태 확인
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "asg-taptoon" \
+              --query "InstanceRefreshes[0].Status" --output text)
+            PROGRESS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "asg-taptoon" \
+              --query "InstanceRefreshes[0].PercentageComplete" --output text)
+
+            echo "Overall progress: $PROGRESS% ($STATUS)"
+
             # 현재 인스턴스 상태 확인
             CURRENT_INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
               --auto-scaling-group-name "asg-taptoon" \
@@ -84,60 +118,73 @@ jobs:
               echo "Instance state change detected at $(date)"
               echo "$CURRENT_INSTANCES" | jq -r '.[] | "Instance \(.[0]): \(.[1])"'
 
-              # 새롭게 InService 상태가 된 인스턴스 확인
-              NEW_INSTANCES=$(echo "$CURRENT_INSTANCES" | jq -r '.[] | select(.[1] == "InService") | .[0]')
+              # InService 상태 인스턴스 확인 (SSH 오류 방지를 위해 시간 지연)
+              INSERVICE_INSTANCES=$(echo "$CURRENT_INSTANCES" | jq -r '.[] | select(.[1] == "InService") | .[0]')
 
-              # 새로운 인스턴스의 헬스 체크
-              for INSTANCE_ID in $NEW_INSTANCES; do
-                # 이전 목록에 없는 새 인스턴스인지 확인
-                if ! echo "$LAST_INSTANCES" | jq -r '.[] | select(.[1] == "InService") | .[0]' | grep -q "$INSTANCE_ID"; then
-                  IP=$(aws ec2 describe-instances \
-                    --instance-ids $INSTANCE_ID \
-                    --query "Reservations[0].Instances[0].PublicIpAddress" \
-                    --output text)
+              if [ -n "$INSERVICE_INSTANCES" ]; then
+                echo "Waiting 60 seconds for instances to fully initialize..."
+                sleep 60
 
-                  echo "Verifying new instance $INSTANCE_ID ($IP)..."
-                  # 헬스 체크 최대 5회 시도
-                  for i in {1..5}; do
-                    HEALTH=$(ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl -s localhost:80/health || echo 'DOWN'" 2>/dev/null)
+                for INSTANCE_ID in $INSERVICE_INSTANCES; do
+                  # 이전 목록에 없는 경우만 확인
+                  if [ -z "$LAST_INSTANCES" ] || ! echo "$LAST_INSTANCES" | jq -r '.[] | select(.[1] == "InService") | .[0]' | grep -q "$INSTANCE_ID"; then
+                    IP=$(aws ec2 describe-instances \
+                      --instance-ids $INSTANCE_ID \
+                      --query "Reservations[0].Instances[0].PublicIpAddress" \
+                      --output text)
 
-                    if echo "$HEALTH" | grep -q "UP"; then
-                      echo "✅ New instance $INSTANCE_ID is healthy and serving traffic"
-                      break
-                    else
-                      echo "Attempt $i: Instance $INSTANCE_ID not yet healthy, waiting..."
-                      if [ $i -eq 5 ]; then
-                        echo "⚠️ Warning: New instance $INSTANCE_ID may not be healthy, but rolling update continues"
+                    if [ -n "$IP" ]; then
+                      echo "Checking instance $INSTANCE_ID ($IP)..."
+
+                      # 먼저 SSH 연결 테스트
+                      if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i /tmp/ec2-ssh-key.pem ubuntu@$IP echo "SSH connection successful" 2>/dev/null; then
+                        echo "SSH connection to $IP successful, checking health..."
+
+                        # 헬스 체크 (HTTP 요청)
+                        HEALTH=$(ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl -s localhost:80/health" 2>/dev/null || echo "DOWN")
+
+                        if echo "$HEALTH" | grep -q "UP"; then
+                          echo "✅ Instance $INSTANCE_ID is healthy"
+                        else
+                          echo "⚠️ Instance $INSTANCE_ID health check failed, but continuing"
+                        fi
+                      else
+                        echo "⚠️ SSH connection to $IP failed, instance may not be fully initialized"
                       fi
-                      sleep 15
+                    else
+                      echo "⚠️ No public IP found for instance $INSTANCE_ID"
                     fi
-                  done
-                fi
-              done
+                  fi
+                done
+              fi
 
               LAST_INSTANCES="$CURRENT_INSTANCES"
             fi
-
-            # 인스턴스 리프레시 상태 확인
-            STATUS=$(aws autoscaling describe-instance-refreshes \
-              --auto-scaling-group-name "asg-taptoon" \
-              --query "InstanceRefreshes[0].Status" --output text)
-            PROGRESS=$(aws autoscaling describe-instance-refreshes \
-              --auto-scaling-group-name "asg-taptoon" \
-              --query "InstanceRefreshes[0].PercentageComplete" --output text)
-
-            echo "Overall progress: $PROGRESS% ($STATUS)"
 
             if [ "$STATUS" == "Successful" ]; then
               echo "✅ Rolling deployment completed successfully!"
               break
             elif [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
               echo "❌ Rolling deployment failed: $STATUS"
+
+              # 실패 원인 확인
+              FAILURE_REASON=$(aws autoscaling describe-instance-refreshes \
+                --auto-scaling-group-name "asg-taptoon" \
+                --query "InstanceRefreshes[0].StatusReason" --output text)
+              echo "Failure reason: $FAILURE_REASON"
               exit 1
             fi
 
-            sleep 15
+            sleep 30
           done
+
+          # 시간 초과 확인
+          if [ $(($(date +%s) - START_TIME)) -ge $MAX_DURATION ]; then
+            echo "❌ Deployment timed out after 30 minutes"
+            exit 1
+          fi
+
+          rm -f /tmp/ec2-ssh-key.pem
 
   health_check:
     needs: deploy_with_rolling
