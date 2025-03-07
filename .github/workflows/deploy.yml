@@ -127,7 +127,7 @@ jobs:
             # 컨테이너 상태 확인 (재시도 로직)
             for i in {1..10}; do
               echo "Attempt $i: Checking container status..."
-              HEALTH=$(ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl -s localhost:80/health || echo 'DOWN'")
+              HEALTH=$(ssh -o StrictHostKeyChecking=no -i /tmp/ec2-ssh-key.pem ubuntu@$IP "curl -s localhost:8080/health || echo 'DOWN'")
 
               if echo "$HEALTH" | grep -q "UP"; then
                 echo "Container is healthy on $IP"
@@ -191,7 +191,7 @@ jobs:
               continue
             fi
             echo "Checking health on $IP..."
-            HEALTH=$(curl -s "http://$IP:80/health" || echo "DOWN")
+            HEALTH=$(curl -s "http://$IP:8080/health" || echo "DOWN")
             if echo "$HEALTH" | grep -q "UP"; then
               echo "Instance $INSTANCE_ID ($IP) is healthy!"
             else
