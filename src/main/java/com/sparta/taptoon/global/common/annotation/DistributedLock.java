@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DistributedLock {
     String key(); // Lock Key
-    TimeUnit timeUtil() default TimeUnit.SECONDS;
+    TimeUnit timeUnit() default TimeUnit.SECONDS;
     long waitTime() default 5L; // Lock 획득 대기 시간
     long leaseTime() default 3L; // Lock 유지 시간
 }
