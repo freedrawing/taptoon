@@ -20,8 +20,6 @@ public class RedisSubscriber {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * onMessage
-     *
      * Redis에서 메시지를 수신했을 때 호출되는 메서드
      */
     public void onMessage(String message) {
@@ -30,40 +28,31 @@ public class RedisSubscriber {
             log.info("📥 Redis 메시지 수신: {}", message);
 
             Map<String, Object> data = objectMapper.readValue(message, Map.class);
-            String chatRoomId = data.get("chat_room_id") != null ? data.get("chat_room_id").toString() : null;
-            Long senderId = data.get("sender_id") != null ? Long.valueOf(data.get("sender_id").toString()) : null;
-            String textMessage = data.get("message") != null ? data.get("message").toString() : null;
-            String imageUrl = data.get("image_url") != null ? data.get("image_url").toString() : null;
-            String thumbnailImageUrl = data.get("thumbnail_image_url") != null ? data.get("thumbnail_image_url").toString() : null;
-            String originalImageUrl = data.get("original_image_url") != null ? data.get("original_image_url").toString() : null;
+            MessageData parsedData = parseMessageData(data);
 
             // 필수 필드 검증
-            if (chatRoomId == null || senderId == null) {
-                log.error("❌ 메시지 데이터 불완전: chatRoomId={}, senderId={}", chatRoomId, senderId);
+            if (parsedData.chatRoomId == null || parsedData.senderId == null) {
+                log.error("❌ 메시지 데이터 불완전: chatRoomId={}, senderId={}", parsedData.chatRoomId, parsedData.senderId);
                 return;
             }
 
-            // 메시지 타입 구별
-            if (textMessage != null && thumbnailImageUrl == null && originalImageUrl == null) {
-                log.info("📝 텍스트 메시지 처리: chatRoomId={}, senderId={}, message={}", chatRoomId, senderId, textMessage);
-                notificationService.notifyNewMessage(chatRoomId, senderId, textMessage);
-                log.info("✅ NotificationService로 텍스트 알림 전송: chatRoomId={}, senderId={}", chatRoomId, senderId);
-            } else if ((thumbnailImageUrl != null || originalImageUrl != null) && textMessage == null) {
-                String displayUrl = thumbnailImageUrl != null ? thumbnailImageUrl : originalImageUrl;
-                log.info("🖼️ 이미지 메시지 처리: chatRoomId={}, senderId={}, thumbnailImageUrl={}, originalImageUrl={}",
-                        chatRoomId, senderId, thumbnailImageUrl, originalImageUrl);
-                notificationService.notifyNewMessage(chatRoomId, senderId, "이미지 메시지가 도착했습니다.");
-            } else if (textMessage == null && thumbnailImageUrl == null && originalImageUrl == null) {
-                log.error("❌ 메시지 데이터 불완전: chatRoomId={}, senderId={}, message=null, imageUrl=null", chatRoomId, senderId);
+            // 메시지 타입 구별 및 표시 메시지 결정
+            String displayMessage = determineDisplayMessage(parsedData.textMessage, parsedData.thumbnailImageUrl, parsedData.originalImageUrl);
+            if (displayMessage == null) {
+                log.error("❌ 메시지 데이터 불완전: chatRoomId={}, senderId={}, message=null, imageUrl=null",
+                        parsedData.chatRoomId, parsedData.senderId);
                 return;
-            } else {
-                log.info("📝🖼️ 혼합 메시지 처리: chatRoomId={}, senderId={}, message={}, thumbnailImageUrl={}, originalImageUrl={}",
-                        chatRoomId, senderId, textMessage, thumbnailImageUrl, originalImageUrl);
-                notificationService.notifyNewMessage(chatRoomId, senderId, textMessage); // 혼합 시 텍스트 우선
             }
+
+            // 알림 전송
+            log.info("📩 메시지 처리: chatRoomId={}, senderId={}, displayMessage={}",
+                    parsedData.chatRoomId, parsedData.senderId, displayMessage);
+            notificationService.notifyNewMessage(parsedData.chatRoomId, parsedData.senderId, displayMessage);
+            log.info("✅ NotificationService로 알림 전송: chatRoomId={}, senderId={}",
+                    parsedData.chatRoomId, parsedData.senderId);
 
             // WebSocket으로 브로드캐스트
-            webSocketHandler.broadcastMessage(chatRoomId, message);
+            webSocketHandler.broadcastMessage(parsedData.chatRoomId, message);
         } catch (IOException e) {
             log.error("❌ 메시지 파싱 실패: {}", e.getMessage(), e);
         } catch (Exception e) {
@@ -83,5 +72,56 @@ public class RedisSubscriber {
             throw new IllegalArgumentException("수신된 메시지는 null이거나 비어 있을 수 없습니다.");
         }
     }
+
+    // 메시지 타입에 따라 표시 메시지 결정
+    private String determineDisplayMessage(String textMessage, String thumbnailImageUrl, String originalImageUrl) {
+        if (textMessage != null && thumbnailImageUrl == null && originalImageUrl == null) {
+            return textMessage; // 텍스트만 있는 경우
+        } else if (textMessage == null && (thumbnailImageUrl != null || originalImageUrl != null)) {
+            return "이미지 메시지가 도착했습니다."; // 이미지만 있는 경우
+        } else if (textMessage != null && (thumbnailImageUrl != null || originalImageUrl != null)) {
+            return textMessage + " (이미지 포함)"; // 혼합 메시지
+        } else {
+            return null; // 텍스트도 이미지도 없는 경우
+        }
+    }
+
+    // 메시지 데이터를 파싱하여 구조화된 객체로 반환
+    private MessageData parseMessageData(Map<String, Object> data) {
+        return new MessageData(
+                getString(data, "chat_room_id"),
+                getLong(data, "sender_id"),
+                getString(data, "message"),
+                getString(data, "thumbnail_image_url"),
+                getString(data, "original_image_url")
+        );
+    }
+
+    // Map에서 String 값 추출
+    private String getString(Map<String, Object> data, String key) {
+        Object value = data.get(key);
+        return value != null ? value.toString() : null;
+    }
+
+    // Map에서 Long 값 추출 (타입 안전성 강화)
+    private Long getLong(Map<String, Object> data, String key) {
+        Object value = data.get(key);
+        if (value == null) return null;
+        try {
+            return Long.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            log.warn("Invalid Long value for key {}: {}", key, value);
+            return null;
+        }
+    }
+
+    // 메시지 데이터를 담는 내부 레코드
+    private record MessageData(
+            String chatRoomId,
+            Long senderId,
+            String textMessage,
+            String thumbnailImageUrl,
+            String originalImageUrl
+    ) {}
 }
 
