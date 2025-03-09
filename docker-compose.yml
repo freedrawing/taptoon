@@ -1,0 +1,26 @@
+services:
+  taptoon-app:
+    image: ${ECR_REGISTRY}:${IMAGE_TAG}
+    container_name: taptoon-app
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - taptoon-network
+    volumes:
+      - ${CONFIG_DIR}:/app/config
+    environment:
+      - SPRING_PROFILES_ACTIVE=deploy
+      - SPRING_CONFIG_LOCATION=file:/app/config/application-deploy.yaml
+      - SPRING_DATA_REDIS_HOST=${REDIS_HOST}
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_SSL_ENABLED=false
+      - REDISSON_ADDRESS=redis://${REDIS_HOST}:6379
+      - SPRING_LOGGING_LEVEL_ORG_REDISSON=DEBUG
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+networks:
+  taptoon-network:
+    name: taptoon-network

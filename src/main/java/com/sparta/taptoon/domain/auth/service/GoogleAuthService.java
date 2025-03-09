@@ -22,6 +22,7 @@ public class GoogleAuthService {
     private final JwtUtil jwtUtil;
 
     public LoginMemberResponse googleLogin(OAuth2User oauth2User) {
+        log.info("Google 의 모든 attributes: {}", oauth2User.getAttributes());
         String providerId = oauth2User.getAttribute("sub");  // 구글은 sub가 id임!
         String name = oauth2User.getAttribute("name");
         log.info("구글 로그인 유저 id: {}, 이름: {}", providerId, name);
