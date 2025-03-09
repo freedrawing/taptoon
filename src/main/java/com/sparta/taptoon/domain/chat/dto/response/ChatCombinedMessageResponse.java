@@ -12,11 +12,12 @@ public record ChatCombinedMessageResponse(
         String chatRoomId,
         Long senderId,
         String message, // 텍스트 메시지용, 이미지면 null
-        String imageUrl, // 이미지 메시지용, 텍스트면 null
+        String thumbnailImageUrl, // 이미지 메시지용, 텍스트면 null
+        String originalImageUrl, // 이미지 메시지용, 텍스트면 null
         Integer unreadCount,
         String status, // 상태 추가
         String type, // TEXT 또는 IMAGE
-        LocalDateTime createdAt // 시간순 정렬용
+        LocalDateTime createdAt
 ) {
     public static ChatCombinedMessageResponse from(ChatMessage chatMessage) {
         return ChatCombinedMessageResponse.builder()
@@ -36,7 +37,8 @@ public record ChatCombinedMessageResponse(
                 .id(chatImageMessage.getId())
                 .chatRoomId(chatImageMessage.getChatRoomId())
                 .senderId(chatImageMessage.getSenderId())
-                .imageUrl(chatImageMessage.getImageUrl())
+                .thumbnailImageUrl(chatImageMessage.getThumbnailImageUrl())
+                .originalImageUrl(chatImageMessage.getOriginalImageUrl())
                 .unreadCount(chatImageMessage.getUnreadCount())
                 .status(chatImageMessage.getStatus().toString())
                 .type("IMAGE")

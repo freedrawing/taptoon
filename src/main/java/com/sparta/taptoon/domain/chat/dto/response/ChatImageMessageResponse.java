@@ -11,20 +11,22 @@ public record ChatImageMessageResponse(
         String id,
         String chatRoomId,
         Long senderId,
-        String imageUrl,
-        Integer unreadCount,
-        Status status ,
+        String thumbnailImageUrl,
+        String originalImageUrl,
+        int unreadCount,
+        Status status,
         LocalDateTime createdAt
 ) {
-    public static ChatImageMessageResponse from(ChatImageMessage chatImageMessage) {
-        return ChatImageMessageResponse.builder()
-                .id(chatImageMessage.getId())
-                .chatRoomId(chatImageMessage.getChatRoomId())
-                .senderId(chatImageMessage.getSenderId())
-                .imageUrl(chatImageMessage.getImageUrl())
-                .unreadCount(chatImageMessage.getUnreadCount())
-                .status(Status.PENDING)
-                .createdAt(chatImageMessage.getCreatedAt())
-                .build();
+    public static ChatImageMessageResponse from(ChatImageMessage message) {
+        return new ChatImageMessageResponse(
+                message.getId(),
+                message.getChatRoomId(),
+                message.getSenderId(),
+                message.getThumbnailImageUrl(),
+                message.getOriginalImageUrl(),
+                message.getUnreadCount(),
+                message.getStatus(),
+                message.getCreatedAt()
+        );
     }
 }
