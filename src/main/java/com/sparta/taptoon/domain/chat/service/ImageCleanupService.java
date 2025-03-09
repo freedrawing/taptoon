@@ -75,7 +75,7 @@ public class ImageCleanupService {
             }
         }
 
-        log.info("이미지 정리 완료: PENDING {}개 , DELETING {}개 ",
-                oldPendingImages.size(), deletingImages.size());
+        log.info("이미지 정리 완료: PENDING {}개, DELETING {}개, DELETED {}개",
+                oldPendingImages.size(), deletingImages.size(), deletedImages.size());
     }
 }
