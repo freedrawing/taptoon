@@ -1,6 +1,5 @@
 package com.sparta.taptoon.global.interceptor;
 
-import com.sparta.taptoon.domain.chat.service.ChatRoomMemberService;
 import com.sparta.taptoon.domain.chat.service.ChatRoomService;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import com.sparta.taptoon.global.util.JwtUtil;
@@ -27,7 +26,6 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
     private static final String NOTIFICATION_PATH_PREFIX = "/notifications/";
 
     private final JwtUtil jwtUtil;
-    private final ChatRoomMemberService chatRoomMemberService;
     private final ChatRoomService chatRoomService;
 
     @Override
@@ -51,14 +49,14 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
             if (path.startsWith(CHAT_PATH_PREFIX)) {
                 String chatRoomId = extractChatRoomId(path);
-                if(!chatRoomService.isMemberOfChatRoom(chatRoomId, senderId)){
+                if (!chatRoomService.isMemberOfChatRoom(chatRoomId, senderId)) {
                     log.warn("❌ WebSocket 연결 거부 - 사용자가 채팅방 멤버가 아님 (chatRoomId: {}, senderId: {})", chatRoomId, senderId);
                     return false;
                 }
                 attributes.put("chatRoomId", chatRoomId);
-            }else if (path.startsWith(NOTIFICATION_PATH_PREFIX)){
+            } else if (path.startsWith(NOTIFICATION_PATH_PREFIX)) {
                 log.info("✅ Notification WebSocket 연결 요청 - senderId: {}", senderId);
-            }else{
+            } else {
                 log.warn("❌ WebSocket 인증 실패 - 알 수 없는 경로: {}", path);
                 return false;
             }
@@ -107,11 +105,6 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
             throw new NotFoundException(); // 채팅방 ID가 유효하지 않거나 경로에서 추출 불가
         }
-    }
-
-    // 사용자가 채팅방 멤버인지 확인
-    private boolean isValidChatRoomMember(String chatRoomId, Long senderId) {
-        return chatRoomMemberService.isMemberOfChatRoom(chatRoomId, senderId);
     }
 
     /**
