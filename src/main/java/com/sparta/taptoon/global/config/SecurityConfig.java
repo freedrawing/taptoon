@@ -46,9 +46,9 @@ public class SecurityConfig {
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(googleAuthHandler)
-                )
+//                .oauth2Login(oauth2 -> oauth2
+//                        .successHandler(googleAuthHandler)
+//                )
                 .addFilterBefore(new JwtFilter(memberRepository, jwtUtil),
                         UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception -> exception
