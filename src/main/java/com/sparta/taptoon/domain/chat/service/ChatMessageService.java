@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -214,24 +213,6 @@ public class ChatMessageService {
         } catch (Exception e) {
             log.error("❌ Redis 메시지 발행 중 오류 발생", e);
         }
-    }
-
-    public Optional<ChatMessage> findLatestMessage(String chatRoomId) {
-        return chatMessageRepository.findTopByChatRoomIdOrderByCreatedAtDesc(chatRoomId);
-    }
-
-
-    // 채팅방의 모든 메시지를 시간순으로 조회하여 응답 DTO 리스트로 변환
-    private List<ChatCombinedMessageResponse> fetchAllMessages(ChatRoom chatRoom) {
-        List<ChatMessage> textMessages = chatMessageRepository.findByChatRoomIdOrderByCreatedAtAsc(chatRoom.getId());
-        List<ChatImageMessage> imageMessages = chatImageMessageRepository.findByChatRoomIdOrderByCreatedAtAsc(chatRoom.getId());
-
-        return Stream.concat(
-                        textMessages.stream().map(ChatCombinedMessageResponse::from),
-                        imageMessages.stream().map(ChatCombinedMessageResponse::from)
-                )
-                .sorted(Comparator.comparing(ChatCombinedMessageResponse::createdAt))
-                .toList();
     }
 
     @Transactional
