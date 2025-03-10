@@ -28,7 +28,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom{
                 .select(Projections.constructor(
                         CommentResponse.class,
                         comment.id,
-                        comment.matchingPost,
+                        comment.matchingPost.id,
                         comment.member.id,
                         comment.member.name, // Member의 name 필드 직접 조회
                         comment.parent.id,
@@ -64,7 +64,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom{
                 .select(Projections.constructor(
                         CommentResponse.class,
                         comment.id,
-                        comment.matchingPost,
+                        comment.matchingPost.id,
                         comment.member.id,
                         comment.member.name, // Member의 name 필드 직접 조회
                         comment.parent.id,
