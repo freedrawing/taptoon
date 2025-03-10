@@ -90,7 +90,6 @@ public class PortfolioService {
 
         List<PortfolioFile> uploadedPortfolioFiles = portfolioFileRepository.findAllById(portfolioFileIds);
         if (uploadedPortfolioFiles.isEmpty() == false) {
-            // uploadedPortfolioFiles.forEach(PortfolioFile::registerMe);
             portfolioFileRepository.updateStatusByIds(portfolioFileIds, Status.REGISTERED);
         }
     }
