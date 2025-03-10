@@ -80,15 +80,7 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
 
         // 검색 결과 변환
         List<MatchingPostResponse> results = searchHits.stream()
-//                .map(SearchHit::getContent)
-                .map(searchHit -> {
-                    MatchingPostDocument document = searchHit.getContent();
-
-                    float score = searchHit.getScore();
-                    log.info("{} score: {}", document, score);
-
-                    return MatchingPostResponse.from(document);
-                })
+                .map(searchHit -> MatchingPostResponse.from(searchHit.getContent()))
                 .toList();
 
         Long nextViewCount = null;
