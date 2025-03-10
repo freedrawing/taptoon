@@ -1,5 +1,6 @@
 package com.sparta.taptoon.global.config;
 
+import com.sparta.taptoon.global.handler.WebSocketHandler;
 import com.sparta.taptoon.global.redis.RedisSubscriber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,17 +37,6 @@ public class RedisConfig {
             }
             throw new RuntimeException("❌ Redis 서버에 연결할 수 없습니다.");
         };
-    }
-
-    /**
-     * RedisSubscriber
-     *
-     * Redis에서 수신한 메시지를 WebSocket을 통해 클라이언트에게 전달하는 역할
-     * WebSocketHandler를 주입받아 메시지를 WebSocket으로 전송할 수 있도록 설정
-     */
-    @Bean
-    public RedisSubscriber redisSubscriber(WebSocketHandler webSocketHandler) {
-        return new RedisSubscriber(webSocketHandler); // Bean 생성 시 직접 주입
     }
 
     /**
