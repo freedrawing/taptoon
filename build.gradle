@@ -129,6 +129,11 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
-	exclude '**/*UploadToS3FromClient.*'//로컬에서 테스트 하고 싶으면 주석 처리 하세요!
+	useJUnitPlatform {
+		excludeTags 'local-only'
+	}
+	exclude '**/*UploadToS3FromClient.*' //로컬에서 테스트 하고 싶으면 주석 처리 하세요!
+//	filter {
+//		excludeTestsMatching "com.sparta.taptoon.domain.matchingpost.service.MatchingPostServiceTest.concurrentViewCountTest"
+//	}
 }

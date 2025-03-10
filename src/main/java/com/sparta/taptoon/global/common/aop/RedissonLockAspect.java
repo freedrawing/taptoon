@@ -16,12 +16,15 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j(topic = "RedissonLock")
-@Order(0)
+@Order(-1)
 @Aspect
 @Component
 @RequiredArgsConstructor
@@ -30,10 +33,11 @@ public class RedissonLockAspect {
     private final RedissonClient redissonClient;
     private final ExpressionParser parser = new SpelExpressionParser();
 
+
     @Around("@annotation(distributedLock)")
     public Object executeWithLock(ProceedingJoinPoint joinPoint, DistributedLock distributedLock) throws Throwable {
         String key = parseKey(distributedLock.key(), joinPoint);
-        TimeUnit timeUnit = distributedLock.timeUtil();
+        TimeUnit timeUnit = distributedLock.timeUnit();
         long waitTime = distributedLock.waitTime();
         long leaseTime = distributedLock.leaseTime();
 
@@ -68,7 +72,72 @@ public class RedissonLockAspect {
         }
     }
 
-    // For SpringEL
+    // 굳이 이렇게 사용하지 않아도 될 듯하다.
+//    @Around("@annotation(distributedLock)")
+//    public Object executeWithLock(ProceedingJoinPoint joinPoint, DistributedLock distributedLock) throws Throwable {
+//        String key = parseKey(distributedLock.key(), joinPoint);
+//        TimeUnit timeUnit = distributedLock.timeUnit();
+//        long waitTime = distributedLock.waitTime();
+//        long leaseTime = distributedLock.leaseTime();
+//
+//        RLock lock = redissonClient.getLock(key);
+//        Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
+//
+//        boolean lockAcquired = false;
+//        try {
+//            lockAcquired = lock.tryLock(waitTime, leaseTime, timeUnit);
+//            if (!lockAcquired) {
+//                log.error("❌ ({}) Lock 획득 실패", key);
+//                throw new TooManyRequestsException();
+//            }
+//
+//            log.info("({}) 🔒 Lock 획득", key);
+//
+//            boolean isTransactionActiveBefore = TransactionSynchronizationManager.isActualTransactionActive();
+//            log.info("({}) Before proceed - isTransactionActive: {}", key, isTransactionActiveBefore);
+//
+//            Object result = joinPoint.proceed();
+//
+//            boolean isTransactionActiveAfter = TransactionSynchronizationManager.isActualTransactionActive();
+//            log.info("({}) After proceed - isTransactionActive: {}", key, isTransactionActiveAfter);
+//
+//            // 트랜잭션이 활성화된 상태에서 동기화 등록
+//            if (method.isAnnotationPresent(Transactional.class) && isTransactionActiveAfter) {
+//                log.info("({}) 트랜잭션 감지: 트랜잭션 완료 후 락 해제 예약", key);
+//                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+//                    @Override
+//                    public void afterCompletion(int status) {
+//                        if (lock.isHeldByCurrentThread()) {
+//                            lock.unlock();
+//                            log.info("({}) 🔓 Lock 해제 (트랜잭션 종료 후, status: {})",
+//                                    key, status == STATUS_COMMITTED ? "COMMITTED" : "ROLLED_BACK");
+//                        } else {
+//                            log.warn("({}) 락이 현재 스레드에 의해 소유되지 않음", key);
+//                        }
+//                    }
+//                });
+//            }
+//
+//            return result;
+//
+//        } catch (InterruptedException e) {
+//            throw new TooManyRequestsException();
+//        } catch (Exception e) {
+//            log.error("({}) 예외 발생: {}", key, e.getMessage(), e);
+//            throw e;
+//        } finally {
+//            if (lockAcquired && (!method.isAnnotationPresent(Transactional.class) ||
+//                    !TransactionSynchronizationManager.isActualTransactionActive())) {
+//                if (lock.isHeldByCurrentThread()) {
+//                    lock.unlock();
+//                    log.info("({}) 🔓 Lock 해제 (트랜잭션 없음 또는 종료됨)", key);
+//                } else {
+//                    log.warn("({}) 락 해제 실패, 현재 스레드에 의해 소유되지 않음", key);
+//                }
+//            }
+//        }
+//    }
+
     private String parseKey(String spELString, ProceedingJoinPoint joinPoint) {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         Method method = methodSignature.getMethod();
@@ -76,8 +145,6 @@ public class RedissonLockAspect {
         String[] paramNames = methodSignature.getParameterNames();
 
         EvaluationContext context = new StandardEvaluationContext();
-
-        // 파라미터 이름과 값을 SpEL context에 추가
         for (int i = 0; i < paramNames.length; i++) {
             context.setVariable(paramNames[i], args[i]);
         }
@@ -88,5 +155,4 @@ public class RedissonLockAspect {
         String id = parser.parseExpression(spELString).getValue(context, String.class);
         return String.format("%s.%s:%s", className, methodName, id);
     }
-
 }
