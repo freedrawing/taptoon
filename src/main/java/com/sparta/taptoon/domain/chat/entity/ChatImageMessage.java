@@ -1,10 +1,10 @@
 package com.sparta.taptoon.domain.chat.entity;
 
 import com.sparta.taptoon.global.common.enums.Status;
-import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -23,8 +23,11 @@ public class ChatImageMessage {
     @Field(name = "sender_id")
     private Long senderId;
 
-    @Field(name = "image_url")
-    private String imageUrl;
+    @Field(name = "thumbnail_image_url")
+    private String thumbnailImageUrl;
+
+    @Field(name = "original_image_url")
+    private String originalImageUrl;
 
     @Field(name = "unread_count")
     private int unreadCount;
@@ -40,13 +43,14 @@ public class ChatImageMessage {
     private boolean isDeleted;
 
     @Builder
-    public ChatImageMessage(String chatRoomId, Long senderId, String imageUrl, int unreadCount, Status status) {
+    public ChatImageMessage(String chatRoomId, Long senderId, String thumbnailImageUrl, String originalImageUrl, int unreadCount, Status status) {
         if (unreadCount < 0) {
             throw new IllegalArgumentException("읽지 않은 수는 음수가 될 수 없습니다.");
         }
         this.chatRoomId = chatRoomId;
         this.senderId = senderId;
-        this.imageUrl = imageUrl;
+        this.thumbnailImageUrl = thumbnailImageUrl;
+        this.originalImageUrl = originalImageUrl;
         this.unreadCount = unreadCount;
         this.status = status;
         this.isDeleted = false;

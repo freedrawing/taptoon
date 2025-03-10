@@ -67,7 +67,7 @@ public class NotificationWebSocketHandler extends TextWebSocketHandler {
     }
 
     // 알림 전송 메서드 (외부에서 호출 가능)
-    void sendNotification(Long userId, Map<String, Object> notification) throws IOException {
+    public void sendNotification(Long userId, Map<String, Object> notification) throws IOException {
         WebSocketSession session = userSessions.get(userId);
         if (session != null && session.isOpen()) {
             String jsonMessage = objectMapper.writeValueAsString(notification);
