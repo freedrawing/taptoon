@@ -54,8 +54,15 @@ public class AwsS3Service {
             key = key.substring(0, key.indexOf("?"));
         }
         try {
+            //원본 파일 삭제
             amazonS3.deleteObject(BUCKET, key);
             log.info("S3에서 객체 삭제 성공. key: {}", key);
+            // 삭제하려는 파일이 이미지면 썸네일 파일 삭제
+            if (isImageFile(key)) {
+                String thumbnailKey = key.replace("/original/", "/thumbnail/");
+                amazonS3.deleteObject(BUCKET, thumbnailKey);
+                log.info("S3에서 썸네일 객체 삭제 성공. key: {}", thumbnailKey);
+            }
         } catch (Exception e) {
             log.error("S3에서 객체 삭제 실패. key: {}", key, e);
             throw new AccessDeniedException("S3 연결에 실패했습니다.");
@@ -80,4 +87,11 @@ public class AwsS3Service {
         return path.toLowerCase();
     }
 
+    private boolean isImageFile(String key) {
+        String lowerKey = key.toLowerCase();
+        return lowerKey.endsWith(".jpg") ||
+                lowerKey.endsWith(".jpeg") ||
+                lowerKey.endsWith(".png") ||
+                lowerKey.endsWith(".gif");
+    }
 }

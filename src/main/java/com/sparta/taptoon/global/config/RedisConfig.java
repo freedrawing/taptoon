@@ -1,6 +1,5 @@
 package com.sparta.taptoon.global.config;
 
-import com.sparta.taptoon.global.handler.WebSocketHandler;
 import com.sparta.taptoon.global.redis.RedisSubscriber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
@@ -69,11 +69,11 @@ public class RedisConfig {
      * connectionFactory를 이용하여 Redis와의 연결을 유지하면서 메시지를 수신
      */
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer(
-            RedisConnectionFactory connectionFactory) {
+    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        log.info("✅ MessageListenerContainer 생성 완료!");
+        container.addMessageListener(messageListenerAdapter(null), new ChannelTopic("chatroom-*")); // 채널 패턴 추가
+        log.info("✅ MessageListenerContainer 생성 완료! Active: {}", container.isRunning());
         return container;
     }
 
@@ -85,7 +85,9 @@ public class RedisConfig {
      */
     @Bean
     public MessageListenerAdapter messageListenerAdapter(RedisSubscriber redisSubscriber) {
-        return new MessageListenerAdapter(redisSubscriber, "onMessage"); // 한 번만 생성
+        MessageListenerAdapter adapter = new MessageListenerAdapter(redisSubscriber, "onMessage");
+        log.info("✅ MessageListenerAdapter 생성 완료! Delegate: {}", redisSubscriber.getClass().getName());
+        return adapter;
     }
 
     @Bean

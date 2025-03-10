@@ -32,11 +32,4 @@ public class ImageController {
         log.info("preSignedUrl: {}",presignedUrlResponse.uploadingImageUrl());
         return ApiResponse.success(presignedUrlResponse);
     }
-
-    @Operation(summary = "S3에서 이미지 삭제")
-    @PostMapping("/delete")
-    public ResponseEntity<ApiResponse<Void>> deleteImage(@Valid String imageUrl) {
-        imageService.removeImageFromS3(imageUrl);
-        return ApiResponse.noContent();
-    }
 }

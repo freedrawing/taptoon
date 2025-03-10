@@ -70,6 +70,8 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
                 .withTrackScores(true)  // 점수 추적 활성화
                 .build();
 
+        log.info("Generated Elasticsearch Query: {}", nativeQuery.getQuery().toString());
+
         // Elasticsearch 검색 실행
         SearchHits<MatchingPostDocument> searchHits = elasticsearchOperations.search(
                 nativeQuery,
@@ -110,27 +112,44 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
      * must(): AND 조건 (모든 조건 만족해야 함)
      * should(): OR 조건 (두 가지 경우 중 하나를 만족)
      */
+//    private Query createCursorFilter(Long lastViewCount, Long lastId) {
+//        return Query.of(filter -> filter.bool(boolFilter -> boolFilter
+//                .should(shouldQuery -> shouldQuery
+//                        .bool(boolQuery -> boolQuery
+//                                .must(mustQuery -> mustQuery.range(rangeQuery -> rangeQuery
+//                                        .field("viewCount")
+//                                        .lt(JsonData.of(lastViewCount)))) // 1️⃣ 조회수가 lastViewCount보다 작은 데이터
+//                                .must(mustQuery -> mustQuery.range(rangeQuery -> rangeQuery
+//                                        .field("id")
+//                                        .lt(JsonData.of(lastId)))) // 2️⃣ id가 lastId보다 작은 데이터
+//                        ))
+//                .should(shouldQuery -> shouldQuery
+//                        .bool(boolQuery -> boolQuery
+//                                .must(mustQuery -> mustQuery.term(termQuery -> termQuery
+//                                        .field("viewCount")
+//                                        .value(lastViewCount))) // 3️⃣ 조회수가 lastViewCount와 동일한 데이터
+//                                .must(mustQuery -> mustQuery.range(rangeQuery -> rangeQuery
+//                                        .field("id")
+//                                        .lt(JsonData.of(lastId)))) // 4️⃣ id가 lastId보다 작은 데이터
+//                        ))
+//        ));
+//    }
     private Query createCursorFilter(Long lastViewCount, Long lastId) {
-        return Query.of(filter -> filter.bool(boolFilter -> boolFilter
-                .should(shouldQuery -> shouldQuery
-                        .bool(boolQuery -> boolQuery
-                                .must(mustQuery -> mustQuery.range(rangeQuery -> rangeQuery
+        return Query.of(query -> query.bool(boolQuery -> boolQuery
+                .filter(filterCondition -> filterCondition.bool(innerBoolQuery -> innerBoolQuery
+                        .should(viewCountCondition -> viewCountCondition
+                                .range(viewCountRange -> viewCountRange
                                         .field("viewCount")
-                                        .lt(JsonData.of(lastViewCount)))) // 1️⃣ 조회수가 lastViewCount보다 작은 데이터
-                                .must(mustQuery -> mustQuery.range(rangeQuery -> rangeQuery
-                                        .field("id")
-                                        .lt(JsonData.of(lastId)))) // 2️⃣ id가 lastId보다 작은 데이터
-                        ))
-                .should(shouldQuery -> shouldQuery
-                        .bool(boolQuery -> boolQuery
-                                .must(mustQuery -> mustQuery.term(termQuery -> termQuery
-                                        .field("viewCount")
-                                        .value(lastViewCount))) // 3️⃣ 조회수가 lastViewCount와 동일한 데이터
-                                .must(mustQuery -> mustQuery.range(rangeQuery -> rangeQuery
-                                        .field("id")
-                                        .lt(JsonData.of(lastId)))) // 4️⃣ id가 lastId보다 작은 데이터
-                        ))
-        ));
+                                        .lt(JsonData.of(lastViewCount))))
+                        .should(sameViewCountCondition -> sameViewCountCondition
+                                .bool(idFilter -> idFilter
+                                        .must(exactViewCountMatch -> exactViewCountMatch.term(viewCountTerm -> viewCountTerm
+                                                .field("viewCount")
+                                                .value(lastViewCount)))
+                                        .must(idRangeCondition -> idRangeCondition.range(idRange -> idRange
+                                                .field("id")
+                                                .lt(JsonData.of(lastId)))))))
+                )));
     }
 
     /**
@@ -187,10 +206,10 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
                         .field("id")
                         .order(SortOrder.Desc))));
 
-//        sortOptions.add(SortOptions.of(sort -> sort
-//                .field(fieldSort -> fieldSort
-//                        .field("createdAt") // 추가
-//                        .order(SortOrder.Desc))));
+        sortOptions.add(SortOptions.of(sort -> sort
+                .field(fieldSort -> fieldSort
+                        .field("createdAt") // 추가
+                        .order(SortOrder.Desc))));
 
         return sortOptions;
     }
