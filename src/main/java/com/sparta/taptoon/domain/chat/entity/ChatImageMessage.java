@@ -1,55 +1,61 @@
 package com.sparta.taptoon.domain.chat.entity;
 
-import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.global.common.BaseEntity;
 import com.sparta.taptoon.global.common.enums.Status;
-import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.time.LocalDateTime;
 
 @Getter
-@NoArgsConstructor
-@Entity
-@Table(name = "chat_image_message")
-public class ChatImageMessage extends BaseEntity {
+@Document(collection = "chat_image_message")
+public class ChatImageMessage {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false, updatable = false)
-    private Long id;
+    private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "room_id", nullable = false)
-    private ChatRoom chatRoom;
+    @Field(name = "chat_room_id")
+    private String chatRoomId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id", nullable = false)
-    private Member sender;
+    @Field(name = "sender_id")
+    private Long senderId;
 
-    @Column(name = "image_url", nullable = false, length = 1000)
-    private String imageUrl;
+    @Field(name = "thumbnail_image_url")
+    private String thumbnailImageUrl;
 
-    @Column(name = "unread_count", nullable = false)
+    @Field(name = "original_image_url")
+    private String originalImageUrl;
+
+    @Field(name = "unread_count")
     private int unreadCount;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Field(name = "status")
     private Status status;
 
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
+    @CreatedDate
+    @Field(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Field(name = "is_deleted")
+    private boolean isDeleted;
 
     @Builder
-    public ChatImageMessage(ChatRoom chatRoom, Member sender, String imageUrl, int unreadCount, Status status) {
-        this.chatRoom = chatRoom;
-        this.sender = sender;
-        this.imageUrl = imageUrl;
+    public ChatImageMessage(String chatRoomId, Long senderId, String thumbnailImageUrl, String originalImageUrl, int unreadCount, Status status) {
+        if (unreadCount < 0) {
+            throw new IllegalArgumentException("읽지 않은 수는 음수가 될 수 없습니다.");
+        }
+        this.chatRoomId = chatRoomId;
+        this.senderId = senderId;
+        this.thumbnailImageUrl = thumbnailImageUrl;
+        this.originalImageUrl = originalImageUrl;
         this.unreadCount = unreadCount;
         this.status = status;
         this.isDeleted = false;
     }
 
-    /** 특정 사용자가 메시지를 읽었을 때 호출 */
     public void decrementUnreadCount() {
         if (this.unreadCount > 0) {
             this.unreadCount--;
@@ -67,4 +73,7 @@ public class ChatImageMessage extends BaseEntity {
         this.unreadCount = unreadCount;
     }
 
+    public void delete() {
+        this.isDeleted = true;
+    }
 }

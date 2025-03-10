@@ -1,49 +1,45 @@
 package com.sparta.taptoon.domain.chat.entity;
 
-import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.global.common.BaseEntity;
-import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Entity
-@Table(name = "chat_room")
-public class ChatRoom extends BaseEntity {
+@Document(collection = "chat_room")
+public class ChatRoom {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false, updatable = false)
-    private Long id;
+    private String id;
 
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
+    @Field(name = "member_ids")
+    @Indexed // memberIds로 빠른 조회를 위해 인덱스 추가
+    private List<Long> memberIds;
 
-    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChatRoomMember> members = new ArrayList<>();
+    @Field(name = "is_deleted")
+    private boolean isDeleted;
 
     @Builder
-    public ChatRoom() {
+    public ChatRoom(List<Long> memberIds) {
+        this.memberIds = memberIds;
         this.isDeleted = false;
-    }
-
-    // 멤버 추가
-    public void addMember(Member member) {
-        this.members.add(ChatRoomMember.builder()
-                .chatRoom(this)
-                .member(member)
-                .build());
-    }
-
-    /** 채팅방에 있는 멤버 수 반환 */
-    public int getMemberCount() {
-        return this.members.size();
     }
 
     public void delete() {
         this.isDeleted = true;
+    }
+
+    public void addMember(Long memberId) {
+        if (!this.memberIds.contains(memberId)) {
+            this.memberIds.add(memberId);
+        }
+    }
+
+    public void removeMember(Long memberId) {
+        this.memberIds.remove(memberId);
     }
 }

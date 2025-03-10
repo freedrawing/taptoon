@@ -46,9 +46,6 @@ public class MatchingPost extends BaseEntity {
     @Column(name = "work_type", nullable = false)
     private WorkType workType;
 
-    @Column(name = "file_url")
-    private String fileUrl; // 이거 필요 없을 듯
-
     @Column(name = "description", nullable = false, length = 3_000)
     private String description;
 
@@ -65,14 +62,12 @@ public class MatchingPost extends BaseEntity {
 
 
     @Builder
-    public MatchingPost(Member author, ArtistType artistType, String title,
-                        WorkType workType, String fileUrl, String description) {
+    public MatchingPost(Member author, ArtistType artistType, String title, WorkType workType, String description) {
 
         this.author = author;
         this.artistType = artistType;
         this.title = title;
         this.workType = workType;
-        this.fileUrl = fileUrl;
         this.description = description;
         this.viewCount = 0L;
         this.status = Status.PENDING; // 처음에는 등록 대기 상태

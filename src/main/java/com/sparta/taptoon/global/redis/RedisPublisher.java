@@ -18,7 +18,7 @@ public class RedisPublisher {
     /**
      * publish (Redis 메시지 발행)
      */
-    public void publish(Long chatRoomId, String message) {
+    public void publish(String chatRoomId, String message) {
         validateInput(chatRoomId, message);
         String topic = createChannelName(chatRoomId);
 
@@ -36,7 +36,7 @@ public class RedisPublisher {
     }
 
     // 입력값 유효성 검사
-    private void validateInput(Long chatRoomId, String message) {
+    private void validateInput(String chatRoomId, String message) {
         if (chatRoomId == null) {
             throw new IllegalArgumentException("채팅방 ID는 null 일 수 없습니다.");
         }
@@ -46,7 +46,7 @@ public class RedisPublisher {
     }
 
     // 채널 이름 생성
-    private String createChannelName(Long chatRoomId) {
+    private String createChannelName(String chatRoomId) {
         return CHANNEL_PREFIX + chatRoomId;
     }
 }

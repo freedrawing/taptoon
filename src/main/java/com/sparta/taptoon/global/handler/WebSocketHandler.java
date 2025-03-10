@@ -3,14 +3,12 @@ package com.sparta.taptoon.global.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.taptoon.domain.chat.dto.request.SendChatMessageRequest;
-import com.sparta.taptoon.domain.chat.entity.ChatMessage;
 import com.sparta.taptoon.domain.chat.service.ChatMessageService;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -20,7 +18,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,14 +27,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketHandler extends TextWebSocketHandler {
 
     private static final String CHAT_ROOM_ID_PATH_INDEX = "/chat/";
-    private static final String LAST_READ_MESSAGE_KEY_TEMPLATE = "chat:room:%d:user:%d";
 
     private final ChatMessageService chatMessageService;
-    private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // 채팅방별 WebSocket 세션 관리
-    private static final Map<Long, Set<WebSocketSession>> chatRoomSessions = new ConcurrentHashMap<>();
+    private static final Map<String, Set<WebSocketSession>> chatRoomSessions = new ConcurrentHashMap<>();
 
     /**
      * WebSocket 연결이 성공하면 실행
@@ -46,7 +41,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        Long chatRoomId = extractChatRoomId(session);
+        String chatRoomId = extractChatRoomId(session);
         Long senderId = getSenderIdFromSession(session);
 
         if (chatRoomId == null || senderId == null) {
@@ -57,8 +52,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
         chatRoomSessions.computeIfAbsent(chatRoomId, k -> ConcurrentHashMap.newKeySet()).add(session);
         log.info("✅ 채팅방 {} 에 세션 {} 추가 완료 (사용자: {})", chatRoomId, session.getId(), senderId);
 
-        // 처음 접속시 읽음 처리
-        updateLastReadMessageId(chatRoomId, senderId);
     }
 
     /**
@@ -73,7 +66,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         try {
             MessagePayload messagePayload = parseMessagePayload(payload);
-            Long chatRoomId = extractChatRoomId(session);
+            String chatRoomId = extractChatRoomId(session);
 
             chatMessageService.sendMessage(messagePayload.senderId(), chatRoomId,
                     new SendChatMessageRequest(messagePayload.message()));
@@ -104,22 +97,18 @@ public class WebSocketHandler extends TextWebSocketHandler {
     /**
      * Redis에서 수신한 메시지를 WebSocket을 통해 해당 채팅방의 모든 클라이언트에게 전송
      */
-    public void broadcastMessage(String message) throws Exception {
-        log.info("📤 WebSocket을 통해 메시지 브로드캐스트: {}", message);
+    public void broadcastMessage(String chatRoomId, String message) throws Exception {
+        log.info("📤 WebSocket을 통해 메시지 브로드캐스트 - chatRoomId: {}, 메시지: {}", chatRoomId, message);
 
-        JsonNode jsonNode = objectMapper.readTree(message);
-        Long chatRoomId = jsonNode.get("chat_room_id").asLong();
-        Long messageId = jsonNode.get("id").asLong();
-
-        // 접속중인 사용자 읽음 처리
         Set<WebSocketSession> sessions = chatRoomSessions.getOrDefault(chatRoomId, Collections.emptySet());
+        JsonNode jsonNode = objectMapper.readTree(message);
+        String messageId = jsonNode.get("id").asText();
+        Long senderIdFromMessage = jsonNode.get("sender_id").asLong();
+
         for (WebSocketSession session : sessions) {
-            Long senderId = getSenderIdFromSession(session);
-            if (senderId != null) {
-                String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);
-                redisTemplate.opsForValue().set(key, String.valueOf(messageId));
-                log.info("✅ 실시간 읽음 처리 - chatRoomId: {}, senderId: {}, messageId: {}",
-                        chatRoomId, senderId, messageId);
+            Long sessionSenderId = getSenderIdFromSession(session);
+            if (sessionSenderId != null && sessionSenderId.equals(senderIdFromMessage)) {
+                chatMessageService.updateLastReadMessage(chatRoomId, sessionSenderId, messageId);
             }
         }
 
@@ -129,7 +118,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     /**
      * 특정 채팅방의 모든 WebSocket 세션을 찾아 메시지를 전송
      */
-    private void sendMessageToChatRoom(Long chatRoomId, String message) throws Exception {
+    private void sendMessageToChatRoom(String chatRoomId, String message) throws Exception {
         Set<WebSocketSession> sessions = chatRoomSessions.getOrDefault(chatRoomId, Collections.emptySet());
         log.info("📤 채팅방 {} 에 연결된 세션 수: {}", chatRoomId, sessions.size());
 
@@ -143,11 +132,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
     /**
      * WebSocket의 URL에서 채팅방 ID를 추출하는 메서드
      */
-    private Long extractChatRoomId(WebSocketSession session) {
+    private String extractChatRoomId(WebSocketSession session) {
         try {
             String path = session.getUri().getPath();
             String chatRoomIdStr = path.substring(path.indexOf(CHAT_ROOM_ID_PATH_INDEX) + CHAT_ROOM_ID_PATH_INDEX.length());
-            return Long.parseLong(chatRoomIdStr);
+            return chatRoomIdStr;
         } catch (Exception e) {
             log.warn("❌ WebSocket URL에서 채팅방 ID 추출 실패: {}", session.getUri().getPath(), e);
             return null;
@@ -184,17 +173,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
         Long senderId = jsonNode.get("senderId").asLong();
         String message = jsonNode.get("message").asText();
         return new MessagePayload(senderId, message);
-    }
-
-    // 초기 접속 시 읽음 처리
-    private void updateLastReadMessageId(Long chatRoomId, Long senderId) {
-        Optional<ChatMessage> latestMessage = chatMessageService.findLatestMessage(chatRoomId);
-        if (latestMessage.isPresent()) {
-            String key = String.format(LAST_READ_MESSAGE_KEY_TEMPLATE, chatRoomId, senderId);
-            redisTemplate.opsForValue().set(key, String.valueOf(latestMessage.get().getId()));
-            log.info("✅ 초기 읽음 처리 - chatRoomId: {}, senderId: {}, lastReadMessageId: {}",
-                    chatRoomId, senderId, latestMessage.get().getId());
-        }
     }
 
     // 메시지 페이로드 데이터 홀더
