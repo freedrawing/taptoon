@@ -112,28 +112,6 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
      * must(): AND 조건 (모든 조건 만족해야 함)
      * should(): OR 조건 (두 가지 경우 중 하나를 만족)
      */
-//    private Query createCursorFilter(Long lastViewCount, Long lastId) {
-//        return Query.of(filter -> filter.bool(boolFilter -> boolFilter
-//                .should(shouldQuery -> shouldQuery
-//                        .bool(boolQuery -> boolQuery
-//                                .must(mustQuery -> mustQuery.range(rangeQuery -> rangeQuery
-//                                        .field("viewCount")
-//                                        .lt(JsonData.of(lastViewCount)))) // 1️⃣ 조회수가 lastViewCount보다 작은 데이터
-//                                .must(mustQuery -> mustQuery.range(rangeQuery -> rangeQuery
-//                                        .field("id")
-//                                        .lt(JsonData.of(lastId)))) // 2️⃣ id가 lastId보다 작은 데이터
-//                        ))
-//                .should(shouldQuery -> shouldQuery
-//                        .bool(boolQuery -> boolQuery
-//                                .must(mustQuery -> mustQuery.term(termQuery -> termQuery
-//                                        .field("viewCount")
-//                                        .value(lastViewCount))) // 3️⃣ 조회수가 lastViewCount와 동일한 데이터
-//                                .must(mustQuery -> mustQuery.range(rangeQuery -> rangeQuery
-//                                        .field("id")
-//                                        .lt(JsonData.of(lastId)))) // 4️⃣ id가 lastId보다 작은 데이터
-//                        ))
-//        ));
-//    }
     private Query createCursorFilter(Long lastViewCount, Long lastId) {
         return Query.of(query -> query.bool(boolQuery -> boolQuery
                 .filter(filterCondition -> filterCondition.bool(innerBoolQuery -> innerBoolQuery

@@ -17,7 +17,6 @@ import java.util.List;
 @Slf4j
 @Getter
 @Document(indexName = "matching_post")
-//@Setting(settingPath = "/elastic/matchingpost-setting.json") // Elasticsearch 버전에 오류가 많아서 이 방법은 안 될 듯하다...
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MatchingPostDocument {
 
@@ -33,7 +32,7 @@ public class MatchingPostDocument {
     @MultiField(
             mainField = @Field(type = FieldType.Text, analyzer = "nori"),
             otherFields = {
-                    @InnerField(suffix = "ngram", type = FieldType.Text, analyzer = "ngram_analyzer"), // 이건 ES에 미리 안 만들어지면 서버 동작 안 함
+                    @InnerField(suffix = "ngram", type = FieldType.Text, analyzer = "ngram_analyzer"),
                     @InnerField(suffix = "english", type = FieldType.Text, analyzer = "english"),
             }
     )
@@ -51,11 +50,11 @@ public class MatchingPostDocument {
     )
     private String description;
 
-    @Field(type = FieldType.Long) // 정렬하려면 인덱싱 돼야 함
+    @Field(type = FieldType.Long)
     private Long viewCount;
 
     @Field(type = FieldType.Nested, index = false)
-    private List<MatchingPostImageResponse> imageList; // Document가 DTO를 가지고 있는 게 좋아 보이지는 않는다.
+    private List<MatchingPostImageResponse> imageList;
 
     // 나중에 정렬할 때 속도가 너무 느리면 `epoch_millis`로 바꾸자
     @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis")
