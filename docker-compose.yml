@@ -1,0 +1,27 @@
+services:
+  taptoon-app:
+    image: ${ECR_REGISTRY}:${IMAGE_TAG}
+    container_name: taptoon-app
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - taptoon-network
+    volumes:
+      - ${CONFIG_DIR}:/app/config
+      - /etc/global-bundle.pem:/app/global-bundle.pem:ro
+    environment:
+      - SPRING_PROFILES_ACTIVE=deploy
+      - SPRING_CONFIG_LOCATION=file:/app/config/application-deploy.yaml
+      - SPRING_DATA_REDIS_HOST=${REDIS_HOST}
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_SSL_ENABLED=false
+      - REDISSON_ADDRESS=redis://${REDIS_HOST}:6379
+      - SPRING_LOGGING_LEVEL_ORG_REDISSON=DEBUG
+      - SPRING_DATA_MONGODB_URI=${MONGO_DB_URI}
+      - MONGO_DB_CA_PATH=/app/global-bundle.pem
+    mem_limit: 2G
+networks:
+  taptoon-network:
+    name: taptoon-network
+    external: true

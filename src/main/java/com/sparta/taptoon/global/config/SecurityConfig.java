@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**", "/api/auth/**",
+                        .requestMatchers("/api/auth/**",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -78,7 +78,8 @@ public class SecurityConfig {
                 "https://nid.naver.com",
                 "http://localhost:*", // 왜 안 되지?
                 "http://localhost:3000",
-                "http://taptoon-front.s3-website.ap-northeast-2.amazonaws.com"
+                "http://taptoon-front.s3-website.ap-northeast-2.amazonaws.com",
+                "https://taptoon.site"
         ));
 
         // 허용할 HTTP 메서드 설정
