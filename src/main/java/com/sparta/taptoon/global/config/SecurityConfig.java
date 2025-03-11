@@ -25,12 +25,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
+import static com.sparta.taptoon.global.common.Constant.*;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final GoogleAuthHandler googleAuthHandler;
     private final MemberRepository memberRepository;
     private final JwtUtil jwtUtil;
 
@@ -43,13 +44,10 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET,"/api/matching-posts/**","/api/comments/**").permitAll()
-                        .requestMatchers("/api/auth/**",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/health").permitAll()
+                        .requestMatchers(HttpMethod.GET,MATCHING_POST_URL,COMMENTS_URL).permitAll()
+                        .requestMatchers(AUTH_URL, CHATTING_NOTIFICATION, CHATTING_WEBSOCKET,
+                                SWAGGER_DOCS_URL, SWAGGER_UI_URL, SWAGGER_HTML_URL).permitAll()
                         .anyRequest().authenticated()
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(googleAuthHandler)
                 )
                 .addFilterBefore(new JwtFilter(memberRepository, jwtUtil),
                         UsernamePasswordAuthenticationFilter.class)
@@ -76,12 +74,11 @@ public class SecurityConfig {
 
         // 허용할 origin 설정
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:8080",
-                "https://nid.naver.com",
-                "http://localhost:*", // 왜 안 되지?
-                "http://localhost:3000",
-                "http://taptoon-front.s3-website.ap-northeast-2.amazonaws.com",
-                "https://taptoon.site"
+                LOCALHOST_SERVER,
+                LOCALHOST_CLIENT,
+                NAVER_CORS,
+                S3_CLIENT,
+                TAPTOON
         ));
 
         // 허용할 HTTP 메서드 설정
