@@ -29,4 +29,6 @@ public class Constant {
     public static String SWAGGER_DOCS_URL = "/v3/api-docs/**";
     public static String SWAGGER_UI_URL = "/swagger-ui/**";
     public static String SWAGGER_HTML_URL = "/swagger-ui.html";
+    public static String CHATTING_NOTIFICATION =  "/notifications/**";
+    public static String CHATTING_WEBSOCKET =  "/ws/chat/**";
 }
