@@ -70,6 +70,7 @@ public class JwtFilter extends OncePerRequestFilter {
         return requestURI.startsWith("/api/auth/") ||
                 requestURI.startsWith("/v3/api-docs/") ||
                 requestURI.startsWith("/swagger-ui/") ||
+                requestURI.startsWith("/health") ||
                 requestURI.equals("/swagger-ui.html");
     }
 }
