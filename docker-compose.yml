@@ -18,8 +18,7 @@ services:
       - SPRING_DATA_REDIS_SSL_ENABLED=false
       - REDISSON_ADDRESS=redis://${REDIS_HOST}:6379
       - SPRING_LOGGING_LEVEL_ORG_REDISSON=DEBUG
-      - SPRING_DATA_MONGODB_URI=${MONGO_DB_URI}
-      - MONGO_DB_CA_PATH=/app/global-bundle.pem
+      - SPRING_DATA_MONGODB_URI=${MONGO_URI}
     mem_limit: 2G
 networks:
   taptoon-network:
