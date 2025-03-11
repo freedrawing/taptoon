@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -42,9 +44,9 @@ public class AwsS3Service {
 
     public String generatePresignedUrl(String filePath, String fileName) {
         String contentType = ContentTypeUtil.getContentType(fileName);
+        fileName = normalizeName(fileName);
         String fullPath = normalizePath(filePath) + fileName;
         GeneratePresignedUrlRequest request = generatePresignedUrlRequest(fullPath, contentType);
-
         return amazonS3.generatePresignedUrl(request).toString();
     }
 
@@ -78,6 +80,13 @@ public class AwsS3Service {
                 .withMethod(HttpMethod.PUT)
                 .withExpiration(expiration)
                 .withContentType(contentType);
+    }
+
+    private String normalizeName(String fileName) {
+        String fixedFileName = fileName.replaceAll(" ", "");
+        LocalDateTime dateTime = LocalDateTime.now();
+        String dateTimeStr = dateTime.format(DateTimeFormatter.ofPattern("HHmmss"));
+        return dateTimeStr + "_" + fixedFileName;
     }
 
     private String normalizePath(String path) {

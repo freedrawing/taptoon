@@ -36,10 +36,15 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         String header = request.getHeader(AUTHORIZATION_HEADER);
-        log.info("uri: {} header: {}", request.getRequestURI(),header);
-        if (header == null || header.isEmpty() || header.equals("null")) {
-            log.info("No authorization header, skipping token validation");
+        String requestURI = request.getRequestURI();
+        if (isWhiteList(requestURI)) {
             chain.doFilter(request, response);
+            return;
+        }
+        // 헤더가 없거나 비어있거나 "null"인 경우 인증 필요 경로면 차단
+        if (header == null || header.isEmpty() || header.equals("null")) {
+            log.info("No authorization header for protected resource");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication required");
             return;
         }
         try {
@@ -59,5 +64,12 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
         chain.doFilter(request, response);
+    }
+
+    private boolean isWhiteList(String requestURI) {
+        return requestURI.startsWith("/api/auth/") ||
+                requestURI.startsWith("/v3/api-docs/") ||
+                requestURI.startsWith("/swagger-ui/") ||
+                requestURI.equals("/swagger-ui.html");
     }
 }
