@@ -44,7 +44,6 @@ public class AwsS3Service {
 
     public String generatePresignedUrl(String filePath, String fileName) {
         String contentType = ContentTypeUtil.getContentType(fileName);
-        fileName = normalizeName(fileName);
         String fullPath = normalizePath(filePath) + fileName;
         GeneratePresignedUrlRequest request = generatePresignedUrlRequest(fullPath, contentType);
         return amazonS3.generatePresignedUrl(request).toString();
@@ -82,12 +81,7 @@ public class AwsS3Service {
                 .withContentType(contentType);
     }
 
-    private String normalizeName(String fileName) {
-        String fixedFileName = fileName.replaceAll(" ", "");
-        LocalDateTime dateTime = LocalDateTime.now();
-        String dateTimeStr = dateTime.format(DateTimeFormatter.ofPattern("HHmmss"));
-        return dateTimeStr + "_" + fixedFileName;
-    }
+
 
     private String normalizePath(String path) {
         if (!path.endsWith("/")) {
