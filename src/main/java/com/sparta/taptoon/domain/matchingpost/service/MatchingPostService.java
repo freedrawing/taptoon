@@ -52,7 +52,6 @@ public class MatchingPostService {
                 .title("")
                 .author(findMember)
                 .description("")
-                .fileUrl("")
                 .workType(WorkType.random())
                 .artistType(ArtistType.random())
                 .build());

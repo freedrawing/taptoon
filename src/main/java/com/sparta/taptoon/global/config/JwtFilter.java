@@ -15,6 +15,7 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +25,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
@@ -34,7 +36,9 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         String header = request.getHeader(AUTHORIZATION_HEADER);
+        log.info("uri: {} header: {}", request.getRequestURI(),header);
         if (!StringUtils.hasText(header)) {
+            log.info("토큰 정보가 없지만, security 에서 보증했기에 인증 생략합니다.");
             chain.doFilter(request, response);
             return;
         }

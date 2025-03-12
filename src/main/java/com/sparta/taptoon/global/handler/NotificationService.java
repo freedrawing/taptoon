@@ -2,6 +2,7 @@ package com.sparta.taptoon.global.handler;
 
 import com.sparta.taptoon.domain.chat.dto.response.ChatRoomListResponse;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
+import com.sparta.taptoon.domain.chat.service.ChatMessageService;
 import com.sparta.taptoon.domain.chat.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,13 +19,14 @@ import java.util.Map;
 public class NotificationService {
     private final NotificationWebSocketHandler notificationWebSocketHandler;
     private final ChatRoomService chatRoomService;
+    private final ChatMessageService chatMessageService;
 
     public void notifyNewMessage(String chatRoomId, Long senderId, String message) {
         ChatRoom chatRoom = chatRoomService.findChatRoom(chatRoomId);
         List<Long> memberIds = chatRoom.getMemberIds();
 
         memberIds.forEach(memberId -> {
-            int unreadCount = chatRoomService.calculateUnreadCount(chatRoom, memberId);
+            int unreadCount = chatMessageService.calculateUnreadCount(chatRoomId, memberId);
             Map<String, Object> notification = new HashMap<>();
             notification.put("type", "message");
             notification.put("chatRoomId", chatRoomId);

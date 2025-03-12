@@ -42,7 +42,7 @@ MySQL Full-Text Index 새
 
 ```sql
 CREATE FULLTEXT INDEX ft_idx_post_search ON matching_post (title, description) WITH PARSER ngram;
-INSERT INTO matching_post (title) ... ('웹툰작가 구합니다!!', ....);
+INSERT INTO matching_post (title) ... ('웹툰작가를 모집합니다!!', ....);
 ```
 
 MySQL의 Full-Text Index의 경우 NGram을 Parser로 채택하면 아래와 같이 인덱싱이 된다. 아래 결과에서 볼 수 있는 것처럼 의미 단위가 아닌 Default인 2글자마다 인덱싱이 되며, 불필요한 단어도 인덱싱이 되는 것을 알 수 있다.

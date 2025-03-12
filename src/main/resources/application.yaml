@@ -67,5 +67,3 @@ cloud:
     s3:
       bucket: your-bucket-name
 
-slack:
-  webhook-url: "https://hooks.slack.com/services/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"

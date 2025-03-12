@@ -1,6 +1,6 @@
 package com.sparta.taptoon.domain.images;
 
-import com.sparta.taptoon.domain.image.S3UploadClient;
+import com.sparta.taptoon.domain.image.dto.S3UploadClient;
 import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
 import com.sparta.taptoon.domain.image.service.ImageService;
 import com.sparta.taptoon.global.common.Constant;
