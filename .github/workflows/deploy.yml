@@ -356,47 +356,59 @@ jobs:
         env:
           ECR_REPOSITORY: taptoon
         run: |
-          # 이미지 정리 (최신 10개만 유지) - 더 안정적인 쿼리 사용
+          # 간소화된 ECR 이미지 정리 (최신 10개 제외한 태그 없는 이미지만 삭제)
           echo "오래된 ECR 이미지 정리 중..."
           
-          # 모든 이미지 정보 가져오기
-          ALL_IMAGES=$(aws ecr describe-images \
+          # 1. latest와 previous 태그가 붙은 이미지의 다이제스트 목록 가져오기
+          TAGGED_DIGESTS=$(aws ecr describe-images \
             --repository-name $ECR_REPOSITORY \
+            --filter "tagStatus=TAGGED" \
+            --query 'imageDetails[?contains(imageTags, `latest`) || contains(imageTags, `previous`)].imageDigest' \
+            --output json | jq -r '.[]')
+          
+          echo "보존할 태그된 이미지:"
+          echo "$TAGGED_DIGESTS"
+          
+          # 2. 모든 이미지 중 최신 10개의 다이제스트 가져오기
+          RECENT_DIGESTS=$(aws ecr describe-images \
+            --repository-name $ECR_REPOSITORY \
+            --query 'sort_by(imageDetails,& imagePushedAt)[-10:].imageDigest' \
+            --output json | jq -r '.[]')
+          
+          echo "보존할 최신 이미지:"
+          echo "$RECENT_DIGESTS"
+          
+          # 3. 삭제할 태그 없는 이미지 (최신 10개 제외)
+          UNTAGGED_IMAGES=$(aws ecr describe-images \
+            --repository-name $ECR_REPOSITORY \
+            --filter "tagStatus=UNTAGGED" \
+            --query 'imageDetails[].imageDigest' \
             --output json)
           
-          # 태그 여부와 관계없이 모든 이미지를 푸시 시간 기준으로 정렬
-          KEEP_DIGESTS=$(echo "$ALL_IMAGES" | jq -r '.imageDetails | sort_by(.imagePushedAt) | reverse | .[0:10] | .[].imageDigest')
+          # 4. 최신 10개에 포함되지 않는 태그 없는 이미지만 삭제
+          echo "삭제할 이미지 확인 중..."
+          IMAGES_TO_DELETE=()
           
-          # 보관할 다이제스트 목록
-          echo "보관할 최신 이미지 다이제스트:"
-          echo "$KEEP_DIGESTS"
+          for DIGEST in $(echo "$UNTAGGED_IMAGES" | jq -r '.[]'); do
+            # 최신 10개에 포함되는지 확인
+            if ! echo "$RECENT_DIGESTS" | grep -q "$DIGEST"; then
+              IMAGES_TO_DELETE+=("$DIGEST")
+            fi
+          done
           
-          # 삭제할 이미지 찾기 (latest와 previous 태그 제외, 최신 10개 제외)
-          IMAGES_TO_DELETE=$(echo "$ALL_IMAGES" | jq -r '
-            .imageDetails |
-            map(select(
-              (.imageTags | length == 0 or (.imageTags | index("latest") | not) and (.imageTags | index("previous") | not))
-            )) |
-            sort_by(.imagePushedAt)[:-10] |
-            map(.imageDigest)
-          ')
+          # 5. 이미지 삭제
+          if [ ${#IMAGES_TO_DELETE[@]} -gt 0 ]; then
+            echo "다음 이미지들을 삭제합니다:"
+            printf '%s\n' "${IMAGES_TO_DELETE[@]}"
           
-          # [] 대괄호 제거
-          IMAGES_TO_DELETE=$(echo "$IMAGES_TO_DELETE" | jq -c 'del(._symbols)')
-          
-          if [ "$IMAGES_TO_DELETE" != "[]" ] && [ "$IMAGES_TO_DELETE" != "" ]; then
-            echo "삭제할 이미지 목록:"
-            echo "$IMAGES_TO_DELETE" | jq -r '.[]'
-          
-            # 각 다이제스트를 개별적으로 삭제
-            for DIGEST in $(echo "$IMAGES_TO_DELETE" | jq -r '.[]'); do
+            for DIGEST in "${IMAGES_TO_DELETE[@]}"; do
               echo "삭제 중: $DIGEST"
               aws ecr batch-delete-image \
                 --repository-name $ECR_REPOSITORY \
-                --image-ids imageDigest=$DIGEST || echo "이미지 삭제 실패: $DIGEST (무시하고 계속 진행)"
+                --image-ids imageDigest=$DIGEST || echo "삭제 실패 (무시하고 계속 진행)"
             done
           
             echo "오래된 ECR 이미지 정리 완료"
           else
-            echo "정리할 오래된 ECR 이미지가 없습니다"
+            echo "정리할 오래된 이미지가 없습니다"
           fi
