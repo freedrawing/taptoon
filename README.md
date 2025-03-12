@@ -87,11 +87,10 @@
 ## 프로젝트 구조
 
 ### 프로젝트 아키텍처
-<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/d936aeb0-f7ec-47fe-950a-2bd62a9a9fb1" />
+<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/d936aeb0-f7ec-47fe-950a-2bd62a9a9fb1" style="border-radius: 15px;" />
 
 ### ERD (RDMBS)
 
-```mermaid
 ```mermaid
 erDiagram
     member ||--o{ portfolio : owner_id
@@ -225,15 +224,6 @@ classDiagram
 
 ## 프로젝트 사용 흐름
 
-```mermaid
-sequenceDiagram
-  participant 사용자
-  participant 서버
-  사용자->>서버: 로그인 요청
-  서버-->>사용자: 로그인 응답
-  사용자->>서버: 데이터 요청
-  서버-->>사용자: 데이터 응답
-```
 1. 사용자는 회원 가입을 먼저 해야 합니다.
 2. 사용자는 본인의 포트폴리오를 작성할 수 있습니다.
 3. 사용자는 글/그림작가를 구인하는 구인 글을 작성할 수 있습니다.
