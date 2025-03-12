@@ -159,7 +159,7 @@ public class MatchingPostService {
     }
 
     private MatchingPost findMatchingPostById(Long matchingPostId) {
-        MatchingPost matchingPost = matchingPostRepository.findById(matchingPostId)
+        MatchingPost matchingPost = matchingPostRepository.findByIdWithAuthor(matchingPostId)
                 .orElseThrow(() -> new NotFoundException(MATCHING_POST_NOT_FOUND));
 
         matchingPost.validateIsDeleted();

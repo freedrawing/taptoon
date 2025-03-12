@@ -26,6 +26,9 @@ public class MatchingPostDocument {
     @Field(type = FieldType.Long, index = false)
     private Long authorId;
 
+    @Field(type = FieldType.Text)
+    private String authorName;
+
     @Field(type = FieldType.Keyword, normalizer = "lowercase")
     private ArtistType artistType;
 
@@ -65,12 +68,13 @@ public class MatchingPostDocument {
 
 
     @Builder
-    public MatchingPostDocument(Long id, Long authorId, ArtistType artistType, String title,
+    public MatchingPostDocument(Long id, Long authorId, String authorName, ArtistType artistType, String title,
                                 WorkType workType, String description, Long viewCount, List<MatchingPostImageResponse> imageList,
                                 LocalDateTime createdAt, LocalDateTime updatedAt) {
 
         this.id = id;
         this.authorId = authorId;
+        this.authorName= authorName;
         this.artistType = artistType;
         this.title = title;
         this.workType = workType;
@@ -85,6 +89,7 @@ public class MatchingPostDocument {
         return MatchingPostDocument.builder()
                 .id(matchingPost.getId())
                 .authorId(matchingPost.getAuthor().getId())
+                .authorName(matchingPost.getAuthor().getName())
                 .artistType(matchingPost.getArtistType())
                 .title(matchingPost.getTitle())
                 .workType(matchingPost.getWorkType())
