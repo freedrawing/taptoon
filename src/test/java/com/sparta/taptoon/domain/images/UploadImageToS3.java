@@ -2,7 +2,7 @@ package com.sparta.taptoon.domain.images;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.sparta.taptoon.domain.image.S3UploadClient;
+import com.sparta.taptoon.domain.image.dto.S3UploadClient;
 import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
 import com.sparta.taptoon.domain.image.service.AwsS3Service;
 import com.sparta.taptoon.domain.image.service.ImageServiceImpl;
