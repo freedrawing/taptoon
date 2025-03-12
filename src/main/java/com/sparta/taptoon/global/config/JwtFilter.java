@@ -37,8 +37,8 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         String header = request.getHeader(AUTHORIZATION_HEADER);
         log.info("uri: {} header: {}", request.getRequestURI(),header);
-        if (header == null || header.isEmpty() || header.equals("null")) {
-            log.info("No authorization header, skipping token validation");
+        if (!StringUtils.hasText(header)) {
+            log.info("토큰 정보가 없지만, security 에서 보증했기에 인증 생략합니다.");
             chain.doFilter(request, response);
             return;
         }
