@@ -87,7 +87,7 @@
 ## 프로젝트 구조
 
 ### 프로젝트 아키텍처
-<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/d936aeb0-f7ec-47fe-950a-2bd62a9a9fb1" style="border-radius: 15px;" />
+<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/2bcb5aee-b822-47dc-8873-ab15754abf26" style="border-radius: 15px;" />
 
 ### ERD (RDMBS)
 
@@ -224,12 +224,22 @@ classDiagram
 
 ## 프로젝트 사용 흐름
 
-1. 사용자는 회원 가입을 먼저 해야 합니다.
-2. 사용자는 본인의 포트폴리오를 작성할 수 있습니다.
-3. 사용자는 글/그림작가를 구인하는 구인 글을 작성할 수 있습니다.
-4. 사용자는 키워드를 통해 구인 글을 검색할 수 있습니다. 
-5. 사용자는 구인 글을 보고 마음에 드는 회원의 프로필을 조회할 수 있습니다. 
-6. 해당 회원과 컨택하고자 한다면 채팅을 할 수 있습니다.
+
+```mermaid
+flowchart TD
+    A[시작] --> B[회원 가입]
+    B --> C[포트폴리오 작성]
+    C --> K[포트폴리오 수정/삭제]
+    B --> D[구인 글 작성]
+    D --> E[구인 글 수정/삭제]
+    D --> F[다른 사용자와 채팅]
+    D --> G[구인 글 검색]
+    D --> H[다른 사람의 프로필 조회]
+    H --> L[다른 사람의 포트폴리오 조회]
+    F --> I[채팅 종료]
+    H --> J[프로필 닫기]
+    L --> M[포트폴리오 닫기]
+```
 
 ## 이용 방법
 ### 회원
@@ -292,7 +302,7 @@ classDiagram
       <a href="https://github.com/freedrawing">
         <img src="https://avatars.githubusercontent.com/u/43941383?v=4" width="100px" />
       </a><br>
-      <b>팀원</b>
+      <b>부팀장</b>
     </td>
     <td align="center">
       <b><a href="https://github.com/leithharbor">이상구</a></b><br>
