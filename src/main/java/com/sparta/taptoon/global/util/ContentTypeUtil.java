@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ContentTypeUtil {
+public class    ContentTypeUtil {
 
     private static final Map<String, String> CONTENT_TYPE_MAP = Collections.unmodifiableMap(new HashMap<>() {{
         put("jpg", "image/jpeg");
