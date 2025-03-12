@@ -356,18 +356,45 @@ jobs:
         env:
           ECR_REPOSITORY: taptoon
         run: |
-          # 이미지 정리 (최신 10개만 유지)
+          # 이미지 정리 (최신 10개만 유지) - 더 안정적인 쿼리 사용
           echo "오래된 ECR 이미지 정리 중..."
           
-          IMAGES_TO_DELETE=$(aws ecr describe-images \
+          # 모든 이미지 정보 가져오기
+          ALL_IMAGES=$(aws ecr describe-images \
             --repository-name $ECR_REPOSITORY \
-            --query 'sort_by(imageDetails[?!contains(imageTags[],`latest`) && !contains(imageTags[],`previous`)],& imagePushedAt)[:-10].imageDigest' \
             --output json)
           
+          # 태그 여부와 관계없이 모든 이미지를 푸시 시간 기준으로 정렬
+          KEEP_DIGESTS=$(echo "$ALL_IMAGES" | jq -r '.imageDetails | sort_by(.imagePushedAt) | reverse | .[0:10] | .[].imageDigest')
+          
+          # 보관할 다이제스트 목록
+          echo "보관할 최신 이미지 다이제스트:"
+          echo "$KEEP_DIGESTS"
+          
+          # 삭제할 이미지 찾기 (latest와 previous 태그 제외, 최신 10개 제외)
+          IMAGES_TO_DELETE=$(echo "$ALL_IMAGES" | jq -r '
+            .imageDetails |
+            map(select(
+              (.imageTags | length == 0 or (.imageTags | index("latest") | not) and (.imageTags | index("previous") | not))
+            )) |
+            sort_by(.imagePushedAt)[:-10] |
+            map(.imageDigest)
+          ')
+          
+          # [] 대괄호 제거
+          IMAGES_TO_DELETE=$(echo "$IMAGES_TO_DELETE" | jq -c 'del(._symbols)')
+          
           if [ "$IMAGES_TO_DELETE" != "[]" ] && [ "$IMAGES_TO_DELETE" != "" ]; then
-            aws ecr batch-delete-image \
-              --repository-name $ECR_REPOSITORY \
-              --image-ids $(echo $IMAGES_TO_DELETE | jq -r '[.[] | {imageDigest: .}]')
+            echo "삭제할 이미지 목록:"
+            echo "$IMAGES_TO_DELETE" | jq -r '.[]'
+          
+            # 각 다이제스트를 개별적으로 삭제
+            for DIGEST in $(echo "$IMAGES_TO_DELETE" | jq -r '.[]'); do
+              echo "삭제 중: $DIGEST"
+              aws ecr batch-delete-image \
+                --repository-name $ECR_REPOSITORY \
+                --image-ids imageDigest=$DIGEST || echo "이미지 삭제 실패: $DIGEST (무시하고 계속 진행)"
+            done
           
             echo "오래된 ECR 이미지 정리 완료"
           else
