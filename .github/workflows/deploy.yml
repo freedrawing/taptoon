@@ -47,21 +47,20 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build and Push Docker image
-        uses: docker/build-push-action@v3
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: taptoon
           IMAGE_TAG: ${{ github.sha }}
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-          cache-from: type=registry,ref=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-          cache-to: type=inline
-          build-args: |
-            BUILDKIT_INLINE_CACHE=1
+        run: |
+          echo "Docker 이미지 빌드 및 푸시 중..."
+          docker build \
+            --cache-from $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          
+          echo "이미지 태그: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
   deploy_and_health_check:
     needs: build_and_push
@@ -114,10 +113,10 @@ jobs:
             --strategy "Rolling" \
             --preferences '{
               "MinHealthyPercentage": 50,
-              "InstanceWarmup": 90,
-              "MaxHealthyPercentage": 150,
-              "CheckpointPercentages": [50, 100],
-              "CheckpointDelay": 30
+              "InstanceWarmup": 60,
+              "MaxHealthyPercentage": 200,
+              "CheckpointPercentages": [25, 50, 100],
+              "CheckpointDelay": 10
             }')
           
           REFRESH_ID=$(echo $REFRESH | jq -r '.InstanceRefreshId')
@@ -125,8 +124,8 @@ jobs:
           echo "refresh-id=$REFRESH_ID" >> $GITHUB_OUTPUT
           
           # 첫 번째 체크포인트까지만 대기
-          echo "50% 체크포인트까지 모니터링 시작..."
-          CHECKPOINT_TIMEOUT=600  # 10분
+          echo "첫 번째 체크포인트(25%)까지 모니터링 시작..."
+          CHECKPOINT_TIMEOUT=300  # 5분
           START_TIME=$(date +%s)
           LAST_STATUS=""
           LAST_PROGRESS="0"
@@ -155,9 +154,9 @@ jobs:
               LAST_PROGRESS="$PROGRESS"
             fi
           
-            # 첫 번째 체크포인트에 도달하면 중단
-            if [[ "$CHECKPOINT" == *"50"* ]]; then
-              echo "✅ 첫 번째 체크포인트(50%)에 도달했습니다!"
+            # 첫 번째 체크포인트(25%)에 도달하면 중단
+            if [[ "$CHECKPOINT" == *"25"* ]]; then
+              echo "✅ 첫 번째 체크포인트(25%)에 도달했습니다!"
               break
             fi
           
