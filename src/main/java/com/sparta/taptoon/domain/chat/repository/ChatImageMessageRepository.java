@@ -1,15 +1,18 @@
 package com.sparta.taptoon.domain.chat.repository;
 
 import com.sparta.taptoon.domain.chat.entity.ChatImageMessage;
-import com.sparta.taptoon.domain.chat.entity.ChatRoom;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.sparta.taptoon.global.common.enums.Status;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
-public interface ChatImageMessageRepository extends JpaRepository<ChatImageMessage, Long> {
+public interface ChatImageMessageRepository extends MongoRepository<ChatImageMessage, String> {
 
-    Optional<ChatImageMessage> findByIdAndChatRoom(Long id, ChatRoom chatRoom);
-    List<ChatImageMessage> findByChatRoomOrderByCreatedAtAsc(ChatRoom chatRoom);
-    List<ChatImageMessage> findByChatRoomAndIdGreaterThan(ChatRoom chatRoom, Long id);
+    List<ChatImageMessage> findByChatRoomIdOrderByCreatedAtAsc(String chatRoomId);
+
+
+    // 스케줄러 관련
+    List<ChatImageMessage> findByStatusAndCreatedAtBefore(Status status, LocalDateTime threshold);
+    List<ChatImageMessage> findByStatus(Status status);
 }

@@ -5,19 +5,19 @@ import lombok.Builder;
 
 @Builder
 public record ChatRoomListResponse(
-        Long roomId,
+        String roomId,
         String lastMessage,
         String lastMessageTime,
         int unreadCount,
         int memberCount
 ) {
-    public static ChatRoomListResponse of(ChatRoom chatRoom, String lastMessage, String lastMessageTime, int unreadCount) {
+    public static ChatRoomListResponse from(ChatRoom chatRoom, String lastMessage, String lastMessageTime, int unreadCount) {
         return ChatRoomListResponse.builder()
                 .roomId(chatRoom.getId())
                 .lastMessage(lastMessage)
                 .lastMessageTime(lastMessageTime)
                 .unreadCount(unreadCount)
-                .memberCount(chatRoom.getMemberCount())
+                .memberCount(chatRoom.getMemberIds().size())
                 .build();
     }
 }

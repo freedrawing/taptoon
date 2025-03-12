@@ -45,7 +45,7 @@ public class ChatRoomController {
     @DeleteMapping("/chat-room/{chatRoomId}")
     public ResponseEntity<ApiResponse<Void>> deleteChatRoom(
             @AuthenticationPrincipal MemberDetail memberDetail,
-            @PathVariable Long chatRoomId) {
+            @PathVariable String chatRoomId) {
 
         chatRoomService.deleteChatRoom(memberDetail.getId(), chatRoomId);
         return ApiResponse.noContent();

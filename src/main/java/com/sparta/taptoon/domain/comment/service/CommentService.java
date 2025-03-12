@@ -1,5 +1,6 @@
 package com.sparta.taptoon.domain.comment.service;
 
+import com.sparta.taptoon.domain.comment.controller.CommentController;
 import com.sparta.taptoon.domain.comment.dto.request.CommentRequest;
 import com.sparta.taptoon.domain.comment.dto.response.CommentResponse;
 import com.sparta.taptoon.domain.comment.entity.Comment;
@@ -14,6 +15,8 @@ import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -149,11 +152,22 @@ public class CommentService {
         List<Comment> allByParentId = commentRepository.findAllByParentId(commentId);
         allByParentId.forEach(Comment::remove);
     }
+
+    // 댓글 페이지네이션
+    @Transactional(readOnly = true)
+    public Page<CommentResponse> findCommentsPagination(Long matchingPostId, int page) {
+        PageRequest pageable = PageRequest.of(page, 10); // 10개씩 조회
+        return commentRepository.findAllCommentsByMatchingPostId(matchingPostId, pageable);
+    }
+
+    // 답글 페이지네이션
+    @Transactional(readOnly = true)
+    public Page<CommentResponse> findRepliesPagination(Long parentId, int page) {
+        PageRequest pageable = PageRequest.of(page, 10); // 10개씩 조회
+        return commentRepository.findAllRepliesByParentId(parentId, pageable);
+    }
 }
-        /*
-         1. isDeleted true인 댓글들 조회 안되게 예외처리
-         2. 댓글은 자식까지만 (손주, 증손주 허용안됨)
-         3. 특정 댓글과 대댓글 조회에서 답글은 조회대상에서 제외시키기
-         4. 포스트에서 댓글만 조회할때 답글이 있는지 없는지 response에서 알려주기
-         5. 조회 api Pageable통해 페이징처리 기능 추가
-         */
+
+          /*
+          포스트에서 댓글만 조회할때 답글 유무 (개수) 알려주기
+           */
