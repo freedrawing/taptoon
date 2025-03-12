@@ -16,7 +16,6 @@ public record PortfolioResponse(
         LocalDateTime updatedAt,
         List<PortfolioFileResponse> fileList
 ) {
-    // PortfolioResponse에 PortfolioFileResponse를 담기
     public static PortfolioResponse from(Portfolio portfolio) {
         return new PortfolioResponse(
                 portfolio.getId(),

@@ -1,7 +1,6 @@
 package com.sparta.taptoon.domain.auth.service;
 
 import com.sparta.taptoon.domain.auth.dto.request.LoginMemberRequest;
-import com.sparta.taptoon.domain.auth.dto.request.OAuthDisconnectRequest;
 import com.sparta.taptoon.domain.auth.dto.request.SignupMemberRequest;
 import com.sparta.taptoon.domain.auth.dto.response.LoginMemberResponse;
 import com.sparta.taptoon.domain.auth.dto.response.TokenInfo;
@@ -40,8 +39,9 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
-    public boolean checkEmailAlreadyExist(String email) {
-        return memberRepository.findByEmail(email).isPresent();
+    public boolean isEmailAvailable(String email) {
+        Long count = memberRepository.countAllByEmail(email);
+        return count == 0L;
     }
 
     public MemberResponse signUp(SignupMemberRequest request) {

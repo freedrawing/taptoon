@@ -21,7 +21,7 @@ public record PortfolioFileResponse(
                 portfolioFile.getPortfolio().getId(),
                 portfolioFile.getFileName(),
                 portfolioFile.getFileType().name(),
-                portfolioFile.getThumbnailUrl(), // file일 경우 null
+                portfolioFile.getThumbnailUrl(),
                 portfolioFile.getFileUrl()
         );
     }

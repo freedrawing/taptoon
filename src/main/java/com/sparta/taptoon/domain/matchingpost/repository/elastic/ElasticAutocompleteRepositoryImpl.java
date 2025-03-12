@@ -18,7 +18,6 @@ public class ElasticAutocompleteRepositoryImpl implements ElasticAutocompletedRe
 
     private final ElasticsearchOperations elasticsearchOperations;
 
-    // Autocomplete
     @Override
     public List<String> searchAutocomplete(String keyword) {
         NativeQuery query = NativeQuery.builder()
