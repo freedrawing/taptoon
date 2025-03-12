@@ -10,19 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
-/**
- * 순환참조가 발생해서 만들었습니다.
- * 이미지 삭제할 때 MatchingPostService에서 이미지를 삭제하기 위해서 ImageSerivce를 참조해야 하는데 참조하면 순환참조가 발생해서 만들었습니다.
- * 또한 현재 ImageService에 여러 도메인과 로직이 혼재돼 있어서, S3 관련된 로직은 여기에 넣는 게 더 좋아 보입니다.
- * 안 바꾸면 작업 진행이 안 돼서...
- * 만약 ImageServiceImpl를 그냥 놔두면 MatchingPostImageService를 따로 만들기에는 로직도 별로 없고, PortfolioImageService도 만들어줘야 해서...
- * 추후에 Chatting 관련 로직도 ImageServiceImpl에서 따로 분리하는 게 좋아보입니다.
- * 마음대로 바꿔서 미안합니당.
- */
+import static com.sparta.taptoon.global.common.Constant.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -50,8 +41,8 @@ public class AwsS3Service {
     }
 
     public void removeObject(String url) {
-        String key = url.substring(url.indexOf(".com/") + 5);
-        if (key.contains("?")) {
+        String key = url.substring(url.indexOf(COM_PATH) + 5);
+        if (key.contains(PARAM_MARK)) {
             key = key.substring(0, key.indexOf("?"));
         }
         try {
@@ -60,7 +51,7 @@ public class AwsS3Service {
             log.info("S3에서 객체 삭제 성공. key: {}", key);
             // 삭제하려는 파일이 이미지면 썸네일 파일 삭제
             if (isImageFile(key)) {
-                String thumbnailKey = key.replace("/original/", "/thumbnail/");
+                String thumbnailKey = key.replace(ORIGINAL_FILE_PATH, THUMBNAIL_FILE_PATH);
                 amazonS3.deleteObject(BUCKET, thumbnailKey);
                 log.info("S3에서 썸네일 객체 삭제 성공. key: {}", thumbnailKey);
             }
@@ -81,20 +72,18 @@ public class AwsS3Service {
                 .withContentType(contentType);
     }
 
-
-
     private String normalizePath(String path) {
-        if (!path.endsWith("/")) {
-            return path + "/";
+        if (!path.endsWith(SLASH_PATH)) {
+            return path + SLASH_PATH;
         }
         return path.toLowerCase();
     }
 
     private boolean isImageFile(String key) {
         String lowerKey = key.toLowerCase();
-        return lowerKey.endsWith(".jpg") ||
-                lowerKey.endsWith(".jpeg") ||
-                lowerKey.endsWith(".png") ||
-                lowerKey.endsWith(".gif");
+        return lowerKey.endsWith(JPG) ||
+                lowerKey.endsWith(JPEG) ||
+                lowerKey.endsWith(PNG) ||
+                lowerKey.endsWith(GIF);
     }
 }

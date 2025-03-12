@@ -32,4 +32,15 @@ public class Constant {
     public static String SWAGGER_HTML_URL = "/swagger-ui.html";
     public static String CHATTING_NOTIFICATION =  "/notifications/**";
     public static String CHATTING_WEBSOCKET =  "/ws/chat/**";
+
+    //s3
+    public static String PARAM_MARK = "?";
+    public static String ORIGINAL_FILE_PATH = "/original/";
+    public static String THUMBNAIL_FILE_PATH = "/thumbnail/";
+    public static String SLASH_PATH = "/";
+    public static String COM_PATH = ".com/";
+    public static String JPG = ".jpg";
+    public static String JPEG = ".jpeg";
+    public static String PNG = ".png";
+    public static String GIF = ".gif";
 }
