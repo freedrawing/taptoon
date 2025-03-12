@@ -16,6 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import static com.sparta.taptoon.global.common.Constant.*;
 
 @Slf4j
@@ -32,7 +35,7 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public PresignedUrlResponse generatePresignedUrl(String folderPath, Long id, String fileType, String fileName) {
-        String fileNameWithId = String.format("%s-%s", id, fileName);
+        String fileNameWithId = normalizeName(String.valueOf(id), fileName);
         String thumbnailPath = String.format("%s/%s", folderPath, S3_THUMBNAIL_IMAGE_PATH);
         String originalPath = String.format("%s/%s", folderPath, S3_ORIGINAL_IMAGE_PATH);
 
@@ -78,7 +81,7 @@ public class ImageServiceImpl implements ImageService {
     // Chat용
     @Override
     public ChatPresignedUrlResponse generatePresignedUrl(String folderPath, String chatRoomId, Long memberId, String fileName) {
-        String fileNameWithId = String.format("%s-%s", chatRoomId, fileName);
+        String fileNameWithId = normalizeName(chatRoomId,fileName);
         String thumbnailPath = String.format("%s/%s", folderPath, S3_THUMBNAIL_IMAGE_PATH);
         String originalPath = String.format("%s/%s", folderPath, S3_ORIGINAL_IMAGE_PATH);
 
@@ -87,6 +90,14 @@ public class ImageServiceImpl implements ImageService {
         String originalImageFullPath = awsS3Service.getFullUrl(originalPath, fileNameWithId);
 
         return getChatPresignedUrl(chatRoomId, memberId, fileName,thumbnailImageFullPath, originalImageFullPath, presignedUrl);
+    }
+
+    private String normalizeName(String id, String fileName) {
+        String fixedFileName = fileName.replaceAll(" ", "");
+
+        LocalDateTime dateTime = LocalDateTime.now();
+        String dateTimeStr = dateTime.format(DateTimeFormatter.ofPattern("HHmmss"));
+        return id+ "-" + dateTimeStr + "-" + fixedFileName;
     }
 
     private ChatPresignedUrlResponse getChatPresignedUrl(String chatRoomId, Long memberId, String fileName,
