@@ -294,19 +294,29 @@ jobs:
 
       - name: Tag previous image
         run: |
-          # 이전 이미지 태그 생성
-          ECR_REGISTRY=$(aws ecr describe-repositories --repository-names taptoon --query 'repositories[0].repositoryUri' --output text | sed 's/\/taptoon//')
+          # 이전 이미지 태그 생성 - 더 안정적인 방법 사용
+          ECR_REPOSITORY="taptoon"
           
-          aws ecr batch-get-image \
-            --repository-name taptoon \
+          # 현재 사용 중인 latest 이미지의 다이제스트 가져오기
+          LATEST_DIGEST=$(aws ecr describe-images \
+            --repository-name $ECR_REPOSITORY \
             --image-ids imageTag=latest \
-            --query 'images[].imageManifest' \
-            --output text | aws ecr put-image \
-            --repository-name taptoon \
-            --image-tag previous \
-            --image-manifest -
+            --query 'imageDetails[0].imageDigest' \
+            --output text)
           
-          echo "이전 이미지가 'previous' 태그로 저장되었습니다"
+          if [ -z "$LATEST_DIGEST" ] || [ "$LATEST_DIGEST" == "null" ]; then
+            echo "⚠️ latest 태그의 이미지를 찾을 수 없습니다. previous 태그 생성을 건너뜁니다."
+          else
+            echo "latest 이미지 다이제스트: $LATEST_DIGEST"
+          
+            # 해당 다이제스트에 previous 태그 추가
+            aws ecr put-image \
+              --repository-name $ECR_REPOSITORY \
+              --image-tag previous \
+              --image-digest $LATEST_DIGEST
+          
+            echo "이전 이미지가 'previous' 태그로 저장되었습니다"
+          fi
 
       - name: Background Monitor Deployment
         run: |
