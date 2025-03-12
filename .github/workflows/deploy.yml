@@ -95,6 +95,7 @@ jobs:
             aws autoscaling cancel-instance-refresh \
               --auto-scaling-group-name "asg-taptoon" || echo "리프레시 취소 실패, 계속 진행합니다"
           
+            echo "10초 대기 중..."
             sleep 10
           fi
           
@@ -108,16 +109,44 @@ jobs:
           
           # 더 효율적인 롤링 업데이트 설정으로 새 리프레시 시작
           echo "더 빠른 롤링 업데이트 시작..."
+          
+          # AWS 제약 조건 확인
+          MIN_PERCENTAGE=50
+          MAX_PERCENTAGE=150
+          
+          if [ $((MAX_PERCENTAGE - MIN_PERCENTAGE)) -gt 100 ]; then
+            echo "경고: MaxHealthyPercentage와 MinHealthyPercentage의 차이가 100을 초과합니다."
+            echo "MaxHealthyPercentage를 자동으로 조정합니다."
+            MAX_PERCENTAGE=$((MIN_PERCENTAGE + 100))
+          fi
+          
+          echo "설정: MinHealthyPercentage=$MIN_PERCENTAGE, MaxHealthyPercentage=$MAX_PERCENTAGE"
+          
+          PREFERENCES=$(cat <<-EOF
+          {
+            "MinHealthyPercentage": $MIN_PERCENTAGE,
+            "InstanceWarmup": 60,
+            "MaxHealthyPercentage": $MAX_PERCENTAGE,
+            "CheckpointPercentages": [25, 50, 100],
+            "CheckpointDelay": 10
+          }
+          EOF
+          )
+          
           REFRESH=$(aws autoscaling start-instance-refresh \
             --auto-scaling-group-name "asg-taptoon" \
             --strategy "Rolling" \
-            --preferences '{
-              "MinHealthyPercentage": 50,
-              "InstanceWarmup": 60,
-              "MaxHealthyPercentage": 200,
-              "CheckpointPercentages": [25, 50, 100],
-              "CheckpointDelay": 10
-            }')
+            --preferences "$PREFERENCES")
+          
+          if [ $? -ne 0 ]; then
+            echo "인스턴스 리프레시 시작 실패. 기본 설정으로 다시 시도합니다."
+          
+            # 기본 설정으로 다시 시도
+            REFRESH=$(aws autoscaling start-instance-refresh \
+              --auto-scaling-group-name "asg-taptoon" \
+              --strategy "Rolling" \
+              --preferences '{"MinHealthyPercentage": 90, "InstanceWarmup": 90}')
+          fi
           
           REFRESH_ID=$(echo $REFRESH | jq -r '.InstanceRefreshId')
           echo "인스턴스 리프레시 ID: $REFRESH_ID"
@@ -179,7 +208,7 @@ jobs:
             --output text 2>/dev/null || echo "")
           
           # 타임아웃 처리
-          if [ $(($(date +%s) - START_TIME)) -ge $CHECKPOINT_TIMEOUT ] && [[ "$CHECKPOINT" != *"50"* ]]; then
+          if [ $(($(date +%s) - START_TIME)) -ge $CHECKPOINT_TIMEOUT ] && [[ "$CHECKPOINT" != *"25"* ]]; then
             echo "⚠️ 첫 번째 체크포인트 도달 대기 시간이 초과되었습니다"
             echo "하지만 배포는 계속 진행됩니다. 가용한 인스턴스에 대한 헬스 체크를 수행합니다..."
           fi
