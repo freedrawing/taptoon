@@ -26,7 +26,7 @@ public enum WorkType {
         return Arrays.stream(values())
                 .filter(elem -> elem.name().equalsIgnoreCase(type))
                 .findFirst()
-                .orElse(null); // 일치하는 값이 없으면 null 반환
+                .orElse(null);
     }
 
     public static WorkType random() {

@@ -14,14 +14,14 @@ public class    ContentTypeUtil {
         put("png", "image/png");
         put("gif", "image/gif");
 
-        put("txt", "text/plain");
-        put("html", "text/html");
-        put("htm", "text/html");
-        put("csv", "text/csv");
+        put("txt", "text/plain; charset=UTF-8"); // UTF-8 추가
+        put("html", "text/html; charset=UTF-8");  // UTF-8 추가
+        put("htm", "text/html; charset=UTF-8");   // UTF-8 추가
+        put("csv", "text/csv; charset=UTF-8");    // UTF-8 추가
         put("pdf", "application/pdf");
         put("doc", "application/msword");
         put("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-        put("md", "text/markdown");
+        put("md", "text/markdown; charset=UTF-8"); // UTF-8 추가
     }});
 
     public static String getContentType(String fileName) {

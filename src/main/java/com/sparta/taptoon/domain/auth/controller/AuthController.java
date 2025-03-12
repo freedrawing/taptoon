@@ -54,9 +54,9 @@ public class AuthController {
 
 
     @Operation(summary = "이메일 중복 체크 (true = 중복)")
-    @PatchMapping("/check-email-duplicated")
-    public ResponseEntity<ApiResponse<Boolean>> checkEmailIsDuplicated(String email) {
-        boolean emailAlreadyExist = authService.checkEmailAlreadyExist(email);
-        return ApiResponse.success(emailAlreadyExist);
+    @GetMapping("/emails/availability")
+    public ResponseEntity<ApiResponse<Boolean>> checkEmailIsAvailable(@RequestParam String email) {
+        boolean isEmailAvailable = authService.isEmailAvailable(email);
+        return ApiResponse.success(isEmailAvailable);
     }
 }

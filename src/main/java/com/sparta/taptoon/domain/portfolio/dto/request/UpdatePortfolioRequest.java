@@ -13,7 +13,7 @@ public record UpdatePortfolioRequest(
         @Size(max = 3000, message = "최대 3,000자까지 입력할 수 있습니다.")
         String content,
 
-        List<Long> validFileIds, // 유효한 Ids
-        List<Long> deletedFileIds // 삭제 예정 Ids
+        List<Long> validFileIds,
+        List<Long> deletedFileIds
 ) {
 }

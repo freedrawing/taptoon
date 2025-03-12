@@ -56,7 +56,6 @@ public class MatchingPost extends BaseEntity {
     @Column(name = "status", nullable = false)
     private Status status;
 
-    // 양방향은 바람직하지 않을 때가 많지만 여기서는 사용해도 딱히 1+N 걱정 안 해도 될 듯
     @OneToMany(mappedBy = "matchingPost", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MatchingPostImage> matchingPostImages = new ArrayList<>();
 
@@ -73,17 +72,14 @@ public class MatchingPost extends BaseEntity {
         this.status = Status.PENDING; // 처음에는 등록 대기 상태
     }
 
-    // id 비교는 따로 쿼리가 안 날라가서 이 정도는 ㄱㅊ을 듯
     public boolean isMyMatchingPost(Long memberId) {
         return author.getId() == memberId;
     }
 
-    // Soft Deletion
     public void removeMe() {
         status = Status.DELETED;
     }
 
-    // 수정처럼 동작하지만 사실상 등록임. 빈 엔티티가 처음에 만들어지므로
     public void registerMe(RegisterMatchingPostRequest request) {
         this.title = request.title();
         this.artistType = ArtistType.of(request.artistType());
@@ -100,12 +96,10 @@ public class MatchingPost extends BaseEntity {
         this.description = request.description();
     }
 
-    // 조회수 증가
     public void increaseViewCount() {
         viewCount++;
     }
 
-    // 삭제된 포스트인지 검증
     public void validateIsDeleted() {
         if (Status.isDeleted(status)) {
             throw new NotFoundException(MATCHING_POST_NOT_FOUND);

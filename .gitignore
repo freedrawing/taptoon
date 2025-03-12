@@ -42,3 +42,4 @@ application-*.yaml
 !application-suk-test.yaml
 application.properties
 *.sql
+logs

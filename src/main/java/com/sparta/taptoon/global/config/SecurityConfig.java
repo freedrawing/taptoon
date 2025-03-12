@@ -44,9 +44,10 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET,MATCHING_POST_URL,COMMENTS_URL).permitAll()
-                        .requestMatchers(AUTH_URL, CHATTING_NOTIFICATION, CHATTING_WEBSOCKET,
-                                SWAGGER_DOCS_URL, SWAGGER_UI_URL, SWAGGER_HTML_URL).permitAll()
+                        .requestMatchers(HttpMethod.GET, MATCHING_POST_URL, COMMENTS_URL).permitAll()
+                        .requestMatchers(AUTH_URL).permitAll()
+                        .requestMatchers(CHATTING_NOTIFICATION, CHATTING_WEBSOCKET).permitAll()
+                        .requestMatchers(SWAGGER_DOCS_URL, SWAGGER_UI_URL, SWAGGER_HTML_URL).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtFilter(memberRepository, jwtUtil),
@@ -57,6 +58,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -78,7 +80,8 @@ public class SecurityConfig {
                 LOCALHOST_CLIENT,
                 NAVER_CORS,
                 S3_CLIENT,
-                TAPTOON
+                TAPTOON,
+                TEST_SEVER
         ));
 
         // 허용할 HTTP 메서드 설정

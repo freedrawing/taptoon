@@ -42,7 +42,6 @@ public class Portfolio extends BaseEntity {
     @Column(name = "status", nullable = false)
     private Status status;
 
-    // 여기밖에 안 써서 양방향 걱정 안 해도 됨
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PortfolioFile> portfolioFiles = new ArrayList<>();
 
@@ -54,15 +53,13 @@ public class Portfolio extends BaseEntity {
         status = Status.PENDING;
     }
 
-    // 포트폴리오 내용 수정 (사실상 등록)
     public void registerPortfolio(RegisterPortfolioRequest createRegisterPortfolioRequest) {
         title = createRegisterPortfolioRequest.title();
         content = createRegisterPortfolioRequest.content();
         status = Status.REGISTERED;
-        updateCreatedAtToNow(); // 생성시간 정상화
+        updateCreatedAtToNow();
     }
 
-    // 포트폴리오 삭제시 isDeleted 값 true 변경해서 소프트 딜리트
     public void removeMe() {
         status = Status.DELETED;
     }

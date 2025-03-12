@@ -28,7 +28,6 @@ public class PortfolioController {
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> startPortfolio(@AuthenticationPrincipal MemberDetail memberDetail) {
 
-        // 이렇게 Controller단에서 Entity를 넘겨주는 게 과연 좋은 걸까?
         Long portfolioId = portfolioService.startPortfolio(memberDetail.getMember());
         return ApiResponse.created(portfolioId);
     }
