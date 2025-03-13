@@ -76,19 +76,15 @@
   <br>
 </div>
 
-## 프로젝트 구조
+## 🏰️ 프로젝트 구조
 
-<details>
-  <summary> 🏰️ 1. 프로젝트 아키텍쳐</summary>
-  <br />
+### 𓊍 프로젝트 아키텍처
 <img width="1051" alt="Image" src="https://github.com/user-attachments/assets/21d42bc0-6cd2-4fa0-a248-43278d7949ba" />
-</details>
-<details>
-  <summary> ⛁ 2. ERD </summary>
-  <br />
 
-  ### ERD (RDBMS)
-  ```mermaid
+
+### ⛁ ERD (RDMBS)
+
+```mermaid
 erDiagram
     member ||--o{ portfolio : owner_id
     member ||--o{ refresh_token : member_id
@@ -190,8 +186,12 @@ erDiagram
     }
 ```
 
-  ### MongoDB Schema
-  ```mermaid
+[//]: # (![Image]&#40;https://github.com/user-attachments/assets/7f7382d3-ebf3-4040-80bb-3311350545d8&#41;)
+
+### MongoDB Schema
+
+[//]: # (<img width="519" alt="Image" src="https://github.com/user-attachments/assets/54ecdea4-6236-44c5-a711-45552357f091" />)
+```mermaid
 classDiagram
     class chat_room {
         +_id : objectid PK
@@ -213,11 +213,10 @@ classDiagram
 
     chat_room "1" -- "0..*" chat_message : chat_room_id
 ```
-</details>
 
-<details>
-  <summary> 🔁 3. 프로젝트 사용 흐름</summary>
-  <br />
+
+### 🔁 프로젝트 사용 흐름
+
 
 ```mermaid
 flowchart TD
@@ -234,20 +233,25 @@ flowchart TD
     H --> J[프로필 닫기]
     L --> M[포트폴리오 닫기]
 ```
-</details>
-
-
-
-
-
-
-
-
 
 ## API 명세서
 [API 명세서 바로가기](#https://api.taptoon.site/swagger-ui/index.html)
 
 ## 이용 방법
+
+<details>
+  <summary>1. 회원 (Lock 적용)</summary>
+  <br />
+ 
+  * 사용자는 일반 로그인, 소셜 로그인을 선택하여 회원가입 또는 로그인 할 수 있습니다.
+  * 사용자는 마이 페이지에서 본인의 닉네임, 비밀번호를 수정할 수 있습니다.
+  * 소셜 로그인으로 가입 한 사용자에 한하여 최초 1회 이메일과 비밀번호를 설정할 수 있습니다.
+    * 이메일과 비밀번호를 모두 설정하면 일반 로그인도 가능합니다.
+    * 이메일은 최초 1회 바꾼 후에는 수정이 불가능합니다.
+    * 닉네임을 수정하지 않으면 "null"으로 표시됩니다.
+  * 사용자가 로그인을 해야 다른 기능을 사용할 수 있습니다.
+  * 닉네임이나 이름으로 사용자 검색이 가능합니다.(완벽하게 일치해야 검색 가능)
+</details>
 
 ### 회원
 * 사용자는 일반 로그인, 소셜 로그인을 선택하여 회원가입 또는 로그인 할 수 있습니다.
