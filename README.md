@@ -234,8 +234,8 @@ flowchart TD
     L --> M[포트폴리오 닫기]
 ```
 
-## API 명세서
-[API 명세서 바로가기](#https://api.taptoon.site/swagger-ui/index.html)
+## 🧩 API 명세서
+[👉 API 명세서 바로가기](https://api.taptoon.site/swagger-ui/index.html)
 
 ## 이용 방법
 
