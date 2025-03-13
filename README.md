@@ -256,7 +256,7 @@ flowchart TD
   <summary>4. 💼 포트폴리오 관리</summary>
   <br />
 
-![포트폴리오 관리](https://file.notion.so/f/f/85f0c915-8dec-482c-a0ca-17b143c4a630/679cee97-6f1b-4fee-adfa-94d52fdb5659/%E1%84%91%E1%85%A9%E1%84%90%E1%85%B3%E1%84%91%E1%85%A9%E1%86%AF%E1%84%85%E1%85%B5%E1%84%8B%E1%85%A9_%E1%84%80%E1%85%AA%E1%86%AB%E1%84%85%E1%85%B5.gif?table=block&id=1b5a0560-037c-80c2-bd69-c9eb3aa7d884&spaceId=85f0c915-8dec-482c-a0ca-17b143c4a630&expirationTimestamp=1741874400000&signature=2wHZhSTbhd9tBsvGI7D8-SP9yeDUVcQI2hH-VR8Ju24&downloadName=%E1%84%91%E1%85%A9%E1%84%90%E1%85%B3%E1%84%91%E1%85%A9%E1%86%AF%E1%84%85%E1%85%B5%E1%84%8B%E1%85%A9+%E1%84%80%E1%85%AA%E1%86%AB%E1%84%85%E1%85%B5.gif)
+![다른 사용자의 포트폴리오 조회](https://github.com/user-attachments/assets/9194dc09-011c-4170-bb10-564eeb32510d)
 </details>
 
 
