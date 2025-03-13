@@ -3,9 +3,11 @@ package com.sparta.taptoon.domain.chat.service;
 import com.sparta.taptoon.domain.chat.dto.request.CreateChatRoomRequest;
 import com.sparta.taptoon.domain.chat.dto.response.ChatRoomListResponse;
 import com.sparta.taptoon.domain.chat.dto.response.ChatRoomResponse;
+import com.sparta.taptoon.domain.chat.entity.ChatImageMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
 import com.sparta.taptoon.domain.chat.event.ChatRoomCreatedEvent;
+import com.sparta.taptoon.domain.chat.repository.ChatImageMessageRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatMessageRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
@@ -16,6 +18,7 @@ import com.sparta.taptoon.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +35,9 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final MemberRepository memberRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final ChatImageMessageRepository chatImageMessageRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final StringRedisTemplate redisTemplate;
 
     /**
      * 새로운 채팅방을 생성하고 멤버를 추가, Redis 채널 구독을 이벤트로 처리.
@@ -91,9 +96,31 @@ public class ChatRoomService {
     @Transactional
     public void deleteChatRoom(Long memberId, String chatRoomId) {
         ChatRoom chatRoom = findChatRoom(chatRoomId);
+
+        // 채팅방 소프트 삭제
         chatRoom.delete();
-        chatRoomRepository.save(chatRoom); // MongoDB에서는 명시적 저장 필요
-        log.info("✅ 채팅방 {} 삭제 완료", chatRoomId);
+        chatRoomRepository.save(chatRoom);
+        log.info("✅ 채팅방 {} 소프트 삭제 완료", chatRoomId);
+
+        // 관련 텍스트 메시지 소프트 삭제
+        List<ChatMessage> messages = chatMessageRepository.findByChatRoomIdOrderByCreatedAtAsc(chatRoomId);
+        messages.forEach(ChatMessage::delete);
+        chatMessageRepository.saveAll(messages);
+        log.info("✅ 채팅방 {}의 텍스트 메시지 {}개 소프트 삭제 완료", chatRoomId, messages.size());
+
+        // 관련 이미지 메시지 소프트 삭제
+        List<ChatImageMessage> imageMessages = chatImageMessageRepository.findByChatRoomIdOrderByCreatedAtAsc(chatRoomId);
+        imageMessages.forEach(ChatImageMessage::delete);
+        chatImageMessageRepository.saveAll(imageMessages);
+        log.info("✅ 채팅방 {}의 이미지 메시지 {}개 소프트 삭제 완료", chatRoomId, imageMessages.size());
+
+        // Redis 캐시 정리
+        for (Long member : chatRoom.getMemberIds()) {
+            String key = String.format("chat:room:%s:user:%d", chatRoomId, member);
+
+            redisTemplate.delete(key);
+            log.info("✅ Redis lastReadMessage 삭제 - key: {}", key);
+        }
     }
 
     // 주어진 사용자 ID로 사용자를 조회, 없으면 예외 발생
