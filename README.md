@@ -401,7 +401,7 @@ flowchart TD
   <summary><span style="font-size: 1.2em; font-weight: bold;">3. ✍️ 매칭포스트(게시글) 작성, 수정 및 삭제</span></summary>
   <br />
 
-![매칭포스트(게시글) 작성, 수정 및 삭제](https://github.com/user-attachments/assets/a3f8cbf8-f78a-44f3-9421-13a6ed9088bf)
+![매칭포스트(게시글) 작성, 수정 및 삭제](https://github.com/user-attachments/assets/85430d9f-d902-4d55-8147-d82be5ff26c8)
 </details>
 <details>
   <summary><span style="font-size: 1.2em; font-weight: bold;">4. 💼 포트폴리오 관리</span></summary>
