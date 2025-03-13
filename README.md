@@ -257,6 +257,7 @@ flowchart TD
   <br />
 
 ![다른 사용자의 포트폴리오 조회](https://github.com/user-attachments/assets/9194dc09-011c-4170-bb10-564eeb32510d)
+![포트폴리오 관리](https://github.com/user-attachments/assets/28f60bb1-f763-48de-8cc4-16c37f9eff7b)
 </details>
 
 
