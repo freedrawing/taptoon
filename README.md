@@ -407,8 +407,7 @@ flowchart TD
   <summary><span style="font-size: 1.2em; font-weight: bold;">4. 💼 포트폴리오 관리</span></summary>
   <br />
 
-![다른 사용자의 포트폴리오 조회](https://github.com/user-attachments/assets/9194dc09-011c-4170-bb10-564eeb32510d)
-![포트폴리오 관리](https://github.com/user-attachments/assets/28f60bb1-f763-48de-8cc4-16c37f9eff7b)
+![포트폴리오](https://github.com/user-attachments/assets/23db30c4-f97c-4442-a526-56f062e35ae4)
 </details>
 <details>
   <summary><span style="font-size: 1.2em; font-weight: bold;">5. 💬 채팅</span></summary>
