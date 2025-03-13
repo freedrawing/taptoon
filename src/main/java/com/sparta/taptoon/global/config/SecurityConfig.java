@@ -2,7 +2,6 @@ package com.sparta.taptoon.global.config;
 
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.util.JwtUtil;
-import com.sparta.taptoon.global.util.GoogleAuthHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
