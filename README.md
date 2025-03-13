@@ -64,36 +64,61 @@
 ## 🌱 Developed by
 <table>
   <tr>
+    <th align="center">직책</th>
+    <th align="center">프로필</th>
+    <th align="center">이름</th>
+    <th align="center">담당 업무</th>
+  </tr>
+  <tr>
+    <td align="center">팀장 👑</td>
     <td align="center">
-      <b><a href="https://github.com/chk223">김창현</a></b><br>
       <a href="https://github.com/chk223">
-        <img src="https://avatars.githubusercontent.com/u/104356399?v=4" width="100px" />
-      </a><br>
-      <b>팀장</b>
+        <img src="https://i.redd.it/dms21uds4w871.jpg" width="80px" />
+      </a>
     </td>
     <td align="center">
-      <b><a href="https://github.com/freedrawing">강성욱</a></b><br>
+      <b><a href="https://github.com/chk223">김창현</a></b>
+    </td>
+    <td align="center">백엔드 개발 및 관리</td>
+  </tr>
+  <tr>
+    <td align="center">부팀장 🏅</td>
+    <td align="center">
       <a href="https://github.com/freedrawing">
-        <img src="https://avatars.githubusercontent.com/u/43941383?v=4" width="100px" />
-      </a><br>
-      <b>부팀장</b>
+        <img src="https://avatars.githubusercontent.com/u/43941383?v=4" width="80px" />
+      </a>
     </td>
     <td align="center">
-      <b><a href="https://github.com/leithharbor">이상구</a></b><br>
+      <b><a href="https://github.com/freedrawing">강성욱</a></b>
+    </td>
+    <td align="center">프론트엔드 설계</td>
+  </tr>
+  <tr>
+    <td align="center">팀원 🌟</td>
+    <td align="center">
       <a href="https://github.com/leithharbor">
-        <img src="https://avatars.githubusercontent.com/u/185915561?v=4" width="100px" />
-      </a><br>
-      <b>팀원</b>
+        <img src="https://avatars.githubusercontent.com/u/185915561?v=4" width="80px" />
+      </a>
     </td>
     <td align="center">
-      <b><a href="https://github.com/dllll2">이진영</a></b><br>
-      <a href="https://github.com/dllll2">
-        <img src="https://avatars.githubusercontent.com/u/105922173?v=4" width="100px" />
-      </a><br>
-      <b>팀원</b>
+      <b><a href="https://github.com/leithharbor">이상구</a></b>
     </td>
+    <td align="center">DB 및 API 연동</td>
+  </tr>
+  <tr>
+    <td align="center">팀원 🌟</td>
+    <td align="center">
+      <a href="https://github.com/dllll2">
+        <img src="https://www.urbanbrush.net/web/wp-content/uploads/edd/2018/06/web-20180607032417590225.png" width="80px" />
+      </a>
+    </td>
+    <td align="center">
+      <b><a href="https://github.com/dllll2">이진영</a></b>
+    </td>
+    <td align="center">테스트 및 디버깅</td>
   </tr>
 </table>
+
 
 <br/>
 
