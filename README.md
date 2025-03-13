@@ -35,7 +35,7 @@
   <img src="https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white">
   <img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white">
   <br>
-
+  <img src="https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
   <img src="https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white">
   <img src="https://img.shields.io/badge/OpenFeign-E50914?style=for-the-badge&logo=netflix&logoColor=white">
   <img src="https://img.shields.io/badge/JPA-59666C?style=for-the-badge&logo=hibernate&logoColor=white">
@@ -78,12 +78,17 @@
 
 ## 프로젝트 구조
 
-### 프로젝트 아키텍처
+<details>
+  <summary> 🏰️ 1. 프로젝트 아키텍쳐</summary>
+  <br />
 <img width="1051" alt="Image" src="https://github.com/user-attachments/assets/21d42bc0-6cd2-4fa0-a248-43278d7949ba" />
+</details>
+<details>
+  <summary> ⛁ 2. ERD </summary>
+  <br />
 
-### ERD (RDMBS)
-
-```mermaid
+  ### ERD (RDBMS)
+  ```mermaid
 erDiagram
     member ||--o{ portfolio : owner_id
     member ||--o{ refresh_token : member_id
@@ -185,12 +190,8 @@ erDiagram
     }
 ```
 
-[//]: # (![Image]&#40;https://github.com/user-attachments/assets/7f7382d3-ebf3-4040-80bb-3311350545d8&#41;)
-
-### MongoDB Schema
-
-[//]: # (<img width="519" alt="Image" src="https://github.com/user-attachments/assets/54ecdea4-6236-44c5-a711-45552357f091" />)
-```mermaid
+  ### MongoDB Schema
+  ```mermaid
 classDiagram
     class chat_room {
         +_id : objectid PK
@@ -212,10 +213,11 @@ classDiagram
 
     chat_room "1" -- "0..*" chat_message : chat_room_id
 ```
+</details>
 
-
-## 프로젝트 사용 흐름
-
+<details>
+  <summary> 🔁 3. 프로젝트 사용 흐름</summary>
+  <br />
 
 ```mermaid
 flowchart TD
@@ -232,8 +234,21 @@ flowchart TD
     H --> J[프로필 닫기]
     L --> M[포트폴리오 닫기]
 ```
+</details>
+
+
+
+
+
+
+
+
+
+## API 명세서
+[API 명세서 바로가기](#https://api.taptoon.site/swagger-ui/index.html)
 
 ## 이용 방법
+
 ### 회원
 * 사용자는 일반 로그인, 소셜 로그인을 선택하여 회원가입 또는 로그인 할 수 있습니다.
 * 사용자는 마이 페이지에서 본인의 닉네임, 비밀번호를 수정할 수 있습니다.
@@ -282,7 +297,7 @@ flowchart TD
 * [📌 이미지 개발노트 🚀](devlog/김창현/개발노트-이미지.md)
 * [📌 인증/인가 개발노트 🚀](devlog/김창현/개발노트-인증,인가.md)
 
-## Support
+## Developed by
 <table>
   <tr>
     <td align="center">
