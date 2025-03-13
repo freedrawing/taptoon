@@ -76,6 +76,59 @@
   <br>
 </div>
 
+## 와이어프레임
+
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">1. ✏️ 매칭포스트 (게시글)</span></summary>
+  <br />
+
+### ✏️ 매칭보드
+![매칭보드](https://github.com/user-attachments/assets/04dbed36-9f3d-46f8-a7e0-1295ff3dc139)
+
+<br/>
+
+### ✏️ 매칭 포스트 작성
+![Image](https://github.com/user-attachments/assets/5b1315eb-7ef6-4107-8016-973500fe222f)
+
+<br/>
+
+### ✏️ 매칭 포스트 상세 조회
+![매칭포스트 작성](https://github.com/user-attachments/assets/beea8f26-9f68-4aa6-8c2a-cab52456934c)
+
+<br/>
+
+### ✏️ 매칭 포스트 수정
+![Image](https://github.com/user-attachments/assets/53c82dfb-9a1c-4159-9a4b-aff93ee919d8)
+</details>
+
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🖼️ 포트폴리오</span></summary>
+  <br />
+
+### 🖼 포트폴리오 리스트 조회 
+![Image](https://github.com/user-attachments/assets/a27b4c4a-c31e-40c6-8dd9-eaf2767f89ba)
+
+### 🖼 포트폴리오 상세 조회
+![Image](https://github.com/user-attachments/assets/1e0fbf6a-7ed3-4dfe-8878-3604f43c1445)
+
+### 🖼 포트폴리오 작성
+![Image](https://github.com/user-attachments/assets/00048c92-f113-49dc-85ef-2121fd3a8ca3)
+</details>
+
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">3. 🤡 채팅</span></summary>
+  <br />
+
+### 🤡 채팅 리스트
+![Image](https://github.com/user-attachments/assets/5ca55ed6-9199-487b-ad00-09cdeb65b0b6)
+
+### 🤡 채팅 화면
+![Image](https://github.com/user-attachments/assets/0c1c8a92-3419-45d1-b0db-e1310735f7f1)
+
+
+
+</details>
+
 ## 🏰️ 프로젝트 구조
 
 ### 𓊍 프로젝트 아키텍처
@@ -235,29 +288,35 @@ flowchart TD
 
 ### 프로젝트 사용 흐름 (참고자료)
 <details>
-  <summary>1. 📲 회원가입</summary>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">1. 📲 회원가입</span></summary>
   <br />
 
   ![회원가입](https://github.com/user-attachments/assets/d94d6417-16dc-42f1-8788-2b306bd49485)
 </details>
 <details>
-  <summary> 2. 🔎 검색</summary>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🔎 검색</span></summary>
   <br />
 
 ![검색](https://github.com/user-attachments/assets/1db3c2cc-554b-4c51-b724-adee69647e6c)
 </details>
 <details>
-  <summary>3. ✍️ 매칭포스트(게시글) 작성, 수정 및 삭제</summary>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">3. ✍️ 매칭포스트(게시글) 작성, 수정 및 삭제</span></summary>
   <br />
 
 ![매칭포스트(게시글) 작성, 수정 및 삭제](https://github.com/user-attachments/assets/a3f8cbf8-f78a-44f3-9421-13a6ed9088bf)
 </details>
 <details>
-  <summary>4. 💼 포트폴리오 관리</summary>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">4. 💼 포트폴리오 관리</span></summary>
   <br />
 
 ![다른 사용자의 포트폴리오 조회](https://github.com/user-attachments/assets/9194dc09-011c-4170-bb10-564eeb32510d)
 ![포트폴리오 관리](https://github.com/user-attachments/assets/28f60bb1-f763-48de-8cc4-16c37f9eff7b)
+</details>
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">5. 💬 채팅</span></summary>
+  <br />
+
+![다른 사용자와 채팅]()
 </details>
 
 
