@@ -5,18 +5,8 @@
 [//]: # (<img width="700" alt="Image" src="https://github.com/user-attachments/assets/e0847133-ca68-45a0-a925-1bf35f0fab49" />)
 
 <br>
+<img width="1000" src="https://github.com/user-attachments/assets/2d014f23-75fc-4015-ad37-f7b6dc880272" />
 
-<div style="display: flex; gap: 10px; justify-content: center; position: relative;">
-  <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; position: relative; left: 0;">
-    <img src="https://cdn.gamma.app/hxt1ktlqn5booma/5eb69b0ff23e4914b73e6f870018251e/original/image.png" alt="Taptoon Logo 1" style="width: 100%; height: 100%; object-fit: cover;" />
-  </div>
-  <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; position: relative; left: -55px;">
-    <img src="https://cdn.gamma.app/hxt1ktlqn5booma/9e35fd7dbaa848ec84c390fe2b11004a/original/image.png" alt="Taptoon Logo 2" style="width: 100%; height: 100%; object-fit: cover;" />
-  </div>
-  <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; position: relative; left: -111px;">
-    <img src="https://github.com/user-attachments/assets/e0847133-ca68-45a0-a925-1bf35f0fab49" alt="Taptoon Logo 3" style="width: 100%; height: 100%; object-fit: cover;" />
-  </div>
-</div>
 
 <br>
 
@@ -40,13 +30,12 @@
 
 <br>
 
-[//]: # (<div align=center><h1>📚 Used Stacks</h1></div>)
-<div align=center> 
+<div align=center>
   <img src="https://img.shields.io/badge/java%2017-007396?style=for-the-badge&logo=java&logoColor=white">
   <img src="https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white">
   <img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white">
   <br>
-
+  <img src="https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
   <img src="https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white">
   <img src="https://img.shields.io/badge/OpenFeign-E50914?style=for-the-badge&logo=netflix&logoColor=white">
   <img src="https://img.shields.io/badge/JPA-59666C?style=for-the-badge&logo=hibernate&logoColor=white">
@@ -62,7 +51,7 @@
   <img src="https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socket.io&logoColor=white">
   <br>
 
-  <img src="https://img.shields.io/badge/OAuth-2.0-4285F4?style=for-the-badge&logo=google&logoColor=white">
+  <img src="https://img.shields.io/badge/OAuth%202.0-4285F4?style=for-the-badge&logo=google&logoColor=white">
   <img src="https://img.shields.io/badge/Naver-03C75A?style=for-the-badge&logo=naver&logoColor=white">
   <img src="https://img.shields.io/badge/Google-4285F4?style=for-the-badge&logo=google&logoColor=white">
   <br>
@@ -82,14 +71,71 @@
   <img src="https://img.shields.io/badge/ElastiCache-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
   <img src="https://img.shields.io/badge/ECR-527FFF?style=for-the-badge&logo=amazonaws&logoColor=white">
   <br>
+
+  <img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">
+  <br>
 </div>
 
-## 프로젝트 구조
+## 와이어프레임
 
-### 프로젝트 아키텍처
-<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/2bcb5aee-b822-47dc-8873-ab15754abf26" style="border-radius: 15px;" />
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">1. ✏️ 매칭포스트 (게시글)</span></summary>
+  <br />
 
-### ERD (RDMBS)
+### ✏️ 매칭보드
+![매칭보드](https://github.com/user-attachments/assets/04dbed36-9f3d-46f8-a7e0-1295ff3dc139)
+
+<br/>
+
+### ✏️ 매칭 포스트 작성
+![Image](https://github.com/user-attachments/assets/5b1315eb-7ef6-4107-8016-973500fe222f)
+
+<br/>
+
+### ✏️ 매칭 포스트 상세 조회
+![매칭포스트 작성](https://github.com/user-attachments/assets/beea8f26-9f68-4aa6-8c2a-cab52456934c)
+
+<br/>
+
+### ✏️ 매칭 포스트 수정
+![Image](https://github.com/user-attachments/assets/53c82dfb-9a1c-4159-9a4b-aff93ee919d8)
+</details>
+
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🖼️ 포트폴리오</span></summary>
+  <br />
+
+### 🖼 포트폴리오 리스트 조회 
+![Image](https://github.com/user-attachments/assets/a27b4c4a-c31e-40c6-8dd9-eaf2767f89ba)
+
+### 🖼 포트폴리오 상세 조회
+![Image](https://github.com/user-attachments/assets/1e0fbf6a-7ed3-4dfe-8878-3604f43c1445)
+
+### 🖼 포트폴리오 작성
+![Image](https://github.com/user-attachments/assets/00048c92-f113-49dc-85ef-2121fd3a8ca3)
+</details>
+
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">3. 🤡 채팅</span></summary>
+  <br />
+
+### 🤡 채팅 리스트
+![Image](https://github.com/user-attachments/assets/5ca55ed6-9199-487b-ad00-09cdeb65b0b6)
+
+### 🤡 채팅 화면
+![Image](https://github.com/user-attachments/assets/0c1c8a92-3419-45d1-b0db-e1310735f7f1)
+
+
+
+</details>
+
+## 🏰️ 프로젝트 구조
+
+### 𓊍 프로젝트 아키텍처
+<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/21d42bc0-6cd2-4fa0-a248-43278d7949ba" />
+
+
+### ⛁ ERD (RDMBS)
 
 ```mermaid
 erDiagram
@@ -222,8 +268,7 @@ classDiagram
 ```
 
 
-## 프로젝트 사용 흐름
-
+### 🔁 프로젝트 사용 흐름
 
 ```mermaid
 flowchart TD
@@ -241,8 +286,48 @@ flowchart TD
     L --> M[포트폴리오 닫기]
 ```
 
+### 프로젝트 사용 흐름 (참고자료)
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">1. 📲 회원가입</span></summary>
+  <br />
+
+  ![회원가입](https://github.com/user-attachments/assets/d94d6417-16dc-42f1-8788-2b306bd49485)
+</details>
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🔎 검색</span></summary>
+  <br />
+
+![검색](https://github.com/user-attachments/assets/1db3c2cc-554b-4c51-b724-adee69647e6c)
+</details>
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">3. ✍️ 매칭포스트(게시글) 작성, 수정 및 삭제</span></summary>
+  <br />
+
+![매칭포스트(게시글) 작성, 수정 및 삭제](https://github.com/user-attachments/assets/a3f8cbf8-f78a-44f3-9421-13a6ed9088bf)
+</details>
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">4. 💼 포트폴리오 관리</span></summary>
+  <br />
+
+![다른 사용자의 포트폴리오 조회](https://github.com/user-attachments/assets/9194dc09-011c-4170-bb10-564eeb32510d)
+![포트폴리오 관리](https://github.com/user-attachments/assets/28f60bb1-f763-48de-8cc4-16c37f9eff7b)
+</details>
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">5. 💬 채팅</span></summary>
+  <br />
+
+![다른 사용자와 채팅](https://github.com/user-attachments/assets/e4b11a43-b638-46b9-b02c-db02d6e1612e)
+</details>
+
+
+
+## 🧩 API 명세서
+[👉 API 명세서 바로가기](https://api.taptoon.site/swagger-ui/index.html)
+
 ## 이용 방법
-### 회원
+
+### 회원가입
+
 * 사용자는 일반 로그인, 소셜 로그인을 선택하여 회원가입 또는 로그인 할 수 있습니다.
 * 사용자는 마이 페이지에서 본인의 닉네임, 비밀번호를 수정할 수 있습니다.
 * 소셜 로그인으로 가입 한 사용자에 한하여 최초 1회 이메일과 비밀번호를 설정할 수 있습니다.
@@ -289,8 +374,11 @@ flowchart TD
 * [📌 CI/CD 개발노트 🚀](devlog/김창현/개발노트-CI,CD.md)
 * [📌 이미지 개발노트 🚀](devlog/김창현/개발노트-이미지.md)
 * [📌 인증/인가 개발노트 🚀](devlog/김창현/개발노트-인증,인가.md)
+* [📌 WebSocket과 Redis의 역할과 흐름 🚀](/devlog/이진영/WebSocket과_Redis의_역할과_흐름.md)
+* [📌 데이터베이스에 따른 채팅 보내기 읽기 속도 비교 🚀](/devlog/이진영/데이터베이스에_따른_채팅_보내기_읽기_속도_비교.md)
+* [📌 채팅 기술스택 선택 과정 🚀](/devlog/이진영/채팅_기술스택_선택_과정.md)
 
-## Support
+## Developed by
 <table>
   <tr>
     <td align="center">
