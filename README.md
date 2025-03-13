@@ -1,4 +1,4 @@
-# `TapToon`:  𓆉𓆝 𓆟 𓆞 𓆝 𓆟𓇼 웹툰 창작의 꿈을 잇다
+# TapToon:  𓆉𓆝 𓆟 𓆞 𓆝 𓆟𓇼 웹툰 창작의 꿈을 잇다
 
 <br>
 <img width="1000" src="https://github.com/user-attachments/assets/2d014f23-75fc-4015-ad37-f7b6dc880272" />
@@ -11,7 +11,7 @@
 * [⏳ 작업 기간](#-작업-기간)
 * [📚 Used Stacks](#-used-stacks)
 * [🔳 와이어 프레임](#-와이어-프레임)
-* [🏰️ 프로젝트 구조](#-프로젝트-구조)
+* [🏗️ 프로젝트 구조](#-프로젝트-구조)
   * [𓊍 프로젝트 아키텍처](#𓊍-프로젝트-아키텍처)
   * [⛁ ERD (RDMBS)](#-erd-rdmbs)
   * [⛃ MongoDB Schema](#-mongodb-schema)
@@ -229,7 +229,7 @@
 
 <br/>
 
-## 🏰️ 프로젝트 구조
+## 🏗️ 프로젝트 구조
 
 ### 𓊍 프로젝트 아키텍처
 <img width="1051" alt="Image" src="https://github.com/user-attachments/assets/21d42bc0-6cd2-4fa0-a248-43278d7949ba" />
@@ -395,7 +395,7 @@ flowchart TD
   <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🔎 검색</span></summary>
   <br />
 
-![검색](https://github.com/user-attachments/assets/1db3c2cc-554b-4c51-b724-adee69647e6c)
+![검색](https://github.com/user-attachments/assets/7a75f682-96c9-4154-b2bf-630a4964a1d3)
 </details>
 <details>
   <summary><span style="font-size: 1.2em; font-weight: bold;">3. ✍️ 매칭포스트(게시글) 작성, 수정 및 삭제</span></summary>
