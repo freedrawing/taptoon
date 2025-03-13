@@ -1,17 +1,18 @@
-# Project `TapToon`:  𓆉𓆝 𓆟 𓆞 𓆝 𓆟𓇼 웹툰 창작의 꿈을 잇다
+# TapToon:  𓆉𓆝 𓆟 𓆞 𓆝 𓆟𓇼 웹툰 창작의 꿈을 잇다
 
 <br>
 <img width="1000" src="https://github.com/user-attachments/assets/2d014f23-75fc-4015-ad37-f7b6dc880272" />
 
 
-<br>
+<br/>
 
+## ☄️ 순간이동
 * [💻 프로젝트 개요](#-프로젝트-개요)
-* [🌱 Developed by](#-developed-by)
+* [⚙️👷🏻‍♂️🛠️🔧 Developed by](#-developed-by)
 * [⏳ 작업 기간](#-작업-기간)
 * [📚 Used Stacks](#-used-stacks)
 * [🔳 와이어 프레임](#-와이어-프레임)
-* [🏰️ 프로젝트 구조](#-프로젝트-구조)
+* [🏗️ 프로젝트 구조](#-프로젝트-구조)
   * [𓊍 프로젝트 아키텍처](#𓊍-프로젝트-아키텍처)
   * [⛁ ERD (RDMBS)](#-erd-rdmbs)
   * [⛃ MongoDB Schema](#-mongodb-schema)
@@ -24,6 +25,7 @@
   * [🗣️ 채팅](#-채팅)
 * [🪵 Dev log](#-dev-log)
 
+<br/>
 
 ## 💻 프로젝트 개요
 
@@ -58,44 +60,75 @@
 >
 > 지금 바로 **포트폴리오를 업로드**하고, 새로운 파트너를 찾아보세요! 🎬🔥
 
+![Taptoon_Introduction](https://github.com/user-attachments/assets/c8afa44d-f299-449c-b3bf-3cfeaf378a6b)
 
-## 🌱 Developed by
+<br/>
+
+## ⚙️👷🏻‍♂️🛠️🔧 Developed by
 <table>
   <tr>
+    <th align="center">직책</th>
+    <th align="center">프로필</th>
+    <th align="center">이름</th>
+    <th align="center">담당 업무</th>
+  </tr>
+  <tr>
+    <td align="center">팀장 👑</td>
     <td align="center">
-      <b><a href="https://github.com/chk223">김창현</a></b><br>
       <a href="https://github.com/chk223">
-        <img src="https://avatars.githubusercontent.com/u/104356399?v=4" width="100px" />
-      </a><br>
-      <b>팀장</b>
+        <img src="https://i.redd.it/dms21uds4w871.jpg" width="80px" />
+      </a>
     </td>
     <td align="center">
-      <b><a href="https://github.com/freedrawing">강성욱</a></b><br>
+      <b><a href="https://github.com/chk223">김창현</a></b>
+    </td>
+    <td align="center">백엔드 개발 및 관리</td>
+  </tr>
+  <tr>
+    <td align="center">부팀장 🏅</td>
+    <td align="center">
       <a href="https://github.com/freedrawing">
-        <img src="https://avatars.githubusercontent.com/u/43941383?v=4" width="100px" />
-      </a><br>
-      <b>부팀장</b>
+        <img src="https://avatars.githubusercontent.com/u/43941383?v=4" width="80px" />
+      </a>
     </td>
     <td align="center">
-      <b><a href="https://github.com/leithharbor">이상구</a></b><br>
+      <b><a href="https://github.com/freedrawing">강성욱</a></b>
+    </td>
+    <td align="center">프론트엔드 설계</td>
+  </tr>
+  <tr>
+    <td align="center">팀원 🌟</td>
+    <td align="center">
       <a href="https://github.com/leithharbor">
-        <img src="https://avatars.githubusercontent.com/u/185915561?v=4" width="100px" />
-      </a><br>
-      <b>팀원</b>
+        <img src="https://avatars.githubusercontent.com/u/185915561?v=4" width="80px" />
+      </a>
     </td>
     <td align="center">
-      <b><a href="https://github.com/dllll2">이진영</a></b><br>
-      <a href="https://github.com/dllll2">
-        <img src="https://avatars.githubusercontent.com/u/105922173?v=4" width="100px" />
-      </a><br>
-      <b>팀원</b>
+      <b><a href="https://github.com/leithharbor">이상구</a></b>
     </td>
+    <td align="center">DB 및 API 연동</td>
+  </tr>
+  <tr>
+    <td align="center">팀원 🌟</td>
+    <td align="center">
+      <a href="https://github.com/dllll2">
+        <img src="https://www.urbanbrush.net/web/wp-content/uploads/edd/2018/06/web-20180607032417590225.png" width="80px" />
+      </a>
+    </td>
+    <td align="center">
+      <b><a href="https://github.com/dllll2">이진영</a></b>
+    </td>
+    <td align="center">테스트 및 디버깅</td>
   </tr>
 </table>
 
 
-### ⏳ 작업 기간
+<br/>
+
+## ⏳ 작업 기간
 ***2025.02.10 - 2025.03.16***
+
+<br/>
 
 ## 📚 Used Stacks
 
@@ -195,12 +228,11 @@
 
 ### 🤡 채팅 화면
 ![Image](https://github.com/user-attachments/assets/0c1c8a92-3419-45d1-b0db-e1310735f7f1)
-
-
-
 </details>
 
-## 🏰️ 프로젝트 구조
+<br/>
+
+## 🏗️ 프로젝트 구조
 
 ### 𓊍 프로젝트 아키텍처
 <img width="1051" alt="Image" src="https://github.com/user-attachments/assets/21d42bc0-6cd2-4fa0-a248-43278d7949ba" />
@@ -360,37 +392,39 @@ flowchart TD
   <summary><span style="font-size: 1.2em; font-weight: bold;">1. 📲 회원가입</span></summary>
   <br />
 
-  ![회원가입](https://github.com/user-attachments/assets/d94d6417-16dc-42f1-8788-2b306bd49485)
+  ![회원가입](https://github.com/user-attachments/assets/4a0b3f3f-ab37-430d-bc8b-59fa77e86a1d)
 </details>
 <details>
   <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🔎 검색</span></summary>
   <br />
 
-![검색](https://github.com/user-attachments/assets/1db3c2cc-554b-4c51-b724-adee69647e6c)
+![검색](https://github.com/user-attachments/assets/7a75f682-96c9-4154-b2bf-630a4964a1d3)
 </details>
 <details>
   <summary><span style="font-size: 1.2em; font-weight: bold;">3. ✍️ 매칭포스트(게시글) 작성, 수정 및 삭제</span></summary>
   <br />
 
-![매칭포스트(게시글) 작성, 수정 및 삭제](https://github.com/user-attachments/assets/a3f8cbf8-f78a-44f3-9421-13a6ed9088bf)
+![매칭포스트(게시글) 작성, 수정 및 삭제](https://github.com/user-attachments/assets/85430d9f-d902-4d55-8147-d82be5ff26c8)
 </details>
 <details>
   <summary><span style="font-size: 1.2em; font-weight: bold;">4. 💼 포트폴리오 관리</span></summary>
   <br />
 
-![다른 사용자의 포트폴리오 조회](https://github.com/user-attachments/assets/9194dc09-011c-4170-bb10-564eeb32510d)
-![포트폴리오 관리](https://github.com/user-attachments/assets/28f60bb1-f763-48de-8cc4-16c37f9eff7b)
+![포트폴리오](https://github.com/user-attachments/assets/23db30c4-f97c-4442-a526-56f062e35ae4)
 </details>
 <details>
   <summary><span style="font-size: 1.2em; font-weight: bold;">5. 💬 채팅</span></summary>
   <br />
 
-![다른 사용자와 채팅](https://github.com/user-attachments/assets/e4b11a43-b638-46b9-b02c-db02d6e1612e)
+![다른 사용자와 채팅](https://github.com/user-attachments/assets/e98a0a48-f0e7-4f55-841b-b645fb037475)
 </details>
 
+<br/>
 
 ## 🧩 API 명세서
 [👉 API 명세서 바로가기](https://api.taptoon.site/swagger-ui/index.html)
+
+<br/>
 
 ## ⚡ 주요 기능
 
@@ -400,6 +434,8 @@ flowchart TD
 * 포트폴리오는 최대 5개 까지 작성 가능합니다.(이상은 VIP 서비스 예정)
 * 포트폴리오에 이미지는 최대 3개까지만 첨부할 수 있습니다.
 
+<br/>
+
 ### 📝 매칭 포스트 (구인 글)
 * 사용자는 원하는 파트너를 구인하는 글을 작성할 수 있습니다.
 * 구인하는 글에는 본인을 간략히 나타낼 만한 그림/글을 첨부할 수 있습니다.
@@ -407,9 +443,13 @@ flowchart TD
   * 구인 글 검색은 자동완성 기능을 지원합니다.
   * 구인 글은 여러 조건으로 검색이 가능합니다.
 
+<br/>
+
 ### 🗣️ 채팅
 * 사용자는 원하는 파트너와 컨택하기 위해 채팅을 진행할 수 있습니다.
 * 채팅은 1:1 채팅으로 진행하고, 이미지 전송 또한 지원합니다.
+
+<br/>
 
 ## 🪵 Dev log
 * [📌 Elasticsearch 클러스터링 적용기 🔥](/devlog/강성욱/elasticsearch_고가용성을_위한_클러스터링_적용기.md)
