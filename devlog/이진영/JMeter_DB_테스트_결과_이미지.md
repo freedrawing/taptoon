@@ -1,28 +1,28 @@
 > **쓰기**
-
-![Image](https://github.com/user-attachments/assets/fea131f5-f524-490e-b9d8-7e64d7cbd9c7)
-
-![Image](https://github.com/user-attachments/assets/37b9fc56-bbb8-474e-a66d-e9a7718a2011)
-
-![Image](https://github.com/user-attachments/assets/7d2b4c68-2179-40fc-a74d-90bebfe68631)
-
-![Image](https://github.com/user-attachments/assets/8e57c731-d30e-4668-8f4c-04e3447114ab)
-
-![Image](https://github.com/user-attachments/assets/44e7ce86-d578-4d30-82a7-1c970769d21f)
-
-![Image](https://github.com/user-attachments/assets/6cab8ffc-c016-4351-8fe2-d60c10800afa)
-
+>> MongoDB
+>> ![Image](https://github.com/user-attachments/assets/9bdfa247-d82e-4479-a734-aa1be80a8b28)
+>> ![Image](https://github.com/user-attachments/assets/e8d9c84f-7a96-4fea-af35-700c11711e42)
+>> ![Image](https://github.com/user-attachments/assets/07ce3e73-2828-471e-8599-ceedfa16809b)
+> 
+> 
+>> MySQL
+>> ![Image](https://github.com/user-attachments/assets/2e93b0f6-d57d-4994-89bf-3f6a2024150f)
+>> ![Image](https://github.com/user-attachments/assets/48428318-9d37-44c7-8654-e425abccf5d5)
+>> ![Image](https://github.com/user-attachments/assets/c758b4a1-aa50-4b9e-bde4-6d4e3977c73d)
 
 > **읽기**
+>> MongoDB(인덱스 X)
+>> ![Image](https://github.com/user-attachments/assets/1343ae44-03bb-4438-b0da-d75c5d8de0dc)
+>> ![Image](https://github.com/user-attachments/assets/eaaa7193-0d96-4e4c-9ccb-b3b249c88693)
+>> ![Image](https://github.com/user-attachments/assets/4f52256c-051d-40c4-b14a-431904700e9e)
 > 
-![Image](https://github.com/user-attachments/assets/2ba455cd-1e3d-421f-a990-114e024502ba)
-
-![Image](https://github.com/user-attachments/assets/4f897d69-1ad7-432a-9e96-4129454cd65f)
-
-![Image](https://github.com/user-attachments/assets/ddfca8e5-8d2a-42c3-a464-2a105dc3c3be)
-
-![Image](https://github.com/user-attachments/assets/ef228508-66b8-4f81-9960-094d19b4989e)
-
-![Image](https://github.com/user-attachments/assets/32a1d904-ec98-4a4a-97b4-e8d9e2f92c2e)
-
-![Image](https://github.com/user-attachments/assets/b318f6ba-100c-4baa-95c4-1bac4a07ae54)
+>> MongoDB (인덱스 O)
+>> ![Image](https://github.com/user-attachments/assets/5833dd5b-99e3-4aaf-868e-0a4538a60bc0)
+>> ![Image](https://github.com/user-attachments/assets/d6db6a26-8a5e-4ae8-baa1-dfb387125bbe)
+>> ![Image](https://github.com/user-attachments/assets/2adecbe7-b564-468b-b88c-1db0a583e8c5)
+> 
+> MySQL
+> 
+>> ![Image](https://github.com/user-attachments/assets/a5761232-e691-450b-bd6a-9ff56bb8de4f)
+>> ![Image](https://github.com/user-attachments/assets/197338b5-0c04-4271-b8f4-f2e55fd94fe0)
+>> ![Image](https://github.com/user-attachments/assets/67f9ac00-d74a-408e-9ef2-8d6c0990ec5d)
