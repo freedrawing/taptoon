@@ -1,4 +1,4 @@
-# Project `TapToon`:  𓆉𓆝 𓆟 𓆞 𓆝 𓆟𓇼 웹툰 창작의 꿈을 잇다
+# `TapToon`:  𓆉𓆝 𓆟 𓆞 𓆝 𓆟𓇼 웹툰 창작의 꿈을 잇다
 
 <br>
 <img width="1000" src="https://github.com/user-attachments/assets/2d014f23-75fc-4015-ad37-f7b6dc880272" />
@@ -24,6 +24,7 @@
   * [🗣️ 채팅](#-채팅)
 * [🪵 Dev log](#-dev-log)
 
+<br/>
 
 ## 💻 프로젝트 개요
 
@@ -58,6 +59,7 @@
 >
 > 지금 바로 **포트폴리오를 업로드**하고, 새로운 파트너를 찾아보세요! 🎬🔥
 
+<br/>
 
 ## 🌱 Developed by
 <table>
@@ -93,9 +95,12 @@
   </tr>
 </table>
 
+<br/>
 
-### ⏳ 작업 기간
+## ⏳ 작업 기간
 ***2025.02.10 - 2025.03.16***
+
+<br/>
 
 ## 📚 Used Stacks
 
@@ -195,10 +200,9 @@
 
 ### 🤡 채팅 화면
 ![Image](https://github.com/user-attachments/assets/0c1c8a92-3419-45d1-b0db-e1310735f7f1)
-
-
-
 </details>
+
+<br/>
 
 ## 🏰️ 프로젝트 구조
 
@@ -388,9 +392,12 @@ flowchart TD
 ![다른 사용자와 채팅](https://github.com/user-attachments/assets/e4b11a43-b638-46b9-b02c-db02d6e1612e)
 </details>
 
+<br/>
 
 ## 🧩 API 명세서
 [👉 API 명세서 바로가기](https://api.taptoon.site/swagger-ui/index.html)
+
+<br/>
 
 ## ⚡ 주요 기능
 
@@ -400,6 +407,8 @@ flowchart TD
 * 포트폴리오는 최대 5개 까지 작성 가능합니다.(이상은 VIP 서비스 예정)
 * 포트폴리오에 이미지는 최대 3개까지만 첨부할 수 있습니다.
 
+<br/>
+
 ### 📝 매칭 포스트 (구인 글)
 * 사용자는 원하는 파트너를 구인하는 글을 작성할 수 있습니다.
 * 구인하는 글에는 본인을 간략히 나타낼 만한 그림/글을 첨부할 수 있습니다.
@@ -407,9 +416,13 @@ flowchart TD
   * 구인 글 검색은 자동완성 기능을 지원합니다.
   * 구인 글은 여러 조건으로 검색이 가능합니다.
 
+<br/>
+
 ### 🗣️ 채팅
 * 사용자는 원하는 파트너와 컨택하기 위해 채팅을 진행할 수 있습니다.
 * 채팅은 1:1 채팅으로 진행하고, 이미지 전송 또한 지원합니다.
+
+<br/>
 
 ## 🪵 Dev log
 * [📌 Elasticsearch 클러스터링 적용기 🔥](/devlog/강성욱/elasticsearch_고가용성을_위한_클러스터링_적용기.md)
