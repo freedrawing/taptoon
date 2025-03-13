@@ -5,18 +5,8 @@
 [//]: # (<img width="700" alt="Image" src="https://github.com/user-attachments/assets/e0847133-ca68-45a0-a925-1bf35f0fab49" />)
 
 <br>
+<img width="1000" src="https://github.com/user-attachments/assets/2d014f23-75fc-4015-ad37-f7b6dc880272" />
 
-<div style="display: flex; gap: 10px; justify-content: center; position: relative;">
-  <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; position: relative; left: 0;">
-    <img src="https://cdn.gamma.app/hxt1ktlqn5booma/5eb69b0ff23e4914b73e6f870018251e/original/image.png" alt="Taptoon Logo 1" style="width: 100%; height: 100%; object-fit: cover;" />
-  </div>
-  <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; position: relative; left: -55px;">
-    <img src="https://cdn.gamma.app/hxt1ktlqn5booma/9e35fd7dbaa848ec84c390fe2b11004a/original/image.png" alt="Taptoon Logo 2" style="width: 100%; height: 100%; object-fit: cover;" />
-  </div>
-  <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; position: relative; left: -111px;">
-    <img src="https://github.com/user-attachments/assets/e0847133-ca68-45a0-a925-1bf35f0fab49" alt="Taptoon Logo 3" style="width: 100%; height: 100%; object-fit: cover;" />
-  </div>
-</div>
 
 <br>
 
@@ -40,8 +30,7 @@
 
 <br>
 
-[//]: # (<div align=center><h1>📚 Used Stacks</h1></div>)
-<div align=center> 
+<div align=center>
   <img src="https://img.shields.io/badge/java%2017-007396?style=for-the-badge&logo=java&logoColor=white">
   <img src="https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white">
   <img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white">
@@ -62,7 +51,7 @@
   <img src="https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socket.io&logoColor=white">
   <br>
 
-  <img src="https://img.shields.io/badge/OAuth-2.0-4285F4?style=for-the-badge&logo=google&logoColor=white">
+  <img src="https://img.shields.io/badge/OAuth%202.0-4285F4?style=for-the-badge&logo=google&logoColor=white">
   <img src="https://img.shields.io/badge/Naver-03C75A?style=for-the-badge&logo=naver&logoColor=white">
   <img src="https://img.shields.io/badge/Google-4285F4?style=for-the-badge&logo=google&logoColor=white">
   <br>
@@ -82,12 +71,15 @@
   <img src="https://img.shields.io/badge/ElastiCache-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
   <img src="https://img.shields.io/badge/ECR-527FFF?style=for-the-badge&logo=amazonaws&logoColor=white">
   <br>
+
+  <img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">
+  <br>
 </div>
 
 ## 프로젝트 구조
 
 ### 프로젝트 아키텍처
-<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/2bcb5aee-b822-47dc-8873-ab15754abf26" style="border-radius: 15px;" />
+<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/21d42bc0-6cd2-4fa0-a248-43278d7949ba" />
 
 ### ERD (RDMBS)
 
