@@ -110,6 +110,26 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         Set<WebSocketSession> sessions = chatRoomSessions.getOrDefault(chatRoomId, Collections.emptySet());
         JsonNode jsonNode = objectMapper.readTree(message);
+
+        // 채팅방 삭제 이벤트 처리
+        if (jsonNode.has("type") && "CHAT_ROOM_DELETED".equals(jsonNode.get("type").asText())) {
+            log.info("✅ 채팅방 삭제 이벤트 수신 - chatRoomId: {}", chatRoomId);
+            if (sessions != null && !sessions.isEmpty()) {
+                for (WebSocketSession session : sessions) {
+                    try {
+                        session.close(CloseStatus.NORMAL.withReason("Chat room deleted"));
+                        log.info("WebSocket 세션 종료 - sessionId: {}, chatRoomId: {}", session.getId(), chatRoomId);
+                    } catch (IOException e) {
+                        log.error("❌ WebSocket 세션 종료 실패 - sessionId: {}, chatRoomId: {}", session.getId(), chatRoomId, e);
+                    }
+                }
+                chatRoomSessions.remove(chatRoomId); // 세션 목록에서 채팅방 제거
+                log.info("✅ 채팅방 세션 목록에서 제거 - chatRoomId: {}", chatRoomId);
+            }
+            return; // 삭제 이벤트 처리 후 종료
+        }
+
+        // 기존 메시지 브로드캐스트 로직
         String messageId = jsonNode.get("id").asText();
         Long senderIdFromMessage = jsonNode.get("sender_id").asLong();
 

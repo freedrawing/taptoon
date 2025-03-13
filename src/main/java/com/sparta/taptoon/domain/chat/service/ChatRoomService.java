@@ -1,5 +1,6 @@
 package com.sparta.taptoon.domain.chat.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.taptoon.domain.chat.dto.request.CreateChatRoomRequest;
 import com.sparta.taptoon.domain.chat.dto.response.ChatRoomListResponse;
 import com.sparta.taptoon.domain.chat.dto.response.ChatRoomResponse;
@@ -15,6 +16,7 @@ import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
+import com.sparta.taptoon.global.redis.RedisPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,10 +24,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -38,6 +37,8 @@ public class ChatRoomService {
     private final ChatImageMessageRepository chatImageMessageRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final StringRedisTemplate redisTemplate;
+    private final RedisPublisher redisPublisher;
+    private final ObjectMapper objectMapper;
 
     /**
      * 새로운 채팅방을 생성하고 멤버를 추가, Redis 채널 구독을 이벤트로 처리.
@@ -121,7 +122,21 @@ public class ChatRoomService {
             redisTemplate.delete(key);
             log.info("✅ Redis lastReadMessage 삭제 - key: {}", key);
         }
+
+        // WebSocket으로 삭제 알림 발행
+        Map<String, Object> deleteEvent = new HashMap<>();
+        deleteEvent.put("type", "CHAT_ROOM_DELETED");
+        deleteEvent.put("chatRoomId", chatRoomId);
+        deleteEvent.put("deletedBy", memberId);
+        try {
+            String jsonMessage = objectMapper.writeValueAsString(deleteEvent);
+            redisPublisher.publish(chatRoomId, jsonMessage);
+            log.info("✅ 채팅방 삭제 알림 발행 - chatRoomId: {}, message: {}", chatRoomId, jsonMessage);
+        } catch (Exception e) {
+            log.error("❌ 채팅방 삭제 알림 발행 실패 - chatRoomId: {}", chatRoomId, e);
+        }
     }
+
 
     // 주어진 사용자 ID로 사용자를 조회, 없으면 예외 발생
     private Member findMember(Long memberId) {

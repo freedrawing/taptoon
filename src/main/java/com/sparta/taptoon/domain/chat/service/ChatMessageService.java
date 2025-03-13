@@ -56,6 +56,13 @@ public class ChatMessageService {
      */
     public ChatCombinedMessageResponse sendMessage(Long senderId, String chatRoomId, SendChatMessageRequest request) {
         ChatRoom chatRoom = chatRoomService.findChatRoom(chatRoomId);
+
+        // 삭제된 채팅방인지 확인
+        if (chatRoom.isDeleted()) {
+            log.warn("삭제된 채팅방에 메시지 전송 시도 - chatRoomId: {}, senderId: {}", chatRoomId, senderId);
+            throw new AccessDeniedException(ErrorCode.CHAT_ROOM_DELETED);
+        }
+
         Member sender = findMember(senderId);
         validateChatRoomMembership(chatRoom, sender);
 
