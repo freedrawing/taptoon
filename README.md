@@ -217,7 +217,6 @@ classDiagram
 
 ### 🔁 프로젝트 사용 흐름
 
-
 ```mermaid
 flowchart TD
     A[시작] --> B[회원 가입]
@@ -234,13 +233,41 @@ flowchart TD
     L --> M[포트폴리오 닫기]
 ```
 
+### 프로젝트 사용 흐름 (참고자료)
+<details>
+  <summary>1. 📲 회원가입</summary>
+  <br />
+
+  ![회원가입](https://github.com/user-attachments/assets/d94d6417-16dc-42f1-8788-2b306bd49485)
+</details>
+<details>
+  <summary> 2. 🔎 검색</summary>
+  <br />
+
+![검색](https://github.com/user-attachments/assets/1db3c2cc-554b-4c51-b724-adee69647e6c)
+</details>
+<details>
+  <summary>3. ✍️ 매칭포스트(게시글) 작성, 수정 및 삭제</summary>
+  <br />
+
+![매칭포스트(게시글) 작성, 수정 및 삭제](https://file.notion.so/f/f/85f0c915-8dec-482c-a0ca-17b143c4a630/ca2cad57-0ac3-4599-abb4-631956b15f16/%E1%84%86%E1%85%A2%E1%84%8E%E1%85%B5%E1%86%BC%E1%84%91%E1%85%A9%E1%84%89%E1%85%B3%E1%84%90%E1%85%B3_CRUD2.gif?table=block&id=1b5a0560-037c-806f-a2cc-de313f60ddce&spaceId=85f0c915-8dec-482c-a0ca-17b143c4a630&expirationTimestamp=1741874400000&signature=l7oYcW5lyqbKMuRCzOOrD6_0jtG2dvgEcvM5wqLMTuk&downloadName=%E1%84%86%E1%85%A2%E1%84%8E%E1%85%B5%E1%86%BC%E1%84%91%E1%85%A9%E1%84%89%E1%85%B3%E1%84%90%E1%85%B3_CRUD2.gif)
+</details>
+<details>
+  <summary>4. 💼 포트폴리오 관리</summary>
+  <br />
+
+![포트폴리오 관리](https://file.notion.so/f/f/85f0c915-8dec-482c-a0ca-17b143c4a630/679cee97-6f1b-4fee-adfa-94d52fdb5659/%E1%84%91%E1%85%A9%E1%84%90%E1%85%B3%E1%84%91%E1%85%A9%E1%86%AF%E1%84%85%E1%85%B5%E1%84%8B%E1%85%A9_%E1%84%80%E1%85%AA%E1%86%AB%E1%84%85%E1%85%B5.gif?table=block&id=1b5a0560-037c-80c2-bd69-c9eb3aa7d884&spaceId=85f0c915-8dec-482c-a0ca-17b143c4a630&expirationTimestamp=1741874400000&signature=2wHZhSTbhd9tBsvGI7D8-SP9yeDUVcQI2hH-VR8Ju24&downloadName=%E1%84%91%E1%85%A9%E1%84%90%E1%85%B3%E1%84%91%E1%85%A9%E1%86%AF%E1%84%85%E1%85%B5%E1%84%8B%E1%85%A9+%E1%84%80%E1%85%AA%E1%86%AB%E1%84%85%E1%85%B5.gif)
+</details>
+
+
+
 ## 🧩 API 명세서
 [👉 API 명세서 바로가기](https://api.taptoon.site/swagger-ui/index.html)
 
 ## 이용 방법
 
-### 1. 회원가입
-![회원가입](https://github.com/user-attachments/assets/d94d6417-16dc-42f1-8788-2b306bd49485)
+### 회원가입
+
 * 사용자는 일반 로그인, 소셜 로그인을 선택하여 회원가입 또는 로그인 할 수 있습니다.
 * 사용자는 마이 페이지에서 본인의 닉네임, 비밀번호를 수정할 수 있습니다.
 * 소셜 로그인으로 가입 한 사용자에 한하여 최초 1회 이메일과 비밀번호를 설정할 수 있습니다.
@@ -250,8 +277,6 @@ flowchart TD
 * 사용자가 로그인을 해야 다른 기능을 사용할 수 있습니다.
 * 닉네임이나 이름으로 사용자 검색이 가능합니다.(완벽하게 일치해야 검색 가능)
 
-### 2. 검색
-![검색](https://github.com/user-attachments/assets/1db3c2cc-554b-4c51-b724-adee69647e6c)
 
 ### 포트폴리오
 * 사용자는 마이 페이지에서 개인의 역량을 나타낼 수 있는 포트폴리오를 작성할 수 있습니다.
