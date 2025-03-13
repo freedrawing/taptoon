@@ -250,7 +250,7 @@ flowchart TD
   <summary>3. ✍️ 매칭포스트(게시글) 작성, 수정 및 삭제</summary>
   <br />
 
-![매칭포스트(게시글) 작성, 수정 및 삭제](https://file.notion.so/f/f/85f0c915-8dec-482c-a0ca-17b143c4a630/ca2cad57-0ac3-4599-abb4-631956b15f16/%E1%84%86%E1%85%A2%E1%84%8E%E1%85%B5%E1%86%BC%E1%84%91%E1%85%A9%E1%84%89%E1%85%B3%E1%84%90%E1%85%B3_CRUD2.gif?table=block&id=1b5a0560-037c-806f-a2cc-de313f60ddce&spaceId=85f0c915-8dec-482c-a0ca-17b143c4a630&expirationTimestamp=1741874400000&signature=l7oYcW5lyqbKMuRCzOOrD6_0jtG2dvgEcvM5wqLMTuk&downloadName=%E1%84%86%E1%85%A2%E1%84%8E%E1%85%B5%E1%86%BC%E1%84%91%E1%85%A9%E1%84%89%E1%85%B3%E1%84%90%E1%85%B3_CRUD2.gif)
+![매칭포스트(게시글) 작성, 수정 및 삭제](https://github.com/user-attachments/assets/a3f8cbf8-f78a-44f3-9421-13a6ed9088bf)
 </details>
 <details>
   <summary>4. 💼 포트폴리오 관리</summary>
