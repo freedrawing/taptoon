@@ -40,7 +40,7 @@ public class MatchingPostImage extends BaseEntity {
         this.fileName = fileName;
         this.thumbnailImageUrl = thumbnailImageUrl;
         this.originalImageUrl = originalImageUrl;
-        this.status = Status.PENDING; // 처음은 이미지 저장 대기 상태
+        this.status = Status.PENDING;
     }
 
     public void registerMe() {

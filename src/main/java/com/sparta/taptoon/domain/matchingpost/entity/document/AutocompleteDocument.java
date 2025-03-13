@@ -40,7 +40,7 @@ public class AutocompleteDocument {
         this.word = word;
         searchCount = 0L;
         wordLength = word.length();
-        createdAt = LocalDateTime.now(); // @CreatedDate가 동작을 안 한다.... Elasticsearch는 생각보다 버그가 많은 듯하다
+        createdAt = LocalDateTime.now();
     }
 
     public void increaseSearchCount() {

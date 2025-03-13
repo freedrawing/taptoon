@@ -17,7 +17,6 @@ import java.util.List;
 @Slf4j
 @Getter
 @Document(indexName = "matching_post")
-//@Setting(settingPath = "/elastic/matchingpost-setting.json") // Elasticsearch 버전에 오류가 많아서 이 방법은 안 될 듯하다...
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MatchingPostDocument {
 
@@ -27,13 +26,16 @@ public class MatchingPostDocument {
     @Field(type = FieldType.Long, index = false)
     private Long authorId;
 
+    @Field(type = FieldType.Text)
+    private String authorName;
+
     @Field(type = FieldType.Keyword, normalizer = "lowercase")
     private ArtistType artistType;
 
     @MultiField(
             mainField = @Field(type = FieldType.Text, analyzer = "nori"),
             otherFields = {
-                    @InnerField(suffix = "ngram", type = FieldType.Text, analyzer = "ngram_analyzer"), // 이건 ES에 미리 안 만들어지면 서버 동작 안 함
+                    @InnerField(suffix = "ngram", type = FieldType.Text, analyzer = "ngram_analyzer"),
                     @InnerField(suffix = "english", type = FieldType.Text, analyzer = "english"),
             }
     )
@@ -51,11 +53,11 @@ public class MatchingPostDocument {
     )
     private String description;
 
-    @Field(type = FieldType.Long) // 정렬하려면 인덱싱 돼야 함
+    @Field(type = FieldType.Long)
     private Long viewCount;
 
     @Field(type = FieldType.Nested, index = false)
-    private List<MatchingPostImageResponse> imageList; // Document가 DTO를 가지고 있는 게 좋아 보이지는 않는다.
+    private List<MatchingPostImageResponse> imageList;
 
     // 나중에 정렬할 때 속도가 너무 느리면 `epoch_millis`로 바꾸자
     @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis")
@@ -66,12 +68,13 @@ public class MatchingPostDocument {
 
 
     @Builder
-    public MatchingPostDocument(Long id, Long authorId, ArtistType artistType, String title,
+    public MatchingPostDocument(Long id, Long authorId, String authorName, ArtistType artistType, String title,
                                 WorkType workType, String description, Long viewCount, List<MatchingPostImageResponse> imageList,
                                 LocalDateTime createdAt, LocalDateTime updatedAt) {
 
         this.id = id;
         this.authorId = authorId;
+        this.authorName= authorName;
         this.artistType = artistType;
         this.title = title;
         this.workType = workType;
@@ -86,6 +89,7 @@ public class MatchingPostDocument {
         return MatchingPostDocument.builder()
                 .id(matchingPost.getId())
                 .authorId(matchingPost.getAuthor().getId())
+                .authorName(matchingPost.getAuthor().getName())
                 .artistType(matchingPost.getArtistType())
                 .title(matchingPost.getTitle())
                 .workType(matchingPost.getWorkType())

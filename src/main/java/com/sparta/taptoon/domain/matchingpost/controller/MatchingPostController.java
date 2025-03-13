@@ -34,13 +34,10 @@ public class MatchingPostController {
     public ResponseEntity<ApiResponse<Long>> createSkeleton(
             @AuthenticationPrincipal MemberDetail memberDetail
     ) {
-        Long id = matchingPostService.generateEmptyMatchingPost(memberDetail.getId());
+        Long id = matchingPostService.generateEmptyMatchingPost(memberDetail.getMember());
         return ApiResponse.success(id);
     }
 
-    /*
-     * `PUT`이지만 사실상 `POST`임
-     */
     @Operation(summary = "매칭 게시글 등록")
     @PutMapping("/{matchingPostId}/registration")
     public ResponseEntity<ApiResponse<MatchingPostResponse>> registerMatchingPost(
@@ -48,8 +45,7 @@ public class MatchingPostController {
             @PathVariable Long matchingPostId,
             @Valid @RequestBody RegisterMatchingPostRequest request) {
 
-//        matchingPostService.registerMatchingPostImages(request.matchingPostImageIds());
-        MatchingPostResponse response = matchingPostService.registerMatchingPost(memberDetail.getId(), matchingPostId, request);
+        MatchingPostResponse response = matchingPostService.registerMatchingPost(memberDetail.getMember(), matchingPostId, request);
         return ApiResponse.success(response);
     }
 
@@ -77,7 +73,7 @@ public class MatchingPostController {
             @AuthenticationPrincipal MemberDetail memberDetail,
             @PathVariable Long matchingPostId) {
 
-        matchingPostService.removeMatchingPost(memberDetail.getId(), matchingPostId);
+        matchingPostService.removeMatchingPost(memberDetail.getMember(), matchingPostId);
         return ApiResponse.noContent();
     }
 
@@ -101,21 +97,8 @@ public class MatchingPostController {
         return ApiResponse.success(response);
     }
 
-    /*
-     * 클라이언트 쪽에서 이미지 업로드 후에 X 버튼을 눌러 업로드 취소했을 때
-     * 1. DB에서 삭제해주고,
-     * 2. S3에서도 삭제해줘야 함.
-     */
-    @Operation(summary = "매칭 포스트에 첨부된 이미지 삭제")
-    @DeleteMapping("/images/{matchingPostImageId}")
-    public ResponseEntity<ApiResponse<Void>> deleteMatchingPostImage(@PathVariable Long matchingPostImageId) {
-        // TODO: 이미지 삭제 로직 추가
-        return ApiResponse.noContent();
-    }
-
-    // Autocomplete (10개씩만 보내주자. debounce 방식으로 처리해야 할 듯)
     @Operation(summary = "검색시 키워드 자동완성")
-    @PostMapping("/autocomplete")
+    @GetMapping("/autocomplete")
     public ResponseEntity<ApiResponse<List<String>>> getAutocomplete(@RequestParam String keyword) {
         List<String> autocompleteSuggestions = elasticAutocompleteService.findAutocompleteSuggestion(keyword);
         return ApiResponse.success(autocompleteSuggestions);

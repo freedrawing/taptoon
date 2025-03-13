@@ -26,7 +26,6 @@ public class PortfolioFile extends BaseEntity {
     @Column(name = "file_name", nullable = false)
     private String fileName;
 
-    // fileType이 image면 썸네일 이미지 생성
     @Column(name = "thumbnail_url", length = 1000)
     private String thumbnailUrl;
 
