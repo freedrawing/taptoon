@@ -59,6 +59,8 @@
 >
 > 지금 바로 **포트폴리오를 업로드**하고, 새로운 파트너를 찾아보세요! 🎬🔥
 
+![Taptoon_Introduction](https://github.com/user-attachments/assets/c8afa44d-f299-449c-b3bf-3cfeaf378a6b)
+
 <br/>
 
 ## 🌱 Developed by
