@@ -316,7 +316,7 @@ flowchart TD
   <summary><span style="font-size: 1.2em; font-weight: bold;">5. 💬 채팅</span></summary>
   <br />
 
-![다른 사용자와 채팅]()
+![다른 사용자와 채팅](https://github.com/user-attachments/assets/e4b11a43-b638-46b9-b02c-db02d6e1612e)
 </details>
 
 
