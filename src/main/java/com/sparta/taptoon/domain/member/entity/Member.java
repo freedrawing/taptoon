@@ -3,10 +3,16 @@ package com.sparta.taptoon.domain.member.entity;
 import com.sparta.taptoon.domain.member.enums.MemberGrade;
 import com.sparta.taptoon.domain.member.enums.OAuthProvider;
 import com.sparta.taptoon.global.common.BaseEntity;
+import com.sparta.taptoon.global.common.enums.Status;
+import com.sparta.taptoon.global.error.enums.ErrorCode;
+import com.sparta.taptoon.global.error.exception.NotFoundException;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import static com.sparta.taptoon.global.error.enums.ErrorCode.*;
+import static com.sparta.taptoon.global.error.enums.ErrorCode.MATCHING_POST_NOT_FOUND;
 
 @Getter
 @NoArgsConstructor
@@ -75,5 +81,11 @@ public class Member extends BaseEntity {
     public void disconnectOAuthInfo() {
         this.providerId = null;
         this.provider = null;
+    }
+
+    public void validateIsDeleted() {
+        if (isDeleted) {
+            throw new NotFoundException(MEMBER_NOT_FOUND);
+        }
     }
 }

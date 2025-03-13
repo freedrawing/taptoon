@@ -25,7 +25,8 @@ public class Constant {
 
     //Security whiteList
     public static String MATCHING_POST_URL = "/api/matching-posts/**";
-    public static String COMMENTS_URL = "api/comments/**";
+    public static String COMMENTS_URL = "/api/comments/**";
+    public static String PORTFOLIO_URL = "/api/portfolios/**";
     public static String AUTH_URL = "/api/auth/**";
     public static String SWAGGER_DOCS_URL = "/v3/api-docs/**";
     public static String SWAGGER_UI_URL = "/swagger-ui/**";

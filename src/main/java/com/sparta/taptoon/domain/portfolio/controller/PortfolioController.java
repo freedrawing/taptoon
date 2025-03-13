@@ -44,9 +44,9 @@ public class PortfolioController {
 
     @Operation(summary = "유저 한 명이 등록한 모든 포트폴리오 조회")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PortfolioResponse>>> getUserPortfolios(@AuthenticationPrincipal MemberDetail memberDetail) {
-        List<PortfolioResponse> myAllPortfolios = portfolioService.findMyAllPortfolios(memberDetail.getMember());
-        return ApiResponse.success(myAllPortfolios);
+    public ResponseEntity<ApiResponse<List<PortfolioResponse>>> getUserPortfolios(@RequestParam Long memberId) {
+        List<PortfolioResponse> SomeoneAllPortfolios = portfolioService.findAllPortfoliosBy(memberId);
+        return ApiResponse.success(SomeoneAllPortfolios);
     }
 
     @Operation(summary = "포트폴리오 상세조회")
