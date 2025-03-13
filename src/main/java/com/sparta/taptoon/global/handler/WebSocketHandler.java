@@ -3,6 +3,7 @@ package com.sparta.taptoon.global.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.taptoon.domain.chat.dto.request.SendChatMessageRequest;
+import com.sparta.taptoon.domain.chat.dto.response.ChatCombinedMessageResponse;
 import com.sparta.taptoon.domain.chat.service.ChatMessageService;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
@@ -68,8 +69,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
             MessagePayload messagePayload = parseMessagePayload(payload);
             String chatRoomId = extractChatRoomId(session);
 
-            chatMessageService.sendMessage(messagePayload.senderId(), chatRoomId,
-                    new SendChatMessageRequest(messagePayload.message()));
+            // ChatMessageService를 호출해 메시지 저장 및 발행
+            ChatCombinedMessageResponse response = chatMessageService.sendMessage(
+                    messagePayload.senderId(),
+                    chatRoomId,
+                    new SendChatMessageRequest(messagePayload.message())
+            );
+
+            // WebSocket으로 브로드캐스트는 이미 sendMessage 내부에서 Redis를 통해 처리됨
+            log.info("✅ WebSocket 메시지 처리 완료: chatRoomId={}, senderId={}", chatRoomId, messagePayload.senderId());
         } catch (NotFoundException e) {
             log.error("❌ 채팅방 또는 사용자를 찾을 수 없음: {}", payload, e);
             sendErrorMessage(session, "Chat room or user not found");
