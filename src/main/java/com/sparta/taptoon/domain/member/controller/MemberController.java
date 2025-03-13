@@ -16,8 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @Tag(name = "Member", description = "사용자 API")
 @RestController
 @RequiredArgsConstructor
@@ -57,7 +55,7 @@ public class MemberController {
     @Operation(summary = "멤버 정보 조회")
     @GetMapping
     public ResponseEntity<ApiResponse<MemberResponse>> getUserInfo(@AuthenticationPrincipal MemberDetail memberDetail) {
-        MemberResponse memberResponse = memberService.findMember(memberDetail.getMember());
+        MemberResponse memberResponse = memberService.convertToResponse(memberDetail.getMember());
         return ApiResponse.success(memberResponse);
     }
 

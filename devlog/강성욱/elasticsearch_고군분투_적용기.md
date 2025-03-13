@@ -1,4 +1,4 @@
-# Elasticsearch 적용기
+# 📌 Elasticsearch 고군분투 적용기 🚀
 
 ## 목차
 

@@ -2,6 +2,7 @@ package com.sparta.taptoon.domain.portfolio.service;
 
 import com.sparta.taptoon.domain.image.service.AwsS3Service;
 import com.sparta.taptoon.domain.member.entity.Member;
+import com.sparta.taptoon.domain.member.service.MemberService;
 import com.sparta.taptoon.domain.portfolio.dto.request.RegisterPortfolioRequest;
 import com.sparta.taptoon.domain.portfolio.dto.request.UpdatePortfolioRequest;
 import com.sparta.taptoon.domain.portfolio.dto.response.PortfolioResponse;
@@ -31,6 +32,8 @@ public class PortfolioService {
     private final PortfolioRepository portfolioRepository;
     private final PortfolioFileRepository portfolioFileRepository;
     private final AwsS3Service awsS3Service;
+    private final MemberService memberService;
+
 
     private final int PORTFOLIO_LIMIT = 5;
 
@@ -123,8 +126,11 @@ public class PortfolioService {
         portfolioFileRepository.deleteAllInBatch(portfolioFiles);
     }
 
-    public List<PortfolioResponse> findMyAllPortfolios(Member member) {
-        return portfolioRepository.findAllWithFilesByOwnerIdAndRegisteredStatus(member.getId())
+    public List<PortfolioResponse> findAllPortfoliosBy(Long memberId) {
+
+        Member findMember = memberService.findMemberById(memberId);
+
+        return portfolioRepository.findAllWithFilesByOwnerIdAndRegisteredStatus(findMember.getId())
                 .stream()
                 .map(PortfolioResponse::from)
                 .toList();

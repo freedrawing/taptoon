@@ -98,7 +98,7 @@ public class MatchingPostController {
     }
 
     @Operation(summary = "검색시 키워드 자동완성")
-    @PostMapping("/autocomplete")
+    @GetMapping("/autocomplete")
     public ResponseEntity<ApiResponse<List<String>>> getAutocomplete(@RequestParam String keyword) {
         List<String> autocompleteSuggestions = elasticAutocompleteService.findAutocompleteSuggestion(keyword);
         return ApiResponse.success(autocompleteSuggestions);

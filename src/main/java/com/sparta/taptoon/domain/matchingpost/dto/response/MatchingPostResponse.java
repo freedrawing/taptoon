@@ -10,6 +10,7 @@ import java.util.List;
 public record MatchingPostResponse(
         Long matchingPostId,
         Long authorId,
+        String authorName,
         String title,
         String description,
         String artistType,
@@ -24,6 +25,7 @@ public record MatchingPostResponse(
         return new MatchingPostResponse(
                 matchingPost.getId(),
                 matchingPost.getAuthor().getId(),
+                matchingPost.getAuthor().getName(),
                 matchingPost.getTitle(),
                 matchingPost.getDescription(),
                 matchingPost.getArtistType().name(),
@@ -42,6 +44,7 @@ public record MatchingPostResponse(
         return new MatchingPostResponse(
                 matchingPostDocument.getId(),
                 matchingPostDocument.getAuthorId(),
+                matchingPostDocument.getAuthorName(),
                 matchingPostDocument.getTitle(),
                 matchingPostDocument.getDescription(),
                 matchingPostDocument.getArtistType().name(),
