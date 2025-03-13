@@ -389,7 +389,7 @@ flowchart TD
   <summary><span style="font-size: 1.2em; font-weight: bold;">1. 📲 회원가입</span></summary>
   <br />
 
-  ![회원가입](https://github.com/user-attachments/assets/d94d6417-16dc-42f1-8788-2b306bd49485)
+  ![회원가입](https://github.com/user-attachments/assets/4a0b3f3f-ab37-430d-bc8b-59fa77e86a1d)
 </details>
 <details>
   <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🔎 검색</span></summary>
