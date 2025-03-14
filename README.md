@@ -1,28 +1,29 @@
 # TapToon:  𓆉𓆝 𓆟 𓆞 𓆝 𓆟𓇼 웹툰 창작의 꿈을 잇다
 
 <br>
-<img width="1000" src="https://github.com/user-attachments/assets/2d014f23-75fc-4015-ad37-f7b6dc880272" />
+<img width="1000" src="https://github.com/user-attachments/assets/d9e27610-8088-43ef-bb62-fcf7b51912ae" />
 
 
 <br/>
 
 ## ☄️ 순간이동
+
 * [💻 프로젝트 개요](#-프로젝트-개요)
 * [⚙️👷🏻‍♂️🛠️🔧 Developed by](#-developed-by)
 * [⏳ 작업 기간](#-작업-기간)
 * [📚 Used Stacks](#-used-stacks)
 * [🔳 와이어 프레임](#-와이어-프레임)
 * [🏗️ 프로젝트 구조](#-프로젝트-구조)
-  * [𓊍 프로젝트 아키텍처](#𓊍-프로젝트-아키텍처)
-  * [⛁ ERD (RDMBS)](#-erd-rdmbs)
-  * [⛃ MongoDB Schema](#-mongodb-schema)
-  * [🔁 프로젝트 플로우 개요](#-프로젝트-플로우-개요)
-  * [🌀 서비스 상세 플로우 (참고)](#-서비스-상세-플로우-참고)
+    * [𓊍 프로젝트 아키텍처](#𓊍-프로젝트-아키텍처)
+    * [⛁ ERD (RDMBS)](#-erd-rdmbs)
+    * [⛃ MongoDB Schema](#-mongodb-schema)
+    * [🔁 프로젝트 플로우 개요](#-프로젝트-플로우-개요)
+    * [🌀 서비스 상세 플로우 (참고)](#-서비스-상세-플로우-참고)
 * [🧩 API 명세서](#-api-명세서)
 * [⚡ 주요 기능](#-주요-기능)
-  * [📁 포트폴리오 등록](#-포트폴리오-등록)
-  * [📝 매칭 포스트 (구인 글)](#-매칭-포스트-구인-글)
-  * [🗣️ 채팅](#-채팅)
+    * [📁 포트폴리오 등록](#-포트폴리오-등록)
+    * [📝 매칭 포스트 (구인 글)](#-매칭-포스트-구인-글)
+    * [🗣️ 채팅](#-채팅)
 * [🪵 Dev log](#-dev-log)
 
 <br/>
@@ -65,6 +66,7 @@
 <br/>
 
 ## ⚙️👷🏻‍♂️🛠️🔧 Developed by
+
 <table>
   <tr>
     <th align="center">직책</th>
@@ -82,7 +84,13 @@
     <td align="center">
       <b><a href="https://github.com/chk223">김창현</a></b>
     </td>
-    <td align="center">백엔드 개발 및 관리</td>
+    <td align="left">
+      - 인증 인가<br>
+      - 소셜 로그인<br>
+      - 인프라 구축<br>
+      - CI/CD<br>
+      - 이미지 업로드
+    </td>
   </tr>
   <tr>
     <td align="center">부팀장 🏅</td>
@@ -94,7 +102,11 @@
     <td align="center">
       <b><a href="https://github.com/freedrawing">강성욱</a></b>
     </td>
-    <td align="center">프론트엔드 설계</td>
+    <td align="left">
+      - 작가-작가를 이어줄 수 있는 매칭 포스트(게시글); 구인글<br>
+      - ElasticSearch 적용 (Autocomplete, 고가용성 확보를 위한 클러스터링, 검색)<br>
+      - Front-end UI 구성 및 로직 개발
+    </td>
   </tr>
   <tr>
     <td align="center">팀원 🌟</td>
@@ -106,7 +118,11 @@
     <td align="center">
       <b><a href="https://github.com/leithharbor">이상구</a></b>
     </td>
-    <td align="center">DB 및 API 연동</td>
+    <td align="left">
+      - 포트폴리오<br>
+      - 댓글<br>
+      - QueryDsl을 이용한 페이지네이션
+    </td>
   </tr>
   <tr>
     <td align="center">팀원 🌟</td>
@@ -118,7 +134,12 @@
     <td align="center">
       <b><a href="https://github.com/dllll2">이진영</a></b>
     </td>
-    <td align="center">테스트 및 디버깅</td>
+    <td align="left">
+      - 메신저 형태의 1:1 채팅기능<br>
+      - Websocket 연결<br>
+      - Redis pub/sub 을 이용해서 메시지 브로드캐스트<br>
+      - MongoDB 연결
+    </td>
   </tr>
 </table>
 
@@ -126,6 +147,7 @@
 <br/>
 
 ## ⏳ 작업 기간
+
 ***2025.02.10 - 2025.03.16***
 
 <br/>
@@ -142,41 +164,37 @@
   <img src="https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
   <img src="https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white">
   <img src="https://img.shields.io/badge/OpenFeign-E50914?style=for-the-badge&logo=netflix&logoColor=white">
-  <img src="https://img.shields.io/badge/JPA-59666C?style=for-the-badge&logo=hibernate&logoColor=white">
+  <img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=white">
   <br>
-
+  <img src="https://img.shields.io/badge/JPA-59666C?style=for-the-badge&logo=hibernate&logoColor=white">
   <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
   <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white">
   <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white">
   <br>
-
   <img src="https://img.shields.io/badge/ElasticSearch-005571?style=for-the-badge&logo=elasticsearch&logoColor=white">
   <img src="https://img.shields.io/badge/Kibana-005571?style=for-the-badge&logo=kibana&logoColor=white">
   <img src="https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socket.io&logoColor=white">
   <br>
-
   <img src="https://img.shields.io/badge/OAuth%202.0-4285F4?style=for-the-badge&logo=google&logoColor=white">
   <img src="https://img.shields.io/badge/Naver-03C75A?style=for-the-badge&logo=naver&logoColor=white">
   <img src="https://img.shields.io/badge/Google-4285F4?style=for-the-badge&logo=google&logoColor=white">
   <br>
-
   <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white">
   <img src="https://img.shields.io/badge/EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white">
   <img src="https://img.shields.io/badge/RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white">
-  <br>
-
   <img src="https://img.shields.io/badge/Route%2053-8C4FFF?style=for-the-badge&logo=amazonroute53&logoColor=white">
+  <br>
   <img src="https://img.shields.io/badge/CloudFront-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
   <img src="https://img.shields.io/badge/ELB-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
-  <br>
-
   <img src="https://img.shields.io/badge/Lambda-FF9900?style=for-the-badge&logo=awslambda&logoColor=white">
   <img src="https://img.shields.io/badge/S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white">
+  <br>
+  <img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">
   <img src="https://img.shields.io/badge/ElastiCache-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
   <img src="https://img.shields.io/badge/ECR-527FFF?style=for-the-badge&logo=amazonaws&logoColor=white">
   <br>
-
-  <img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+  <img src="https://img.shields.io/badge/Docker%20Compose-1488C6?style=for-the-badge&logo=docker&logoColor=white">
   <br>
 </div>
 
@@ -187,21 +205,25 @@
   <br />
 
 ### ✏️ 매칭 보드
+
 ![매칭보드](https://github.com/user-attachments/assets/04dbed36-9f3d-46f8-a7e0-1295ff3dc139)
 
 <br/>
 
 ### ✏️ 매칭 포스트 작성
+
 ![Image](https://github.com/user-attachments/assets/5b1315eb-7ef6-4107-8016-973500fe222f)
 
 <br/>
 
 ### ✏️ 매칭 포스트 상세 조회
+
 ![매칭포스트 작성](https://github.com/user-attachments/assets/beea8f26-9f68-4aa6-8c2a-cab52456934c)
 
 <br/>
 
 ### ✏️ 매칭 포스트 수정
+
 ![Image](https://github.com/user-attachments/assets/53c82dfb-9a1c-4159-9a4b-aff93ee919d8)
 </details>
 
@@ -209,13 +231,16 @@
   <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🖼️ 포트폴리오</span></summary>
   <br />
 
-### 🖼 포트폴리오 리스트 조회 
+### 🖼 포트폴리오 리스트 조회
+
 ![Image](https://github.com/user-attachments/assets/a27b4c4a-c31e-40c6-8dd9-eaf2767f89ba)
 
 ### 🖼 포트폴리오 상세 조회
+
 ![Image](https://github.com/user-attachments/assets/1e0fbf6a-7ed3-4dfe-8878-3604f43c1445)
 
 ### 🖼 포트폴리오 작성
+
 ![Image](https://github.com/user-attachments/assets/00048c92-f113-49dc-85ef-2121fd3a8ca3)
 </details>
 
@@ -224,9 +249,11 @@
   <br />
 
 ### 🤡 채팅 리스트
+
 ![Image](https://github.com/user-attachments/assets/5ca55ed6-9199-487b-ad00-09cdeb65b0b6)
 
 ### 🤡 채팅 화면
+
 ![Image](https://github.com/user-attachments/assets/0c1c8a92-3419-45d1-b0db-e1310735f7f1)
 </details>
 
@@ -235,8 +262,8 @@
 ## 🏗️ 프로젝트 구조
 
 ### 𓊍 프로젝트 아키텍처
-<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/21d42bc0-6cd2-4fa0-a248-43278d7949ba" />
 
+<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/21d42bc0-6cd2-4fa0-a248-43278d7949ba" />
 
 ### ⛁ ERD (RDMBS)
 
@@ -342,7 +369,6 @@ erDiagram
     }
 ```
 
-
 ### ⛃ MongoDB Schema
 
 ```mermaid
@@ -368,7 +394,6 @@ classDiagram
     chat_room "1" -- "0..*" chat_message : chat_room_id
 ```
 
-
 ### 🔁 프로젝트 플로우 개요
 
 ```mermaid
@@ -388,11 +413,12 @@ flowchart TD
 ```
 
 ### 🌀 서비스 상세 플로우 (참고)
+
 <details>
   <summary><span style="font-size: 1.2em; font-weight: bold;">1. 📲 회원가입</span></summary>
   <br />
 
-  ![회원가입](https://github.com/user-attachments/assets/4a0b3f3f-ab37-430d-bc8b-59fa77e86a1d)
+![회원가입](https://github.com/user-attachments/assets/4a0b3f3f-ab37-430d-bc8b-59fa77e86a1d)
 </details>
 <details>
   <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🔎 검색</span></summary>
@@ -422,6 +448,7 @@ flowchart TD
 <br/>
 
 ## 🧩 API 명세서
+
 [👉 API 명세서 바로가기](https://api.taptoon.site/swagger-ui/index.html)
 
 <br/>
@@ -429,6 +456,7 @@ flowchart TD
 ## ⚡ 주요 기능
 
 ### 📁 포트폴리오 등록
+
 * 사용자는 마이 페이지에서 개인의 역량을 나타낼 수 있는 포트폴리오를 작성할 수 있습니다.
 * 포트폴리오는 글, 그림 모두 가능합니다.
 * 포트폴리오는 최대 5개 까지 작성 가능합니다.(이상은 VIP 서비스 예정)
@@ -437,21 +465,24 @@ flowchart TD
 <br/>
 
 ### 📝 매칭 포스트 (구인 글)
+
 * 사용자는 원하는 파트너를 구인하는 글을 작성할 수 있습니다.
 * 구인하는 글에는 본인을 간략히 나타낼 만한 그림/글을 첨부할 수 있습니다.
 * 구인하는 글의 제목이나 내용으로 검색할 수 있습니다.
-  * 구인 글 검색은 자동완성 기능을 지원합니다.
-  * 구인 글은 여러 조건으로 검색이 가능합니다.
+    * 구인 글 검색은 자동완성 기능을 지원합니다.
+    * 구인 글은 여러 조건으로 검색이 가능합니다.
 
 <br/>
 
 ### 🗣️ 채팅
+
 * 사용자는 원하는 파트너와 컨택하기 위해 채팅을 진행할 수 있습니다.
 * 채팅은 1:1 채팅으로 진행하고, 이미지 전송 또한 지원합니다.
 
 <br/>
 
 ## 🪵 Dev log
+
 * [📌 Elasticsearch 클러스터링 적용기 🔥](/devlog/강성욱/elasticsearch_고가용성을_위한_클러스터링_적용기.md)
 * [📌 Elasticsearch 적용기 📜](/devlog/강성욱/elasticsearch_고군분투_적용기.md)
 * [📌 조회수 동시성 문제 해결 여정 🔮](/devlog/강성욱/조회수_동시성_문제_해결_여정.md)
