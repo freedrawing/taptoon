@@ -1,7 +1,7 @@
 # TapToon:  𓆉𓆝 𓆟 𓆞 𓆝 𓆟𓇼 웹툰 창작의 꿈을 잇다
 
 <br>
-<img width="1000" src="https://github.com/user-attachments/assets/873cd043-85f3-4cc4-abb9-1b965509641b" />
+<img width="1000" src="https://github.com/user-attachments/assets/d9e27610-8088-43ef-bb62-fcf7b51912ae" />
 
 
 <br/>
