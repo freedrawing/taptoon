@@ -85,12 +85,12 @@
       <b><a href="https://github.com/chk223">김창현</a></b>
     </td>
     <td align="left">
-       - 인증 인가 <br>
-       - 소셜 로그인 <br>
-       - 인프라 구축 <br>
-       - CI/CD <br>
-      - 이미지 업로드 <br>
-  </td>
+      - 인증 인가<br>
+      - 소셜 로그인<br>
+      - 인프라 구축<br>
+      - CI/CD<br>
+      - 이미지 업로드
+    </td>
   </tr>
   <tr>
     <td align="center">부팀장 🏅</td>
@@ -119,9 +119,9 @@
       <b><a href="https://github.com/leithharbor">이상구</a></b>
     </td>
     <td align="left">
-        - 포트폴리오 <br>
-        - 댓글 <br>
-       - QueryDsl을 이용한 페이지네이션
+      - 포트폴리오<br>
+      - 댓글<br>
+      - QueryDsl을 이용한 페이지네이션
     </td>
   </tr>
   <tr>
@@ -135,10 +135,10 @@
       <b><a href="https://github.com/dllll2">이진영</a></b>
     </td>
     <td align="left">
-        - 메신저 형태의 1:1 채팅기능
-        - Websocket 연결
-        - Redis pub/sub 을 이용해서 메시지 브로드캐스트
-        - MongoDB 연결
+      - 메신저 형태의 1:1 채팅기능<br>
+      - Websocket 연결<br>
+      - Redis pub/sub 을 이용해서 메시지 브로드캐스트<br>
+      - MongoDB 연결
     </td>
   </tr>
 </table>
