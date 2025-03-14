@@ -1,0 +1,121 @@
+{
+  "settings": {
+    "index": {
+      "max_ngram_diff": 9
+    },
+    "analysis": {
+      "analyzer": {
+        "ngram_analyzer": {
+          "type": "custom",
+          "tokenizer": "ngram_tokenizer"
+        }
+      },
+      "tokenizer": {
+        "ngram_tokenizer": {
+          "type": "ngram",
+          "min_gram": 1,
+          "max_gram": 10,
+          "token_chars": ["letter", "digit"]
+        }
+      },
+      "normalizer": {
+        "lowercase": {
+          "type": "custom",
+          "filter": ["lowercase"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "_class": {
+        "type": "keyword",
+        "index": false,
+        "doc_values": false
+      },
+      "artistType": {
+        "type": "keyword",
+        "normalizer": "lowercase"
+      },
+      "authorId": {
+        "type": "long",
+        "index": false
+      },
+      "authorName": {
+        "type": "text",
+        "index": true
+      },
+      "createdAt": {
+        "type": "date",
+        "format": "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis"
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "nori",
+        "fields": {
+          "english": {
+            "type": "text",
+            "analyzer": "english"
+          },
+          "ngram": {
+            "type": "text",
+            "analyzer": "ngram_analyzer"
+          }
+        }
+      },
+      "imageList": {
+        "type": "nested",
+        "properties": {
+          "id": {
+            "type": "long",
+            "index": false
+          },
+          "matchingPostId": {
+            "type": "long",
+            "index": false
+          },
+          "fileName": {
+            "type": "keyword",
+            "index": false
+          },
+          "originalImageUrl": {
+            "type": "keyword",
+            "index": false
+          },
+          "thumbnailImageUrl": {
+            "type": "keyword",
+            "index": false
+          }
+        }
+      },
+      "id": {
+        "type": "long"
+      },
+      "title": {
+        "type": "text",
+        "analyzer": "nori",
+        "fields": {
+          "english": {
+            "type": "text",
+            "analyzer": "english"
+          },
+          "ngram": {
+            "type": "text",
+            "analyzer": "ngram_analyzer"
+          }
+        }
+      },
+      "updatedAt": {
+        "type": "date",
+        "format": "yyyy-MM-dd'T'HH:mm:ss.SSS||epoch_millis"
+      },
+      "viewCount": {
+        "type": "long"
+      },
+      "workType": {
+        "type": "keyword",
+        "normalizer": "lowercase"
+      }
+    }
+  }
+}

@@ -12,10 +12,16 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @MappedSuperclass
 @Getter
 public abstract class BaseEntity {
+
   @CreatedDate
   private LocalDateTime createdAt;
 
   @LastModifiedDate
   private LocalDateTime updatedAt;
+
+  // MatchingPost, Portfolio 생성시간 정상화
+  protected void updateCreatedAtToNow() {
+    createdAt = LocalDateTime.now();
+  }
 }
 

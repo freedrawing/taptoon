@@ -2,22 +2,44 @@ package com.sparta.taptoon.domain.chat.entity;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.util.List;
 
 @Getter
-@NoArgsConstructor
+@Document(collection = "chat_room")
 public class ChatRoom {
-  private Long id;
-  private String name;
-  private Long user1_id;
-  private Long user2_id;
-  private Boolean is_deleted;
 
-  @Builder
-  public ChatRoom(String name, Long user1_id, Long user2_id, Boolean is_deleted) {
-    this.name = name;
-    this.user1_id = user1_id;
-    this.user2_id = user2_id;
-    this.is_deleted = is_deleted;
-  }
+    @Id
+    private String id;
+
+    @Field(name = "member_ids")
+    @Indexed // memberIds로 빠른 조회를 위해 인덱스 추가
+    private List<Long> memberIds;
+
+    @Field(name = "is_deleted")
+    private boolean isDeleted;
+
+    @Builder
+    public ChatRoom(List<Long> memberIds) {
+        this.memberIds = memberIds;
+        this.isDeleted = false;
+    }
+
+    public void delete() {
+        this.isDeleted = true;
+    }
+
+    public void addMember(Long memberId) {
+        if (!this.memberIds.contains(memberId)) {
+            this.memberIds.add(memberId);
+        }
+    }
+
+    public void removeMember(Long memberId) {
+        this.memberIds.remove(memberId);
+    }
 }

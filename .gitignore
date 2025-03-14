@@ -39,4 +39,7 @@ out/
 ### setting ###
 application-*.yml
 application-*.yaml
+!application-suk-test.yaml
 application.properties
+*.sql
+logs

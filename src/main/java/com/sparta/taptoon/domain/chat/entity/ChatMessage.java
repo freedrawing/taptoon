@@ -2,22 +2,58 @@ package com.sparta.taptoon.domain.chat.entity;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.time.LocalDateTime;
+
 
 @Getter
+@Document(collection = "chat_message")
 public class ChatMessage {
-    private Long id;
-    private Long room_id;
-    private Long sender_id;
+
+    @Id
+    private String id;
+
+    @Field(name = "chat_room_id")
+    @Indexed
+    private String chatRoomId;
+
+    @Field(name = "sender_id")
+    private Long senderId;
+
+    @Field(name = "message")
     private String message;
-    private Boolean isRead;
-    private Boolean isDeleted;
+
+    @Field(name = "unread_count")
+    private int unreadCount;
+
+    @CreatedDate
+    @Field(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Field(name = "is_deleted")
+    private boolean isDeleted;
 
     @Builder
-    public ChatMessage(Long room_id, Long sender_id, String message, Boolean isRead, Boolean isDeleted) {
-        this.room_id = room_id;
-        this.sender_id = sender_id;
+    public ChatMessage(String chatRoomId, Long senderId, String message, int unreadCount) {
+        this.chatRoomId = chatRoomId;
+        this.senderId = senderId;
         this.message = message;
-        this.isRead = isRead;
-        this.isDeleted = isDeleted;
+        this.unreadCount = unreadCount;
+        this.isDeleted = false;
+    }
+
+    public void decrementUnreadCount() {
+        if (this.unreadCount > 0) {
+            this.unreadCount--;
+        }
+    }
+
+    public void delete() {
+        this.isDeleted = true;
     }
 }
