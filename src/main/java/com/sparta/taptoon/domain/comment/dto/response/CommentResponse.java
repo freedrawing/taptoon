@@ -1,7 +1,6 @@
 package com.sparta.taptoon.domain.comment.dto.response;
 
 import com.sparta.taptoon.domain.comment.entity.Comment;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -29,10 +28,10 @@ public record CommentResponse(
                 comment.getContent(),
                 comment.getCreatedAt(),
                 comment.getUpdatedAt(),
-                replies != null ? replies : Collections.emptyList() // 엔티티에 없기 때문에 responseDto에서 null check\
+                replies != null ? replies : Collections.emptyList() // 엔티티에 없기 때문에 responseDto에서 null check
         );
     }
-    // 생성자 하나로 합치면서 헬퍼메서드로 기존 매개변수 문제 해결
+    // 기존 생성자 두개를 간소화
     public static CommentResponse from(Comment comment) {
         return from(comment, null);
     }

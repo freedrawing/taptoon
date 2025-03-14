@@ -28,6 +28,16 @@ public class RedisSubscriber {
             log.info("📥 Redis 메시지 수신: {}", message);
 
             Map<String, Object> data = objectMapper.readValue(message, Map.class);
+            String type = (String) data.get("type");
+
+            if ("CHAT_ROOM_DELETED".equals(type)) {
+                String chatRoomId = (String) data.get("chatRoomId");
+                Long deletedBy = getLong(data, "deletedBy");
+                log.info("✅ 채팅방 삭제 이벤트 처리 - chatRoomId: {}, deletedBy: {}", chatRoomId, deletedBy);
+                webSocketHandler.broadcastMessage(chatRoomId, message); // 클라이언트에 알림 전송
+                return;
+            }
+
             MessageData parsedData = parseMessageData(data);
 
             // 필수 필드 검증

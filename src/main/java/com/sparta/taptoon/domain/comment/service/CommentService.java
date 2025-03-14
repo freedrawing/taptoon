@@ -1,6 +1,5 @@
 package com.sparta.taptoon.domain.comment.service;
 
-import com.sparta.taptoon.domain.comment.controller.CommentController;
 import com.sparta.taptoon.domain.comment.dto.request.CommentRequest;
 import com.sparta.taptoon.domain.comment.dto.response.CommentResponse;
 import com.sparta.taptoon.domain.comment.entity.Comment;
@@ -8,7 +7,6 @@ import com.sparta.taptoon.domain.comment.repository.CommentRepository;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPost;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
@@ -30,7 +28,6 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final MatchingPostRepository matchingPostRepository;
-    private final MemberRepository memberRepository;
 
     // 댓글 생성
     @Transactional
@@ -101,13 +98,10 @@ public class CommentService {
         // 특정 포스트에 달린 댓글 찾기
         List<Comment> foundComments = commentRepository.findAllByMatchingPostIdOrderByCreatedAt(matchingPostId);
 
-        // 부모가 없는 댓글 Response에 담기
-        List<CommentResponse> commentResponses = foundComments.stream()
+        return foundComments.stream()
                 .filter(comment -> comment.getParent().isEmpty()) // parentId가 없는 댓글들 조회
                 .map(CommentResponse::from)
                 .collect(Collectors.toList());
-
-        return commentResponses;
     }
 
     // 특정 댓글과 답글 조회
@@ -167,7 +161,3 @@ public class CommentService {
         return commentRepository.findAllRepliesByParentId(parentId, pageable);
     }
 }
-
-          /*
-          포스트에서 댓글만 조회할때 답글 유무 (개수) 알려주기
-           */

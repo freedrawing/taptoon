@@ -2,7 +2,6 @@ package com.sparta.taptoon.domain.comment.controller;
 
 import com.sparta.taptoon.domain.comment.dto.request.CommentRequest;
 import com.sparta.taptoon.domain.comment.dto.response.CommentResponse;
-import com.sparta.taptoon.domain.comment.entity.Comment;
 import com.sparta.taptoon.domain.comment.service.CommentService;
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
@@ -12,8 +11,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;

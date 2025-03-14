@@ -1,95 +1,299 @@
-# Project `TapToon`: 웹툰 창작의 꿈을 잇다
-
-[//]: # (<img width="700" alt="Image" src="https://cdn.gamma.app/hxt1ktlqn5booma/5eb69b0ff23e4914b73e6f870018251e/original/image.png" />)
-[//]: # (<img width="700" alt="Image" src="https://cdn.gamma.app/hxt1ktlqn5booma/9e35fd7dbaa848ec84c390fe2b11004a/original/image.png" />)
-[//]: # (<img width="700" alt="Image" src="https://github.com/user-attachments/assets/e0847133-ca68-45a0-a925-1bf35f0fab49" />)
+# TapToon:  𓆉𓆝 𓆟 𓆞 𓆝 𓆟𓇼 웹툰 창작의 꿈을 잇다
 
 <br>
-
-<div style="display: flex; gap: 10px; justify-content: center; position: relative;">
-  <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; position: relative; left: 0;">
-    <img src="https://cdn.gamma.app/hxt1ktlqn5booma/5eb69b0ff23e4914b73e6f870018251e/original/image.png" alt="Taptoon Logo 1" style="width: 100%; height: 100%; object-fit: cover;" />
-  </div>
-  <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; position: relative; left: -55px;">
-    <img src="https://cdn.gamma.app/hxt1ktlqn5booma/9e35fd7dbaa848ec84c390fe2b11004a/original/image.png" alt="Taptoon Logo 2" style="width: 100%; height: 100%; object-fit: cover;" />
-  </div>
-  <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; position: relative; left: -111px;">
-    <img src="https://github.com/user-attachments/assets/e0847133-ca68-45a0-a925-1bf35f0fab49" alt="Taptoon Logo 3" style="width: 100%; height: 100%; object-fit: cover;" />
-  </div>
-</div>
-
-<br>
+<img width="1000" src="https://github.com/user-attachments/assets/d9e27610-8088-43ef-bb62-fcf7b51912ae" />
 
 
-* [프로젝트 개요](#프로젝트-개요)
-* [프로젝트 사용 흐름](#프로젝트-사용-흐름)
-* [이용 방법](#이용-방법)
-* [프로젝트 구조](#프로젝트-구조)
-* [기능 목록](#기능-목록)
-* [Support](#support)
+<br/>
 
-## 프로젝트 개요
-웹툰 작가와 글 작가를 연결하는 매칭 플랫폼입니다.
-아이디어만 있다면 그림 작가를, 뛰어난 그림 실력을 갖췄다면 글 작가를 찾아보세요!
-당신의 재능을 마음껏 뽐내고, 최고의 파트너와 함께 새로운 이야기를 만들어 보세요. 🚀
+## ☄️ 순간이동
 
-### 작업 기간
+* [💻 프로젝트 개요](#-프로젝트-개요)
+* [⚙️👷🏻‍♂️🛠️🔧 Developed by](#-developed-by)
+* [⏳ 작업 기간](#-작업-기간)
+* [📚 Used Stacks](#-used-stacks)
+* [🔳 와이어 프레임](#-와이어-프레임)
+* [🏗️ 프로젝트 구조](#-프로젝트-구조)
+    * [𓊍 프로젝트 아키텍처](#𓊍-프로젝트-아키텍처)
+    * [⛁ ERD (RDMBS)](#-erd-rdmbs)
+    * [⛃ MongoDB Schema](#-mongodb-schema)
+    * [🔁 프로젝트 플로우 개요](#-프로젝트-플로우-개요)
+    * [🌀 서비스 상세 플로우 (참고)](#-서비스-상세-플로우-참고)
+* [🧩 API 명세서](#-api-명세서)
+* [⚡ 주요 기능](#-주요-기능)
+    * [📁 포트폴리오 등록](#-포트폴리오-등록)
+    * [📝 매칭 포스트 (구인 글)](#-매칭-포스트-구인-글)
+    * [🗣️ 채팅](#-채팅)
+* [🪵 Dev log](#-dev-log)
+
+<br/>
+
+## 💻 프로젝트 개요
+
+> 🎨✍️ **"아이디어는 있지만 그림이 어렵다면? 그림 실력은 있지만 이야기가 고민이라면?"**  
+> 웹툰 작가와 글 작가가 만나 최고의 작품을 탄생시킬 수 있도록 도와주는 매칭 플랫폼을 소개합니다!
+>
+> ---
+>
+> 🔥 **어떻게 이용할 수 있나요?**
+>
+> 🥇 **자신을 PR하세요!**  
+> 👉 **포트폴리오를 업로드**하고, 자신의 작품 스타일과 강점을 소개하세요.  
+> 👉 **매칭 게시글을 작성**하여 함께할 파트너를 찾으세요.
+>
+> 🥈 **서로의 작품을 확인하세요!**  
+> 👉 게시글을 보고 마음에 드는 작가를 찾고, 포트폴리오를 살펴보세요.  
+> 👉 다양한 장르와 스타일을 가진 작가들을 한눈에 확인할 수 있습니다.
+>
+> 🥉 **바로 연락하고 협업을 시작하세요!**  
+> 👉 **1:1 채팅 기능**을 통해 관심 있는 작가와 직접 소통하세요.  
+> 👉 아이디어를 나누고, 새로운 프로젝트를 함께 시작하세요!
+>
+> ---
+>
+> 🎯 **이런 분들에게 추천합니다!**
+>
+> ✅ **글 작가** – 탄탄한 스토리는 있지만 그림을 그릴 줄 모른다면? ✍️  
+> ✅ **웹툰 작가** – 뛰어난 작화 실력을 갖췄지만 스토리가 고민이라면? 🎨  
+> ✅ **팀을 꾸리고 싶은 창작자** – 함께 성장할 파트너를 찾고 있다면? 🤝
+>
+> ---
+>
+> 지금 바로 **포트폴리오를 업로드**하고, 새로운 파트너를 찾아보세요! 🎬🔥
+
+![Taptoon_Introduction](https://github.com/user-attachments/assets/c8afa44d-f299-449c-b3bf-3cfeaf378a6b)
+
+<br/>
+
+## ⚙️👷🏻‍♂️🛠️🔧 Developed by
+
+<table>
+  <tr>
+    <th align="center">직책</th>
+    <th align="center">프로필</th>
+    <th align="center">이름</th>
+    <th align="center">담당 업무</th>
+  </tr>
+  <tr>
+    <td align="center">팀장 👑</td>
+    <td align="center">
+      <a href="https://github.com/chk223">
+        <img src="https://i.redd.it/dms21uds4w871.jpg" width="80px" />
+      </a>
+    </td>
+    <td align="center">
+      <b><a href="https://github.com/chk223">김창현</a></b>
+    </td>
+    <td align="left">
+      - 인증 인가<br>
+      - 소셜 로그인<br>
+      - 인프라 구축<br>
+      - CI/CD<br>
+      - 이미지 업로드
+    </td>
+  </tr>
+  <tr>
+    <td align="center">부팀장 🏅</td>
+    <td align="center">
+      <a href="https://github.com/freedrawing">
+        <img src="https://avatars.githubusercontent.com/u/43941383?v=4" width="80px" />
+      </a>
+    </td>
+    <td align="center">
+      <b><a href="https://github.com/freedrawing">강성욱</a></b>
+    </td>
+    <td align="left">
+      - 작가-작가를 이어줄 수 있는 매칭 포스트(게시글); 구인글<br>
+      - ElasticSearch 적용 (Autocomplete, 고가용성 확보를 위한 클러스터링, 검색)<br>
+      - Front-end UI 구성 및 로직 개발
+    </td>
+  </tr>
+  <tr>
+    <td align="center">팀원 🌟</td>
+    <td align="center">
+      <a href="https://github.com/leithharbor">
+        <img src="https://avatars.githubusercontent.com/u/185915561?v=4" width="80px" />
+      </a>
+    </td>
+    <td align="center">
+      <b><a href="https://github.com/leithharbor">이상구</a></b>
+    </td>
+    <td align="left">
+      - 포트폴리오<br>
+      - 댓글<br>
+      - QueryDsl을 이용한 페이지네이션
+    </td>
+  </tr>
+  <tr>
+    <td align="center">팀원 🌟</td>
+    <td align="center">
+      <a href="https://github.com/dllll2">
+        <img src="https://www.urbanbrush.net/web/wp-content/uploads/edd/2018/06/web-20180607032417590225.png" width="80px" />
+      </a>
+    </td>
+    <td align="center">
+      <b><a href="https://github.com/dllll2">이진영</a></b>
+    </td>
+    <td align="left">
+      - 메신저 형태의 1:1 채팅기능<br>
+      - Websocket 연결<br>
+      - Redis pub/sub 을 이용해서 메시지 브로드캐스트<br>
+      - MongoDB 연결
+    </td>
+  </tr>
+</table>
+
+
+<br/>
+
+## ⏳ 작업 기간
+
 ***2025.02.10 - 2025.03.16***
+
+<br/>
 
 ## 📚 Used Stacks
 
 <br>
 
-[//]: # (<div align=center><h1>📚 Used Stacks</h1></div>)
-<div align=center> 
-  <img src="https://img.shields.io/badge/java%2017-007396?style=for-the-badge&logo=java&logoColor=white">
-  <img src="https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white">
-  <img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white">
-  <br>
 
-  <img src="https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white">
-  <img src="https://img.shields.io/badge/OpenFeign-E50914?style=for-the-badge&logo=netflix&logoColor=white">
-  <img src="https://img.shields.io/badge/JPA-59666C?style=for-the-badge&logo=hibernate&logoColor=white">
-  <br>
-
-  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
-  <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white">
-  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white">
-  <br>
-
-  <img src="https://img.shields.io/badge/ElasticSearch-005571?style=for-the-badge&logo=elasticsearch&logoColor=white">
-  <img src="https://img.shields.io/badge/Kibana-005571?style=for-the-badge&logo=kibana&logoColor=white">
-  <img src="https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socket.io&logoColor=white">
-  <br>
-
-  <img src="https://img.shields.io/badge/OAuth-2.0-4285F4?style=for-the-badge&logo=google&logoColor=white">
-  <img src="https://img.shields.io/badge/Naver-03C75A?style=for-the-badge&logo=naver&logoColor=white">
-  <img src="https://img.shields.io/badge/Google-4285F4?style=for-the-badge&logo=google&logoColor=white">
-  <br>
-
-  <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white">
-  <img src="https://img.shields.io/badge/EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white">
-  <img src="https://img.shields.io/badge/RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white">
-  <br>
-
-  <img src="https://img.shields.io/badge/Route%2053-8C4FFF?style=for-the-badge&logo=amazonroute53&logoColor=white">
-  <img src="https://img.shields.io/badge/CloudFront-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
-  <img src="https://img.shields.io/badge/ELB-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
-  <br>
-
-  <img src="https://img.shields.io/badge/Lambda-FF9900?style=for-the-badge&logo=awslambda&logoColor=white">
-  <img src="https://img.shields.io/badge/S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white">
-  <img src="https://img.shields.io/badge/ElastiCache-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
-  <img src="https://img.shields.io/badge/ECR-527FFF?style=for-the-badge&logo=amazonaws&logoColor=white">
-  <br>
+<div align="center">
+<b>🛠️ Back-end</b><br>
+<img src="https://img.shields.io/badge/java%2017-007396?style=for-the-badge&logo=java&logoColor=white">
+<img src="https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white">
+<img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white">
+<img src="https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
+<img src="https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white">
+<br>
+<img src="https://img.shields.io/badge/OpenFeign-E50914?style=for-the-badge&logo=netflix&logoColor=white">
+<img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=white">
+<img src="https://img.shields.io/badge/JPA-59666C?style=for-the-badge&logo=hibernate&logoColor=white">
+<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
+<img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white">
+<br>
+<img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white">
+<img src="https://img.shields.io/badge/ElasticSearch-005571?style=for-the-badge&logo=elasticsearch&logoColor=white">
+<img src="https://img.shields.io/badge/Kibana-005571?style=for-the-badge&logo=kibana&logoColor=white">
+<img src="https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socket.io&logoColor=white">
+<img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white">
+<br>
+<img src="https://img.shields.io/badge/OAuth%202.0-4285F4?style=for-the-badge&logo=google&logoColor=white">
+<img src="https://img.shields.io/badge/Naver-03C75A?style=for-the-badge&logo=naver&logoColor=white">
+<img src="https://img.shields.io/badge/Google-4285F4?style=for-the-badge&logo=google&logoColor=white">
 </div>
 
-## 프로젝트 구조
+<br>
 
-### 프로젝트 아키텍처
-<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/2bcb5aee-b822-47dc-8873-ab15754abf26" style="border-radius: 15px;" />
+<div align="center">
+<b>🎨 Front-end </b><br>
+<img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=white">
+<img src="https://img.shields.io/badge/React%20Router-CA4245?style=for-the-badge&logo=reactrouter&logoColor=white">
+<img src="https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white">
+<img src="https://img.shields.io/badge/Redux-764ABC?style=for-the-badge&logo=redux&logoColor=white">
+</div>
+<br>
 
-### ERD (RDMBS)
+
+<div align="center">
+<b>☁️ Infra</b><br>
+<img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white">
+<img src="https://img.shields.io/badge/EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white">
+<img src="https://img.shields.io/badge/RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white">
+<img src="https://img.shields.io/badge/Route%2053-8C4FFF?style=for-the-badge&logo=amazonroute53&logoColor=white">
+<img src="https://img.shields.io/badge/CloudFront-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
+<br>
+<img src="https://img.shields.io/badge/ELB-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
+<img src="https://img.shields.io/badge/Lambda-FF9900?style=for-the-badge&logo=awslambda&logoColor=white">
+<img src="https://img.shields.io/badge/S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white">
+<img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">
+<img src="https://img.shields.io/badge/ElastiCache-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
+<br>
+<img src="https://img.shields.io/badge/ECR-527FFF?style=for-the-badge&logo=amazonaws&logoColor=white">
+<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+<img src="https://img.shields.io/badge/Docker%20Compose-1488C6?style=for-the-badge&logo=docker&logoColor=white">
+<img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">
+</div>
+
+<br>
+
+<div align="center">
+<b>🤝 Team Synergy Hub</b><br>
+<img src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white">
+<img src="https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white">
+<img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white">
+<img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white">
+<img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white">
+<img src="https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white">
+</div>
+
+## 🔳 와이어 프레임
+
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">1. ✏️ 매칭 포스트 (게시글)</span></summary>
+  <br />
+
+### ✏️ 매칭 보드
+
+![매칭보드](https://github.com/user-attachments/assets/04dbed36-9f3d-46f8-a7e0-1295ff3dc139)
+
+<br/>
+
+### ✏️ 매칭 포스트 작성
+
+![Image](https://github.com/user-attachments/assets/5b1315eb-7ef6-4107-8016-973500fe222f)
+
+<br/>
+
+### ✏️ 매칭 포스트 상세 조회
+
+![매칭포스트 작성](https://github.com/user-attachments/assets/beea8f26-9f68-4aa6-8c2a-cab52456934c)
+
+<br/>
+
+### ✏️ 매칭 포스트 수정
+
+![Image](https://github.com/user-attachments/assets/53c82dfb-9a1c-4159-9a4b-aff93ee919d8)
+</details>
+
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🖼️ 포트폴리오</span></summary>
+  <br />
+
+### 🖼 포트폴리오 리스트 조회
+
+![Image](https://github.com/user-attachments/assets/a27b4c4a-c31e-40c6-8dd9-eaf2767f89ba)
+
+### 🖼 포트폴리오 상세 조회
+
+![Image](https://github.com/user-attachments/assets/1e0fbf6a-7ed3-4dfe-8878-3604f43c1445)
+
+### 🖼 포트폴리오 작성
+
+![Image](https://github.com/user-attachments/assets/00048c92-f113-49dc-85ef-2121fd3a8ca3)
+</details>
+
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">3. 🤡 채팅</span></summary>
+  <br />
+
+### 🤡 채팅 리스트
+
+![Image](https://github.com/user-attachments/assets/5ca55ed6-9199-487b-ad00-09cdeb65b0b6)
+
+### 🤡 채팅 화면
+
+![Image](https://github.com/user-attachments/assets/0c1c8a92-3419-45d1-b0db-e1310735f7f1)
+</details>
+
+<br/>
+
+## 🏗️ 프로젝트 구조
+
+### 𓊍 프로젝트 아키텍처
+
+<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/bc232f90-9d3c-46fe-b668-38c9264e01fb" />
+
+### ⛁ ERD (RDMBS)
 
 ```mermaid
 erDiagram
@@ -193,11 +397,8 @@ erDiagram
     }
 ```
 
-[//]: # (![Image]&#40;https://github.com/user-attachments/assets/7f7382d3-ebf3-4040-80bb-3311350545d8&#41;)
+### ⛃ MongoDB Schema
 
-### MongoDB Schema
-
-[//]: # (<img width="519" alt="Image" src="https://github.com/user-attachments/assets/54ecdea4-6236-44c5-a711-45552357f091" />)
 ```mermaid
 classDiagram
     class chat_room {
@@ -221,9 +422,7 @@ classDiagram
     chat_room "1" -- "0..*" chat_message : chat_room_id
 ```
 
-
-## 프로젝트 사용 흐름
-
+### 🔁 프로젝트 플로우 개요
 
 ```mermaid
 flowchart TD
@@ -241,85 +440,87 @@ flowchart TD
     L --> M[포트폴리오 닫기]
 ```
 
-## 이용 방법
-### 회원
-* 사용자는 일반 로그인, 소셜 로그인을 선택하여 회원가입 또는 로그인 할 수 있습니다.
-* 사용자는 마이 페이지에서 본인의 닉네임, 비밀번호를 수정할 수 있습니다.
-* 소셜 로그인으로 가입 한 사용자에 한하여 최초 1회 이메일과 비밀번호를 설정할 수 있습니다.
-  * 이메일과 비밀번호를 모두 설정하면 일반 로그인도 가능합니다.
-  * 이메일은 최초 1회 바꾼 후에는 수정이 불가능합니다.
-  * 닉네임을 수정하지 않으면 "null"으로 표시됩니다.
-* 사용자가 로그인을 해야 다른 기능을 사용할 수 있습니다.
-* 닉네임이나 이름으로 사용자 검색이 가능합니다.(완벽하게 일치해야 검색 가능)
+### 🌀 서비스 상세 플로우 (참고)
 
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">1. 📲 회원가입</span></summary>
+  <br />
 
-### 포트폴리오
+![회원가입](https://github.com/user-attachments/assets/4a0b3f3f-ab37-430d-bc8b-59fa77e86a1d)
+</details>
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">2. 🔎 검색</span></summary>
+  <br />
+
+![검색](https://github.com/user-attachments/assets/7a75f682-96c9-4154-b2bf-630a4964a1d3)
+</details>
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">3. ✍️ 매칭포스트(게시글) 작성, 수정 및 삭제</span></summary>
+  <br />
+
+![매칭포스트(게시글) 작성, 수정 및 삭제](https://github.com/user-attachments/assets/85430d9f-d902-4d55-8147-d82be5ff26c8)
+</details>
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">4. 💼 포트폴리오 관리</span></summary>
+  <br />
+
+![포트폴리오](https://github.com/user-attachments/assets/23db30c4-f97c-4442-a526-56f062e35ae4)
+</details>
+<details>
+  <summary><span style="font-size: 1.2em; font-weight: bold;">5. 💬 채팅</span></summary>
+  <br />
+
+![다른 사용자와 채팅](https://github.com/user-attachments/assets/e98a0a48-f0e7-4f55-841b-b645fb037475)
+</details>
+
+<br/>
+
+## 🧩 API 명세서
+
+[👉 API 명세서 바로가기](https://api.taptoon.site/swagger-ui/index.html)
+
+<br/>
+
+## ⚡ 주요 기능
+
+### 📁 포트폴리오 등록
+
 * 사용자는 마이 페이지에서 개인의 역량을 나타낼 수 있는 포트폴리오를 작성할 수 있습니다.
 * 포트폴리오는 글, 그림 모두 가능합니다.
 * 포트폴리오는 최대 5개 까지 작성 가능합니다.(이상은 VIP 서비스 예정)
 * 포트폴리오에 이미지는 최대 3개까지만 첨부할 수 있습니다.
 
+<br/>
 
-### 구인 글
+### 📝 매칭 포스트 (구인 글)
+
 * 사용자는 원하는 파트너를 구인하는 글을 작성할 수 있습니다.
 * 구인하는 글에는 본인을 간략히 나타낼 만한 그림/글을 첨부할 수 있습니다.
 * 구인하는 글의 제목이나 내용으로 검색할 수 있습니다.
-  * 구인 글 검색은 자동완성 기능을 지원합니다.
-  * 구인 글은 여러 조건으로 검색이 가능합니다.
+    * 구인 글 검색은 자동완성 기능을 지원합니다.
+    * 구인 글은 여러 조건으로 검색이 가능합니다.
 
+<br/>
 
-### 채팅
+### 🗣️ 채팅
+
 * 사용자는 원하는 파트너와 컨택하기 위해 채팅을 진행할 수 있습니다.
-* 채팅은 1:1 채팅, 그룹 채팅 모두 가능합니다.
-* 채팅의 읽음 여부도 확인할 수 있습니다.
+* 채팅은 1:1 채팅으로 진행하고, 이미지 전송 또한 지원합니다.
 
-## 기능 목록
-* 인증/인가
-  * 소셜 로그인
-  * security
-* 이미지 등록
-* 채팅
-* 검색
+<br/>
 
-## Dev log
-* [📌 Elasticsearch 클러스터링 적용기 🚀](/devlog/강성욱/elasticsearch_고가용성을_위한_클러스터링_적용기.md)
-* [📌 Elasticsearch 적용기 🚀](/devlog/강성욱/elasticsearch_고군분투_적용기.md)
-* [📌 조회수 동시성 문제 해결 여정 🚀](/devlog/강성욱/조회수_동시성_문제_해결_여정.md)
-* [📌 인덱스 최적화로 검색 API 성능 개선하기 🚀](/devlog/강성욱/인덱스를_활용한_검색_속도_향상_여정.md)
+## 🪵 Dev log
+
+* [📌 Elasticsearch 클러스터링 적용기 🔥](/devlog/강성욱/elasticsearch_고가용성을_위한_클러스터링_적용기.md)
+* [📌 Elasticsearch 적용기 📜](/devlog/강성욱/elasticsearch_고군분투_적용기.md)
+* [📌 조회수 동시성 문제 해결 여정 🔮](/devlog/강성욱/조회수_동시성_문제_해결_여정.md)
+* [📌 인덱스 최적화로 검색 API 성능 개선하기 🕵️‍♂️](/devlog/강성욱/인덱스를_활용한_검색_속도_향상_여정.md)
 * [📌 CI/CD 개발노트 🚀](devlog/김창현/개발노트-CI,CD.md)
-* [📌 이미지 개발노트 🚀](devlog/김창현/개발노트-이미지.md)
-* [📌 인증/인가 개발노트 🚀](devlog/김창현/개발노트-인증,인가.md)
+* [📌 이미지 개발노트 🤝](devlog/김창현/개발노트-이미지.md)
+* [📌 인증/인가 개발노트 ✨](devlog/김창현/개발노트-인증,인가.md)
+* [📌 WebSocket과 Redis의 역할과 흐름 🚀](/devlog/이진영/WebSocket과_Redis의_역할과_흐름.md)
+* [📌 데이터베이스에 따른 채팅 보내기 읽기 속도 비교 📩](/devlog/이진영/데이터베이스에_따른_채팅_보내기_읽기_속도_비교.md)
+* [📌 채팅 기술스택 선택 과정 💬](/devlog/이진영/채팅_기술스택_선택_과정.md)
+* [📌 개발노트-댓글 📝](/devlog/이상구/개발노트-댓글.md)
+* [📌 개발노트-포트폴리오 🎭](/devlog/이상구/개발노트-포트폴리오.md)
 
-## Support
-<table>
-  <tr>
-    <td align="center">
-      <b><a href="https://github.com/chk223">김창현</a></b><br>
-      <a href="https://github.com/chk223">
-        <img src="https://avatars.githubusercontent.com/u/104356399?v=4" width="100px" />
-      </a><br>
-      <b>팀장</b>
-    </td>
-    <td align="center">
-      <b><a href="https://github.com/freedrawing">강성욱</a></b><br>
-      <a href="https://github.com/freedrawing">
-        <img src="https://avatars.githubusercontent.com/u/43941383?v=4" width="100px" />
-      </a><br>
-      <b>부팀장</b>
-    </td>
-    <td align="center">
-      <b><a href="https://github.com/leithharbor">이상구</a></b><br>
-      <a href="https://github.com/leithharbor">
-        <img src="https://avatars.githubusercontent.com/u/185915561?v=4" width="100px" />
-      </a><br>
-      <b>팀원</b>
-    </td>
-    <td align="center">
-      <b><a href="https://github.com/dllll2">이진영</a></b><br>
-      <a href="https://github.com/dllll2">
-        <img src="https://avatars.githubusercontent.com/u/105922173?v=4" width="100px" />
-      </a><br>
-      <b>팀원</b>
-    </td>
-  </tr>
-</table>

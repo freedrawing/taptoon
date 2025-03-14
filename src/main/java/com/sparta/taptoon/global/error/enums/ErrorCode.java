@@ -61,10 +61,12 @@ public enum ErrorCode {
   CHAT_SELF_INVITATION(HttpStatus.BAD_REQUEST, "CHAT_400", "자기 자신을 초대할 수 없습니다."),
   CHAT_NO_VALID_INVITEES(HttpStatus.BAD_REQUEST, "CHAT_400", "유효한 초대 멤버가 없습니다."),
   CHAT_MINIMUM_MEMBERS(HttpStatus.BAD_REQUEST, "CHAT_400", "채팅방은 최소 2명 이상이어야 합니다."),
+  CHAT_ROOM_DELETED(HttpStatus.CONFLICT, "CHAT_ROOM_409", "존재하지 않는 채팅방 입니다."),
 
   // Image
   IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "IMAGE_404", "이미지를 찾을 수 없습니다."),
   IMAGE_ALREADY_SENT(HttpStatus.BAD_REQUEST, "IMAGE_400", "이미 전송된 이미지입니다."),
+
 
   ;
 
