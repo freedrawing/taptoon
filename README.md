@@ -1,7 +1,7 @@
 # TapToon:  𓆉𓆝 𓆟 𓆞 𓆝 𓆟𓇼 웹툰 창작의 꿈을 잇다
 
 <br>
-<img width="1000" src="https://github.com/user-attachments/assets/2d014f23-75fc-4015-ad37-f7b6dc880272" />
+<img width="1000" src="https://github.com/user-attachments/assets/873cd043-85f3-4cc4-abb9-1b965509641b" />
 
 
 <br/>
@@ -120,7 +120,10 @@
     <td align="center">
       <b><a href="https://github.com/dllll2">이진영</a></b>
     </td>
-    <td align="center">테스트 및 디버깅</td>
+    <td align="center">
+      테스트 및 디버깅 <br>
+      성능 최적화
+    </td>
   </tr>
 </table>
 
