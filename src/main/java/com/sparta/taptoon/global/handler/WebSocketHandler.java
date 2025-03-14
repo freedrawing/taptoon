@@ -3,6 +3,7 @@ package com.sparta.taptoon.global.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.taptoon.domain.chat.dto.request.SendChatMessageRequest;
+import com.sparta.taptoon.domain.chat.dto.response.ChatCombinedMessageResponse;
 import com.sparta.taptoon.domain.chat.service.ChatMessageService;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.InvalidRequestException;
@@ -68,8 +69,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
             MessagePayload messagePayload = parseMessagePayload(payload);
             String chatRoomId = extractChatRoomId(session);
 
-            chatMessageService.sendMessage(messagePayload.senderId(), chatRoomId,
-                    new SendChatMessageRequest(messagePayload.message()));
+            // ChatMessageService를 호출해 메시지 저장 및 발행
+            ChatCombinedMessageResponse response = chatMessageService.sendMessage(
+                    messagePayload.senderId(),
+                    chatRoomId,
+                    new SendChatMessageRequest(messagePayload.message())
+            );
+
+            // WebSocket으로 브로드캐스트는 이미 sendMessage 내부에서 Redis를 통해 처리됨
+            log.info("✅ WebSocket 메시지 처리 완료: chatRoomId={}, senderId={}", chatRoomId, messagePayload.senderId());
         } catch (NotFoundException e) {
             log.error("❌ 채팅방 또는 사용자를 찾을 수 없음: {}", payload, e);
             sendErrorMessage(session, "Chat room or user not found");
@@ -102,6 +110,26 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         Set<WebSocketSession> sessions = chatRoomSessions.getOrDefault(chatRoomId, Collections.emptySet());
         JsonNode jsonNode = objectMapper.readTree(message);
+
+        // 채팅방 삭제 이벤트 처리
+        if (jsonNode.has("type") && "CHAT_ROOM_DELETED".equals(jsonNode.get("type").asText())) {
+            log.info("✅ 채팅방 삭제 이벤트 수신 - chatRoomId: {}", chatRoomId);
+            if (sessions != null && !sessions.isEmpty()) {
+                for (WebSocketSession session : sessions) {
+                    try {
+                        session.close(CloseStatus.NORMAL.withReason("Chat room deleted"));
+                        log.info("WebSocket 세션 종료 - sessionId: {}, chatRoomId: {}", session.getId(), chatRoomId);
+                    } catch (IOException e) {
+                        log.error("❌ WebSocket 세션 종료 실패 - sessionId: {}, chatRoomId: {}", session.getId(), chatRoomId, e);
+                    }
+                }
+                chatRoomSessions.remove(chatRoomId); // 세션 목록에서 채팅방 제거
+                log.info("✅ 채팅방 세션 목록에서 제거 - chatRoomId: {}", chatRoomId);
+            }
+            return; // 삭제 이벤트 처리 후 종료
+        }
+
+        // 기존 메시지 브로드캐스트 로직
         String messageId = jsonNode.get("id").asText();
         Long senderIdFromMessage = jsonNode.get("sender_id").asLong();
 

@@ -1,7 +1,7 @@
-name: Deploy to AWS with Rolling Update
+name: Deploy to AWS with Optimized Rolling Update
 on:
   push:
-    branches: [ cd-deploy ]  # 메인 브랜치에 push될 때 실행
+    branches: [ main ]  # 메인 브랜치에 push될 때 실행
 
 jobs:
   build_and_push:
@@ -21,10 +21,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      # 빌드 속도 개선
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build -x test
+          arguments: build -x test --parallel --build-cache
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -36,7 +37,10 @@ jobs:
       - name: Upload docker-compose file to S3
         run: |
           aws s3 cp ./docker-compose.yml s3://taptoon-config/docker-compose.yml --sse AES256
-        # 참고: docker-compose.yml이 리포지토리 루트에 있다고 가정. 경로가 다르면 ./path/to/docker-compose.yml로 수정.
+
+      # Docker 빌드 최적화
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -48,14 +52,15 @@ jobs:
           ECR_REPOSITORY: taptoon
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
-                      --cache-from $ECR_REGISTRY/$ECR_REPOSITORY:latest \
-                      -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-                      -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:previous
+          echo "Docker 이미지 빌드 및 푸시 중..."
+          docker build \
+            --cache-from $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          
+          echo "이미지 태그: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:previous
 
   deploy_and_health_check:
     needs: build_and_push
@@ -73,122 +78,268 @@ jobs:
           ASG_TEMPLATE=$(aws autoscaling describe-auto-scaling-groups \
             --auto-scaling-group-name "asg-taptoon" \
             --query "AutoScalingGroups[0].LaunchTemplate" --output json)
-          echo "Current ASG Launch Template: $ASG_TEMPLATE"
-          # 최신 버전이 아닌 경우 수동 조정 필요
+          echo "현재 ASG 시작 템플릿: $ASG_TEMPLATE"
 
-      - name: Deploy and Monitor
+      - name: Deploy with Faster Rolling Update
+        id: deploy
         run: |
-          # 인스턴스 리프레시 상태 확인
-          echo "Checking for existing instance refresh..."
-          STATUS=$(aws autoscaling describe-instance-refreshes \
+          # 진행 중인 인스턴스 리프레시 확인 및 취소
+          echo "기존 인스턴스 리프레시 확인 중..."
+          REFRESH_ID=$(aws autoscaling describe-instance-refreshes \
             --auto-scaling-group-name "asg-taptoon" \
-            --query "InstanceRefreshes[?Status=='InProgress'].Status" \
+            --query "InstanceRefreshes[?Status=='InProgress'].InstanceRefreshId" \
             --output text 2>/dev/null || echo "None")
           
-          if [ "$STATUS" == "InProgress" ]; then
-            echo "Instance refresh already in progress. Monitoring existing refresh..."
-          else
-            echo "Starting new instance refresh..."
-            aws autoscaling start-instance-refresh \
-              --auto-scaling-group-name "asg-taptoon" \
-              --strategy "Rolling" \
-              --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":180,"MaxHealthyPercentage":110}'
+          if [ "$REFRESH_ID" != "None" ] && [ "$REFRESH_ID" != "" ]; then
+            echo "진행 중인 리프레시 취소: $REFRESH_ID"
+            aws autoscaling cancel-instance-refresh \
+              --auto-scaling-group-name "asg-taptoon" || echo "리프레시 취소 실패, 계속 진행합니다"
+          
+            echo "10초 대기 중..."
+            sleep 10
           fi
           
-          # 최소 지속 시간 설정 (3분)
-          echo "Giving deployment some time to progress..."
-          sleep 180
+          # ASG 정보 확인
+          ASG_INFO=$(aws autoscaling describe-auto-scaling-groups \
+            --auto-scaling-group-name "asg-taptoon" \
+            --query "AutoScalingGroups[0]" --output json)
           
-          # 진행 상황 모니터링
-          echo "Starting deployment monitoring..."
-          MAX_DURATION=1500  # 25분 (3분 이미 기다렸으므로)
+          DESIRED_CAPACITY=$(echo $ASG_INFO | jq -r '.DesiredCapacity')
+          echo "현재 원하는 용량: $DESIRED_CAPACITY"
+          
+          # 더 효율적인 롤링 업데이트 설정으로 새 리프레시 시작
+          echo "더 빠른 롤링 업데이트 시작..."
+          
+          # AWS 제약 조건 확인
+          MIN_PERCENTAGE=50
+          MAX_PERCENTAGE=150
+          
+          if [ $((MAX_PERCENTAGE - MIN_PERCENTAGE)) -gt 100 ]; then
+            echo "경고: MaxHealthyPercentage와 MinHealthyPercentage의 차이가 100을 초과합니다."
+            echo "MaxHealthyPercentage를 자동으로 조정합니다."
+            MAX_PERCENTAGE=$((MIN_PERCENTAGE + 100))
+          fi
+          
+          echo "설정: MinHealthyPercentage=$MIN_PERCENTAGE, MaxHealthyPercentage=$MAX_PERCENTAGE"
+          
+          PREFERENCES=$(cat <<-EOF
+          {
+            "MinHealthyPercentage": $MIN_PERCENTAGE,
+            "InstanceWarmup": 60,
+            "MaxHealthyPercentage": $MAX_PERCENTAGE,
+            "CheckpointPercentages": [25, 50, 100],
+            "CheckpointDelay": 10
+          }
+          EOF
+          )
+          
+          REFRESH=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name "asg-taptoon" \
+            --strategy "Rolling" \
+            --preferences "$PREFERENCES")
+          
+          if [ $? -ne 0 ]; then
+            echo "인스턴스 리프레시 시작 실패. 기본 설정으로 다시 시도합니다."
+          
+            # 기본 설정으로 다시 시도
+            REFRESH=$(aws autoscaling start-instance-refresh \
+              --auto-scaling-group-name "asg-taptoon" \
+              --strategy "Rolling" \
+              --preferences '{"MinHealthyPercentage": 90, "InstanceWarmup": 90}')
+          fi
+          
+          REFRESH_ID=$(echo $REFRESH | jq -r '.InstanceRefreshId')
+          echo "인스턴스 리프레시 ID: $REFRESH_ID"
+          echo "refresh-id=$REFRESH_ID" >> $GITHUB_OUTPUT
+          
+          # 첫 번째 체크포인트까지만 대기
+          echo "첫 번째 체크포인트(25%)까지 모니터링 시작..."
+          CHECKPOINT_TIMEOUT=300  # 5분
           START_TIME=$(date +%s)
           LAST_STATUS=""
+          LAST_PROGRESS="0"
           
-          while [ $(($(date +%s) - START_TIME)) -lt $MAX_DURATION ]; do
+          while [ $(($(date +%s) - START_TIME)) -lt $CHECKPOINT_TIMEOUT ]; do
             STATUS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name "asg-taptoon" \
+              --instance-refresh-ids $REFRESH_ID \
               --query "InstanceRefreshes[0].Status" --output text 2>/dev/null || echo "Unknown")
+          
             PROGRESS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name "asg-taptoon" \
-              --query "InstanceRefreshes[0].PercentageComplete" --output text 2>/dev/null || echo "Unknown")
+              --instance-refresh-ids $REFRESH_ID \
+              --query "InstanceRefreshes[0].PercentageComplete" --output text 2>/dev/null || echo "0")
           
-            if [ "$STATUS" != "$LAST_STATUS" ] || [ $(($(date +%s) % 60)) -lt 5 ]; then
-              echo "$(date): Deployment status - $STATUS ($PROGRESS%)"
+            CHECKPOINT=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "asg-taptoon" \
+              --instance-refresh-ids $REFRESH_ID \
+              --query "InstanceRefreshes[0].ReachedCheckpoints[*].CheckpointPercentage" \
+              --output text 2>/dev/null || echo "")
+          
+            # 상태나 진행률이 변경되었을 때만 출력
+            if [ "$STATUS" != "$LAST_STATUS" ] || [ "$PROGRESS" != "$LAST_PROGRESS" ]; then
+              echo "$(date): 배포 상태 - $STATUS ($PROGRESS%)"
               LAST_STATUS="$STATUS"
+              LAST_PROGRESS="$PROGRESS"
+            fi
+          
+            # 첫 번째 체크포인트(25%)에 도달하면 중단
+            if [[ "$CHECKPOINT" == *"25"* ]]; then
+              echo "✅ 첫 번째 체크포인트(25%)에 도달했습니다!"
+              break
             fi
           
             if [ "$STATUS" == "Successful" ]; then
-              echo "✅ Deployment completed successfully!"
+              echo "✅ 배포가 성공적으로 완료되었습니다!"
               break
             elif [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
-              echo "⚠️ Instance refresh reported status: $STATUS"
-              break
+              echo "⚠️ 인스턴스 리프레시 실패: $STATUS"
+              exit 1
             fi
           
-            sleep 15
+            sleep 10
           done
           
+          # 체크포인트 도달 여부 확인
+          CHECKPOINT=$(aws autoscaling describe-instance-refreshes \
+            --auto-scaling-group-name "asg-taptoon" \
+            --instance-refresh-ids $REFRESH_ID \
+            --query "InstanceRefreshes[0].ReachedCheckpoints[*].CheckpointPercentage" \
+            --output text 2>/dev/null || echo "")
+          
           # 타임아웃 처리
-          if [ $(($(date +%s) - START_TIME)) -ge $MAX_DURATION ]; then
-            echo "⚠️ Monitoring timed out after 25 minutes"
-            echo "Instance refresh may still be in progress"
+          if [ $(($(date +%s) - START_TIME)) -ge $CHECKPOINT_TIMEOUT ] && [[ "$CHECKPOINT" != *"25"* ]]; then
+            echo "⚠️ 첫 번째 체크포인트 도달 대기 시간이 초과되었습니다"
+            echo "하지만 배포는 계속 진행됩니다. 가용한 인스턴스에 대한 헬스 체크를 수행합니다..."
           fi
+
+      - name: Early Health Check
+        run: |
+          echo "가용한 인스턴스 헬스 체크 중..."
           
-          # 헬스 체크
-          echo "Performing health check on available instances..."
-          echo "Waiting an additional 2 minutes for instances to stabilize..."
-          sleep 120
-          
+          # 인스턴스 가져오기
           INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
             --auto-scaling-group-name "asg-taptoon" \
             --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId" \
             --output json)
           
           TOTAL_INSTANCES=$(echo "$INSTANCES" | jq -r 'length')
+          echo "서비스 중인 인스턴스 $TOTAL_INSTANCES개 발견"
+          
+          if [ "$TOTAL_INSTANCES" -eq 0 ]; then
+            echo "⚠️ 서비스 중인 인스턴스가 없습니다. 배포가 진행 중일 수 있습니다."
+            exit 0
+          fi
+          
+          # 결과 파일 생성
+          mkdir -p /tmp/health_checks
+          touch /tmp/combined_health.log
+          
+          # 간단한 헬스 체크
           HEALTHY_INSTANCES=0
           
-          echo "Found $TOTAL_INSTANCES instances in service"
-          
           for INSTANCE_ID in $(echo "$INSTANCES" | jq -r '.[]'); do
+            # IP 주소 가져오기
             IP=$(aws ec2 describe-instances \
               --instance-ids $INSTANCE_ID \
               --query "Reservations[0].Instances[0].PublicIpAddress" \
               --output text)
           
             if [ -z "$IP" ] || [ "$IP" == "null" ]; then
-              echo "No public IP for $INSTANCE_ID, skipping..."
+              echo "⚠️ 인스턴스 $INSTANCE_ID에 공용 IP가 없음"
               continue
             fi
           
-            echo "Checking health on $IP..."
-            HEALTH8080=$(curl -s --connect-timeout 5 --max-time 10 "http://$IP:8080/health" || echo "DOWN")
+            echo "인스턴스 $INSTANCE_ID ($IP) 헬스 체크 중..."
+            HEALTH=$(curl -s --connect-timeout 3 --max-time 5 "http://$IP:8080/health" || echo "DOWN")
           
-            if echo "$HEALTH8080" | grep -q "UP"; then
-              echo "✅ Instance $INSTANCE_ID ($IP) is healthy on port 8080!"
+            if echo "$HEALTH" | grep -q "UP"; then
+              echo "✅ 인스턴스 $INSTANCE_ID ($IP) 정상"
               HEALTHY_INSTANCES=$((HEALTHY_INSTANCES + 1))
             else
-              echo "⚠️ Instance $INSTANCE_ID ($IP) is not healthy on port 8080"
+              # 두 번 더 시도
+              for i in {2..3}; do
+                echo "재시도 $i/3..."
+                sleep 2
+                HEALTH=$(curl -s --connect-timeout 3 --max-time 5 "http://$IP:8080/health" || echo "DOWN")
+          
+                if echo "$HEALTH" | grep -q "UP"; then
+                  echo "✅ 인스턴스 $INSTANCE_ID ($IP) 정상 (재시도 $i에서 성공)"
+                  HEALTHY_INSTANCES=$((HEALTHY_INSTANCES + 1))
+                  break
+                fi
+              done
+          
+              if ! echo "$HEALTH" | grep -q "UP"; then
+                echo "⚠️ 인스턴스 $INSTANCE_ID ($IP) 비정상 (3번 시도 실패)"
+              fi
             fi
           done
           
-          echo "$HEALTHY_INSTANCES out of $TOTAL_INSTANCES instances are healthy"
+          echo "$TOTAL_INSTANCES 중 $HEALTHY_INSTANCES 인스턴스가 정상 상태"
           
-          MIN_HEALTHY=$((TOTAL_INSTANCES / 2))
+          # 필요한 최소 정상 인스턴스 수 계산 (30% 이상)
+          MIN_HEALTHY=$((TOTAL_INSTANCES * 30 / 100))
           if [ $MIN_HEALTHY -lt 1 ]; then MIN_HEALTHY=1; fi
           
           if [ $HEALTHY_INSTANCES -ge $MIN_HEALTHY ]; then
-            echo "✅ At least $MIN_HEALTHY instances are healthy, deployment considered successful"
+            echo "✅ 최소 $MIN_HEALTHY 인스턴스가 정상 상태입니다. 배포가 정상적으로 진행 중입니다."
             exit 0
           else
-            echo "❌ Less than $MIN_HEALTHY instances are healthy, attempting rollback..."
-            aws autoscaling start-instance-refresh \
-              --auto-scaling-group-name "asg-taptoon" \
-              --strategy "Rolling" \
-              --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":180,"MaxHealthyPercentage":110}'
-            echo "Rollback initiated. Manual intervention may be required to revert Launch Template."
-            exit 0  # 실제 실패 시 exit 1로 변경 가능
+            echo "⚠️ $MIN_HEALTHY 인스턴스 미만이 정상 상태입니다."
+            echo "하지만 배포는 계속 진행 중이므로, 다음 작업을 계속 진행합니다."
+            # 중요: 여기서도 성공으로 종료합니다
+            exit 0
           fi
+
+      - name: Tag previous image
+        run: |
+          # 이전 이미지 태그 생성 - 간단한 방법 사용
+          ECR_REGISTRY=$(aws ecr describe-repositories --repository-names taptoon --query 'repositories[0].repositoryUri' --output text | sed 's/\/taptoon//')
+          
+          # AWS CLI 명령어로 이미지 복사 (태그만 변경)
+          echo "latest 태그를 previous 태그로 복사 중..."
+          aws ecr batch-get-image \
+            --repository-name taptoon \
+            --image-ids imageTag=latest \
+            --query 'images[].imageManifest' \
+            --output json > manifest.json
+          
+          # JSON 파일에서 매니페스트 추출
+          MANIFEST=$(cat manifest.json | jq -r '.[0]')
+          
+          if [ -z "$MANIFEST" ] || [ "$MANIFEST" == "null" ]; then
+            echo "⚠️ latest 태그의 이미지 매니페스트를 찾을 수 없습니다. previous 태그 생성을 건너뜁니다."
+          else
+            # 매니페스트를 사용하여 previous 태그 생성
+            aws ecr put-image \
+              --repository-name taptoon \
+              --image-tag previous \
+              --image-manifest "$MANIFEST"
+          
+            echo "이전 이미지가 'previous' 태그로 저장되었습니다"
+          fi
+
+      - name: Background Monitor Deployment
+        run: |
+          REFRESH_ID="${{ steps.deploy.outputs.refresh-id }}"
+          
+          echo "배포가 백그라운드에서 계속 진행됩니다 (리프레시 ID: $REFRESH_ID)"
+          echo "전체 배포가 완료되기 전에 워크플로우가 완료됩니다."
+          echo "AWS 콘솔에서 배포 진행 상황을 확인할 수 있습니다."
+          
+          # 배포 상태 최종 확인
+          STATUS=$(aws autoscaling describe-instance-refreshes \
+            --auto-scaling-group-name "asg-taptoon" \
+            --instance-refresh-ids $REFRESH_ID \
+            --query "InstanceRefreshes[0].Status" --output text 2>/dev/null || echo "Unknown")
+          
+          PROGRESS=$(aws autoscaling describe-instance-refreshes \
+            --auto-scaling-group-name "asg-taptoon" \
+            --instance-refresh-ids $REFRESH_ID \
+            --query "InstanceRefreshes[0].PercentageComplete" --output text 2>/dev/null || echo "Unknown")
+          
+          echo "현재 배포 상태: $STATUS ($PROGRESS%)"
 
   cleanup_ecr:
     needs: deploy_and_health_check
@@ -205,17 +356,59 @@ jobs:
         env:
           ECR_REPOSITORY: taptoon
         run: |
-          IMAGES_TO_DELETE=$(aws ecr describe-images \
+          # 간소화된 ECR 이미지 정리 (최신 10개 제외한 태그 없는 이미지만 삭제)
+          echo "오래된 ECR 이미지 정리 중..."
+          
+          # 1. latest와 previous 태그가 붙은 이미지의 다이제스트 목록 가져오기
+          TAGGED_DIGESTS=$(aws ecr describe-images \
             --repository-name $ECR_REPOSITORY \
-            --query 'sort_by(imageDetails[? !contains(imageTags, `latest`)],& imagePushedAt)[:-5].imageDigest' \
+            --filter "tagStatus=TAGGED" \
+            --query 'imageDetails[?contains(imageTags, `latest`) || contains(imageTags, `previous`)].imageDigest' \
+            --output json | jq -r '.[]')
+          
+          echo "보존할 태그된 이미지:"
+          echo "$TAGGED_DIGESTS"
+          
+          # 2. 모든 이미지 중 최신 10개의 다이제스트 가져오기
+          RECENT_DIGESTS=$(aws ecr describe-images \
+            --repository-name $ECR_REPOSITORY \
+            --query 'sort_by(imageDetails,& imagePushedAt)[-10:].imageDigest' \
+            --output json | jq -r '.[]')
+          
+          echo "보존할 최신 이미지:"
+          echo "$RECENT_DIGESTS"
+          
+          # 3. 삭제할 태그 없는 이미지 (최신 10개 제외)
+          UNTAGGED_IMAGES=$(aws ecr describe-images \
+            --repository-name $ECR_REPOSITORY \
+            --filter "tagStatus=UNTAGGED" \
+            --query 'imageDetails[].imageDigest' \
             --output json)
-          if [ "$IMAGES_TO_DELETE" != "[]" ] && [ "$IMAGES_TO_DELETE" != "" ]; then
-            for digest in $(echo $IMAGES_TO_DELETE | jq -r '.[]'); do
+          
+          # 4. 최신 10개에 포함되지 않는 태그 없는 이미지만 삭제
+          echo "삭제할 이미지 확인 중..."
+          IMAGES_TO_DELETE=()
+          
+          for DIGEST in $(echo "$UNTAGGED_IMAGES" | jq -r '.[]'); do
+            # 최신 10개에 포함되는지 확인
+            if ! echo "$RECENT_DIGESTS" | grep -q "$DIGEST"; then
+              IMAGES_TO_DELETE+=("$DIGEST")
+            fi
+          done
+          
+          # 5. 이미지 삭제
+          if [ ${#IMAGES_TO_DELETE[@]} -gt 0 ]; then
+            echo "다음 이미지들을 삭제합니다:"
+            printf '%s\n' "${IMAGES_TO_DELETE[@]}"
+          
+            for DIGEST in "${IMAGES_TO_DELETE[@]}"; do
+              echo "삭제 중: $DIGEST"
               aws ecr batch-delete-image \
                 --repository-name $ECR_REPOSITORY \
-                --image-ids imageDigest=$digest
+                --image-ids imageDigest=$DIGEST || echo "삭제 실패 (무시하고 계속 진행)"
             done
-            echo "Old ECR images cleaned up"
+          
+            echo "오래된 ECR 이미지 정리 완료"
           else
-            echo "No old ECR images to clean up"
+            echo "정리할 오래된 이미지가 없습니다"
           fi

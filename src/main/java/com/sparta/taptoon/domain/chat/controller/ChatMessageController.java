@@ -1,7 +1,6 @@
 package com.sparta.taptoon.domain.chat.controller;
 
 import com.sparta.taptoon.domain.chat.dto.request.SendChatImageMessageRequest;
-import com.sparta.taptoon.domain.chat.dto.request.SendChatMessageRequest;
 import com.sparta.taptoon.domain.chat.dto.response.ChatCombinedMessageResponse;
 import com.sparta.taptoon.domain.chat.service.ChatMessageService;
 import com.sparta.taptoon.domain.image.dto.response.ChatPresignedUrlResponse;
@@ -25,16 +24,16 @@ public class ChatMessageController {
     private final ChatMessageService chatMessageService;
     private final ImageService imageService;
 
-    @Operation(summary = "메시지 전송")
-    @PostMapping("/{chatRoomId}/message")
-    public ResponseEntity<ApiResponse<ChatCombinedMessageResponse>> sendMessage(
-            @AuthenticationPrincipal MemberDetail memberDetail, // JWT에서 유저 정보 가져옴
-            @PathVariable String chatRoomId,
-            @Valid @RequestBody SendChatMessageRequest request) {
-
-        ChatCombinedMessageResponse response = chatMessageService.sendMessage(memberDetail.getId(), chatRoomId, request);
-        return ApiResponse.success(response);
-    }
+//    @Operation(summary = "메시지 전송")
+//    @PostMapping("/{chatRoomId}/message")
+//    public ResponseEntity<ApiResponse<ChatCombinedMessageResponse>> sendMessage(
+//            @AuthenticationPrincipal MemberDetail memberDetail, // JWT에서 유저 정보 가져옴
+//            @PathVariable String chatRoomId,
+//            @Valid @RequestBody SendChatMessageRequest request) {
+//
+//        ChatCombinedMessageResponse response = chatMessageService.sendMessage(memberDetail.getId(), chatRoomId, request);
+//        return ApiResponse.success(response);
+//    }
 
     @Operation(summary = "채팅 메시지 조회 + 읽음 처리(텍스트 + 이미지")
     @GetMapping("/{chatRoomId}/messages")
