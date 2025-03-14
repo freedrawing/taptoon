@@ -84,7 +84,13 @@
     <td align="center">
       <b><a href="https://github.com/chk223">김창현</a></b>
     </td>
-    <td align="center">백엔드 개발 및 관리</td>
+    <td align="left">
+       - 인증 인가 <br>
+       - 소셜 로그인 <br>
+       - 인프라 구축 <br>
+       - CI/CD <br>
+      - 이미지 업로드 <br>
+  </td>
   </tr>
   <tr>
     <td align="center">부팀장 🏅</td>
@@ -96,7 +102,11 @@
     <td align="center">
       <b><a href="https://github.com/freedrawing">강성욱</a></b>
     </td>
-    <td align="center">프론트엔드 설계</td>
+    <td align="left">
+      - 작가-작가를 이어줄 수 있는 매칭 포스트(게시글); 구인글<br>
+      - ElasticSearch 적용 (Autocomplete, 고가용성 확보를 위한 클러스터링, 검색)<br>
+      - Front-end UI 구성 및 로직 개발
+    </td>
   </tr>
   <tr>
     <td align="center">팀원 🌟</td>
@@ -108,7 +118,11 @@
     <td align="center">
       <b><a href="https://github.com/leithharbor">이상구</a></b>
     </td>
-    <td align="center">DB 및 API 연동</td>
+    <td align="left">
+        - 포트폴리오 <br>
+        - 댓글 <br>
+       - QueryDsl을 이용한 페이지네이션
+    </td>
   </tr>
   <tr>
     <td align="center">팀원 🌟</td>
@@ -120,9 +134,11 @@
     <td align="center">
       <b><a href="https://github.com/dllll2">이진영</a></b>
     </td>
-    <td align="center">
-      테스트 및 디버깅 <br>
-      성능 최적화
+    <td align="left">
+        - 메신저 형태의 1:1 채팅기능
+        - Websocket 연결
+        - Redis pub/sub 을 이용해서 메시지 브로드캐스트
+        - MongoDB 연결
     </td>
   </tr>
 </table>
