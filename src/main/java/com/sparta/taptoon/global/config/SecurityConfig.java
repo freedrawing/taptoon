@@ -46,7 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, MATCHING_POST_URL, COMMENTS_URL, PORTFOLIO_URL).permitAll()
                         .requestMatchers(AUTH_URL).permitAll()
                         .requestMatchers(CHATTING_NOTIFICATION, CHATTING_WEBSOCKET).permitAll()
-                        .requestMatchers(SWAGGER_DOCS_URL, SWAGGER_UI_URL, SWAGGER_HTML_URL).permitAll()
+                        .requestMatchers(SWAGGER_DOCS_URL, SWAGGER_UI_URL, SWAGGER_HTML_URL, HEALTH).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtFilter(memberRepository, jwtUtil),

@@ -30,6 +30,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
+        // WebSocket 핸드셰이크 요청인지 확인
+        if (request.getHeader("Upgrade") != null && "websocket".equalsIgnoreCase(request.getHeader("Upgrade"))) {
+            log.info("웹소켓 handshake 요청을 감지했는데, URI: {}, 필터 검사 생략", request.getRequestURI());
+            chain.doFilter(request, response);
+            return;
+        }
         String header = request.getHeader(AUTHORIZATION_HEADER);
         log.info("uri: {} header: {}", request.getRequestURI(),header);
         if (!StringUtils.hasText(header)) {

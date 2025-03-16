@@ -34,6 +34,7 @@ public class Constant {
     public static String SWAGGER_HTML_URL = "/swagger-ui.html";
     public static String CHATTING_NOTIFICATION =  "/notifications/**";
     public static String CHATTING_WEBSOCKET =  "/ws/chat/**";
+    public static String HEALTH =  "/health";
 
     //s3
     public static String PARAM_MARK = "?";
