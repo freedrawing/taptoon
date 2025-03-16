@@ -80,7 +80,8 @@ public class SecurityConfig {
                 NAVER_CORS,
                 S3_CLIENT,
                 TAPTOON,
-                TEST_SEVER
+                TEST_SEVER_IP,
+                TEST_SERVER_WITH_DOMAIN_ADDRESS
         ));
 
         // 허용할 HTTP 메서드 설정
