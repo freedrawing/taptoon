@@ -41,43 +41,43 @@ public class ElasticAutocompleteRepositoryImpl implements ElasticAutocompletedRe
 
     private Query createAutocompleteQuery(String searchText) {
         return Query.of(query ->
-                        query.bool(bool ->
-                                        bool
-                                                .should(should -> should
-                                                        // 정확한 prefix 매칭 (가장 높은 우선순위)
-                                                        .prefix(prefix -> prefix
-                                                                .field("word")
-                                                                .value(searchText)
-                                                                .boost(4.0f)
-                                                        )
-                                                )
-                                                .should(should -> should
-                                                        // NGram 기반 부분 매칭
-                                                        .match(match -> match
-                                                                .field("word.ngram")
-                                                                .query(searchText)
-                                                                .boost(3.0f)
-                                                        )
-                                                )
-                                                .should(should -> should
-                                                        // Nori 형태소 분석 기반 매칭
-                                                        .match(match -> match
-                                                                .field("word.nori")
-                                                                .query(searchText)
-                                                                .boost(2.0f)
-                                                        )
-                                                )
-                                                .should(should -> should
-                                                        // 오타 교정
-                                                        .fuzzy(fuzzy -> fuzzy
-                                                                .field("word")
-                                                                .value(searchText)
-                                                                .fuzziness("1")
-                                                                .boost(1.0f)
-                                                        )
-                                                )
+                query.bool(bool ->
+                        bool
+                                .should(should -> should
+                                        // 정확한 prefix 매칭 (가장 높은 우선순위)
+                                        .prefix(prefix -> prefix
+                                                .field("word")
+                                                .value(searchText)
+                                                .boost(4.0f)
+                                        )
+                                )
+                                .should(should -> should
+                                        // NGram 기반 부분 매칭
+                                        .match(match -> match
+                                                .field("word.ngram")
+                                                .query(searchText)
+                                                .boost(3.0f)
+                                        )
+                                )
+                                .should(should -> should
+                                        // Nori 형태소 분석 기반 매칭
+                                        .match(match -> match
+                                                .field("word.nori")
+                                                .query(searchText)
+                                                .boost(2.0f)
+                                        )
+                                )
+                                .should(should -> should
+                                        // 오타 교정
+                                        .fuzzy(fuzzy -> fuzzy
+                                                .field("word")
+                                                .value(searchText)
+                                                .fuzziness("1")
+                                                .boost(1.0f)
+                                        )
+                                )
                                 .minimumShouldMatch("1")
-                        )
+                )
         );
     }
 }
