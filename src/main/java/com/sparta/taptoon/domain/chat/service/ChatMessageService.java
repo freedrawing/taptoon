@@ -9,7 +9,7 @@ import com.sparta.taptoon.domain.chat.entity.ChatMessage;
 import com.sparta.taptoon.domain.chat.entity.ChatRoom;
 import com.sparta.taptoon.domain.chat.repository.ChatImageMessageRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatMessageRepository;
-import com.sparta.taptoon.domain.image.service.AwsS3Service;
+import com.sparta.taptoon.domain.file.service.AwsS3Service;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.common.enums.Status;

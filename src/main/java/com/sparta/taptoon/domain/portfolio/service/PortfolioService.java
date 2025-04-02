@@ -1,6 +1,6 @@
 package com.sparta.taptoon.domain.portfolio.service;
 
-import com.sparta.taptoon.domain.image.service.AwsS3Service;
+import com.sparta.taptoon.domain.file.service.AwsS3Service;
 import com.sparta.taptoon.domain.member.entity.Member;
 import com.sparta.taptoon.domain.member.service.MemberService;
 import com.sparta.taptoon.domain.portfolio.dto.request.RegisterPortfolioRequest;

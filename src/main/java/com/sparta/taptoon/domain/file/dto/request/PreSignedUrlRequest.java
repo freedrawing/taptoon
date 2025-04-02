@@ -1,4 +1,4 @@
-package com.sparta.taptoon.domain.image.dto.request;
+package com.sparta.taptoon.domain.file.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

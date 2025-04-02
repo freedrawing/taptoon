@@ -3,8 +3,8 @@ package com.sparta.taptoon.domain.chat.controller;
 import com.sparta.taptoon.domain.chat.dto.request.SendChatImageMessageRequest;
 import com.sparta.taptoon.domain.chat.dto.response.ChatCombinedMessageResponse;
 import com.sparta.taptoon.domain.chat.service.ChatMessageService;
-import com.sparta.taptoon.domain.image.dto.response.ChatPresignedUrlResponse;
-import com.sparta.taptoon.domain.image.service.ImageService;
+import com.sparta.taptoon.domain.file.dto.response.ChatPresignedUrlResponse;
+import com.sparta.taptoon.domain.file.service.FileService;
 import com.sparta.taptoon.domain.member.dto.MemberDetail;
 import com.sparta.taptoon.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +22,7 @@ import java.util.List;
 public class ChatMessageController {
 
     private final ChatMessageService chatMessageService;
-    private final ImageService imageService;
+    private final FileService fileService;
 
 //    @Operation(summary = "메시지 전송")
 //    @PostMapping("/{chatRoomId}/message")
@@ -61,7 +61,7 @@ public class ChatMessageController {
             @PathVariable String chatRoomId,
             @RequestParam String folderPath,
             @RequestParam String fileName) {
-        ChatPresignedUrlResponse chatpresignedUrlResponse = imageService.generatePresignedUrl(folderPath, chatRoomId, memberDetail.getId(), fileName);
+        ChatPresignedUrlResponse chatpresignedUrlResponse = fileService.generatePresignedUrl(folderPath, chatRoomId, memberDetail.getId(), fileName);
         return ApiResponse.success(chatpresignedUrlResponse);
     }
 

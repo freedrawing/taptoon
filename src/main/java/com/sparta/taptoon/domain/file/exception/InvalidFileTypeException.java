@@ -1,4 +1,4 @@
-package com.sparta.taptoon.domain.image.exception;
+package com.sparta.taptoon.domain.file.exception;
 
 import com.sparta.taptoon.global.error.enums.ErrorCode;
 import com.sparta.taptoon.global.error.exception.BaseException;

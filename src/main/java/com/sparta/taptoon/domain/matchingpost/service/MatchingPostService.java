@@ -1,7 +1,6 @@
 package com.sparta.taptoon.domain.matchingpost.service;
 
-import com.sparta.taptoon.domain.image.service.AwsS3Service;
-import com.sparta.taptoon.domain.image.service.ImageService;
+import com.sparta.taptoon.domain.file.service.AwsS3Service;
 import com.sparta.taptoon.domain.matchingpost.dto.request.RegisterMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.request.UpdateMatchingPostRequest;
 import com.sparta.taptoon.domain.matchingpost.dto.response.MatchingPostCursorResponse;
@@ -14,12 +13,10 @@ import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostImageReposi
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.elastic.ElasticMatchingPostRepository;
 import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.global.common.annotation.DistributedLock;
 import com.sparta.taptoon.global.common.enums.Status;
 import com.sparta.taptoon.global.error.exception.AccessDeniedException;
 import com.sparta.taptoon.global.error.exception.NotFoundException;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static com.sparta.taptoon.global.error.enums.ErrorCode.MATCHING_POST_NOT_FOUND;
-import static com.sparta.taptoon.global.error.enums.ErrorCode.MEMBER_NOT_FOUND;
 
 @Slf4j
 @Service

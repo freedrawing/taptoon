@@ -1,4 +1,4 @@
-package com.sparta.taptoon.domain.image.dto;
+package com.sparta.taptoon.domain.file.dto;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PutMapping;

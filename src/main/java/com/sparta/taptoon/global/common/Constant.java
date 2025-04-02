@@ -21,8 +21,8 @@ public class Constant {
     public static String NAVER_CORS = "https://nid.naver.com";
     public static String S3_CLIENT = "http://taptoon-front.s3-website.ap-northeast-2.amazonaws.com";
     public static String TAPTOON = "https://taptoon.site";
-    public static String TEST_SEVER_IP = "http://3.36.94.187";
     public static String TEST_SERVER_WITH_DOMAIN_ADDRESS = "http://tpi.taptoon.site";
+    public static String HTTPS_TEST_SERVER_WITH_DOMAIN_ADDRESS = "https://tpi.taptoon.site";
 
     //Security whiteList
     public static String MATCHING_POST_URL = "/api/matching-posts/**";

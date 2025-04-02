@@ -1,6 +1,6 @@
 package com.sparta.taptoon.global.util;
 
-import com.sparta.taptoon.domain.image.exception.InvalidFileTypeException;
+import com.sparta.taptoon.domain.file.exception.InvalidFileTypeException;
 
 import java.util.Collections;
 import java.util.HashMap;

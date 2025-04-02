@@ -1,4 +1,4 @@
-package com.sparta.taptoon.domain.image.service;
+package com.sparta.taptoon.domain.file.service;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;

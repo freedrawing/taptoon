@@ -128,14 +128,30 @@ public class ElasticMatchingPostRepositoryImpl implements ElasticMatchingPostRep
      * multiMatch(): 여러 필드에 걸쳐 검색하는 쿼리 타입
      */
     private Query createKeywordQuery(String keyword) {
-        return Query.of(search -> search.multiMatch(multiMatch -> multiMatch
-                .query(keyword)
-                .fields(
-                        "title", "title.ngram", "title.english",
-                        "description", "description.ngram", "description.english"
+//        return Query.of(search -> search.multiMatch(multiMatch -> multiMatch
+//                .query(keyword)
+//                .fields(
+//                        "title", "title.ngram", "title.english",
+//                        "description", "description.ngram", "description.english"
+//                )
+//                .type(TextQueryType.MostFields) // 가장 잘 매칭되는 필드를 우선적으로 채택. 여러 필드 중 가낭 높은 점수 매칭 결과 반환
+//        ));
+        return Query.of(search -> search.bool(bool -> bool
+                        .should(s -> s.multiMatch(multiMatch -> multiMatch
+                                .query(keyword)
+                                .fields("title", "title.nori", "title.ngram", "title.english",
+                                        "description", "description.nori", "description.ngram", "description.english"
+                                )
+                                .type(TextQueryType.MostFields)))
+                        .should(s -> s.prefix(prefix -> prefix
+                                .field("title")
+                                .value(keyword)))
+                        .should(s -> s.prefix(prefix -> prefix
+                                .field("description")
+                                .value(keyword)))
+                        .minimumShouldMatch("1")
                 )
-                .type(TextQueryType.BestFields) // 가장 잘 매칭되는 필드를 우선적으로 채택. 여러 필드 중 가낭 높은 점수 매칭 결과 반환
-        ));
+        );
     }
 
     /**

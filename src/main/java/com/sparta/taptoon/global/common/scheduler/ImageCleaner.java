@@ -1,6 +1,6 @@
 package com.sparta.taptoon.global.common.scheduler;
 
-import com.sparta.taptoon.domain.image.service.AwsS3Service;
+import com.sparta.taptoon.domain.file.service.AwsS3Service;
 import com.sparta.taptoon.domain.matchingpost.entity.MatchingPostImage;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostImageRepository;
 import com.sparta.taptoon.domain.portfolio.entity.PortfolioFile;

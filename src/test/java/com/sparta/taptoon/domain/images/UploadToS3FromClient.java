@@ -1,8 +1,8 @@
 package com.sparta.taptoon.domain.images;
 
-import com.sparta.taptoon.domain.image.dto.S3UploadClient;
-import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
-import com.sparta.taptoon.domain.image.service.ImageService;
+import com.sparta.taptoon.domain.file.dto.S3UploadClient;
+import com.sparta.taptoon.domain.file.dto.response.PresignedUrlResponse;
+import com.sparta.taptoon.domain.file.service.FileService;
 import com.sparta.taptoon.global.common.Constant;
 import feign.Client;
 import feign.Feign;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 public class UploadToS3FromClient {
 
     @Autowired
-    private ImageService imageService;
+    private FileService fileService;
 
     @DisabledIfSystemProperty(named = "CI", matches = "true")
     @Test
@@ -39,7 +39,7 @@ public class UploadToS3FromClient {
         String directory = directory_t;
         String fileName = "test-image.jpg";
 
-        PresignedUrlResponse presignedUrlResponse = imageService.generatePresignedUrl(directory_m, 1L, Constant.IMAGE_TYPE, fileName);
+        PresignedUrlResponse presignedUrlResponse = fileService.generatePresignedUrl(directory_m, 1L, Constant.IMAGE_TYPE, fileName);
 
         S3UploadClient s3UploadClient = Feign.builder()
                 .contract(new SpringMvcContract())

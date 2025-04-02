@@ -1,16 +1,10 @@
 package com.sparta.taptoon.domain.matchingpost.service;
 
-import com.sparta.taptoon.domain.image.service.AwsS3Service;
-import com.sparta.taptoon.domain.matchingpost.entity.MatchingPostImage;
+import com.sparta.taptoon.domain.file.service.AwsS3Service;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostImageRepository;
 import com.sparta.taptoon.domain.matchingpost.repository.MatchingPostRepository;
-import com.sparta.taptoon.global.common.enums.Status;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * `MatchingPost`와 `MatchingPostImage` 안 쓰는 이미지 정리

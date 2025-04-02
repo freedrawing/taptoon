@@ -2,19 +2,13 @@ package com.sparta.taptoon.domain.images;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.sparta.taptoon.domain.image.dto.S3UploadClient;
-import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
-import com.sparta.taptoon.domain.image.service.AwsS3Service;
-import com.sparta.taptoon.domain.image.service.ImageServiceImpl;
+import com.sparta.taptoon.domain.file.dto.S3UploadClient;
+import com.sparta.taptoon.domain.file.dto.response.PresignedUrlResponse;
+import com.sparta.taptoon.domain.file.service.AwsS3Service;
+import com.sparta.taptoon.domain.file.service.FileServiceImpl;
 import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
-import com.sparta.taptoon.domain.member.entity.Member;
-import com.sparta.taptoon.domain.portfolio.entity.Portfolio;
-import com.sparta.taptoon.domain.portfolio.entity.PortfolioFile;
-import com.sparta.taptoon.domain.portfolio.repository.PortfolioFileRepository;
-import com.sparta.taptoon.domain.portfolio.repository.PortfolioRepository;
 import com.sparta.taptoon.domain.portfolio.service.PortfolioService;
 import com.sparta.taptoon.global.common.Constant;
-import com.sparta.taptoon.global.common.enums.Status;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,7 +19,6 @@ import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,7 +30,7 @@ import static org.mockito.Mockito.*;
 public class UploadImageToS3 {
 
     @InjectMocks
-    private ImageServiceImpl imageService;
+    private FileServiceImpl imageService;
 
     @Mock
     AwsS3Service awsS3Service;

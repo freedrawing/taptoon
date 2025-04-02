@@ -2,7 +2,7 @@ package com.sparta.taptoon.domain.chat.service;
 
 import com.sparta.taptoon.domain.chat.entity.ChatImageMessage;
 import com.sparta.taptoon.domain.chat.repository.ChatImageMessageRepository;
-import com.sparta.taptoon.domain.image.service.AwsS3Service;
+import com.sparta.taptoon.domain.file.service.AwsS3Service;
 import com.sparta.taptoon.global.common.enums.Status;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

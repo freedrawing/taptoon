@@ -1,10 +1,10 @@
-package com.sparta.taptoon.domain.image.service;
+package com.sparta.taptoon.domain.file.service;
 
 import com.sparta.taptoon.domain.chat.entity.ChatImageMessage;
 import com.sparta.taptoon.domain.chat.repository.ChatImageMessageRepository;
 import com.sparta.taptoon.domain.chat.repository.ChatRoomRepository;
-import com.sparta.taptoon.domain.image.dto.response.ChatPresignedUrlResponse;
-import com.sparta.taptoon.domain.image.dto.response.PresignedUrlResponse;
+import com.sparta.taptoon.domain.file.dto.response.ChatPresignedUrlResponse;
+import com.sparta.taptoon.domain.file.dto.response.PresignedUrlResponse;
 import com.sparta.taptoon.domain.matchingpost.service.MatchingPostService;
 import com.sparta.taptoon.domain.member.repository.MemberRepository;
 import com.sparta.taptoon.domain.portfolio.enums.FileType;
@@ -24,7 +24,7 @@ import static com.sparta.taptoon.global.common.Constant.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ImageServiceImpl implements ImageService {
+public class FileServiceImpl implements FileService {
 
     private final AwsS3Service awsS3Service;
     private final MatchingPostService matchingPostService;
