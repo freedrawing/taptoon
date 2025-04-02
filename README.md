@@ -291,7 +291,7 @@
 
 ### 𓊍 프로젝트 아키텍처
 
-<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/bc232f90-9d3c-46fe-b668-38c9264e01fb" />
+<img width="1051" alt="Image" src="https://github.com/user-attachments/assets/2e61a733-fd71-483a-993e-7fa27bd667e3" />
 
 ### ⛁ ERD (RDMBS)
 
